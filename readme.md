@@ -90,7 +90,8 @@ Need to assist with reviewing information.
 
 All skills capture external references (Atlassian, web) into a `./md` folder as markdown snapshots before analysis. All use a shared visual language from `visual-language.md`.
 
-🚧 🚧 🚧 🚧 🚧 🚧 🚧 🚧
+🚧 🚧 🚧 🚧 🚧 🚧 🚧 🚧 tasks
+
 ✔️ make the graphics consistent through the skill series
 ✔️ make lit capable of exporting confluence/jira to a md capture (all skills now have ./md capture)
 ✔️ update the skill descriptions
@@ -104,4 +105,4 @@ All skills capture external references (Atlassian, web) into a `./md` folder as 
   - reads prefactoring development guidance
   - AI-specific vulnerabilities extracted to references/ai-vulnerabilities.md
   - uses shared visual language
-🔴 review the yaml for consistency
+✔️ review the yaml for consistency
