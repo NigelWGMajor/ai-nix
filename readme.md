@@ -93,16 +93,25 @@ All skills capture external references (Atlassian, web) into a `./md` folder as 
 🚧 🚧 🚧 🚧 🚧 🚧 🚧 🚧 tasks
 
 ✔️ make the graphics consistent through the skill series
+
 ✔️ make lit capable of exporting confluence/jira to a md capture (all skills now have ./md capture)
+
 ✔️ update the skill descriptions
+
 ✔️ review the wiz skill compared with the nix
+
   - nix is quicker, more concise (Compact/Standard/Deep)
   - wiz is deeper with traceable finding chains (Quick/Standard/Deep)
   - both use the shared visual language
+
 ✔️ review the dac skill
+
   - uses shared visuals in all workspace templates
+
 ✔️ review cop
+
   - reads prefactoring development guidance
   - AI-specific vulnerabilities extracted to references/ai-vulnerabilities.md
   - uses shared visual language
+
 ✔️ review the yaml for consistency
