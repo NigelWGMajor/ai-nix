@@ -52,6 +52,14 @@ Before building the slideshow, ensure that any external sources referenced by th
 
 Ask the user whether any Atlassian pages (Confluence, Jira), web documents, or other external links referenced in the source document should be captured for slide content or speaker notes. Accept URLs from the prompt, from the user's response, or discovered inside the source document.
 
+### Check Atlassian MCP availability
+
+Before fetching any Jira or Confluence content, verify the Atlassian MCP server is available by attempting a lightweight call using the `mcp__atlassian__*` tools. If the server is unreachable or returns a connection error, stop and advise the user:
+
+> Could you try restarting the MCP server? You can either:
+> 1. Run `! /mcp` in this prompt to check MCP server status
+> 2. Use `curl` with your MCP credentials to access the Atlassian API directly
+
 ### Check for an existing `./md` folder
 
 If a `./md` directory already exists under the resolved workspace root:

@@ -70,7 +70,11 @@ Major phases:
 
 1. Confirm the repository root, branch, HEAD, and worktree state without changing them.
 2. Identify the parent Jira issue or stable workstream ID. Do not guess among plausible parents.
-3. Discover available Jira, repository, GitHub, Spec Kit, and skill capabilities.
+3. Discover available Jira, repository, GitHub, Spec Kit, and skill capabilities. For Jira access, use the Atlassian MCP server tools (prefixed `mcp__atlassian__`). Verify the server is available by attempting a lightweight call. If the server is unreachable or returns a connection error, advise the user:
+
+   > Could you try restarting the MCP server? You can either:
+   > 1. Run `! /mcp` in this prompt to check MCP server status
+   > 2. Use `curl` with your MCP credentials to access the Atlassian API directly
 4. Look for `.dac/<workstream>/00-control.md`.
    - If it exists, read it first and resume its recorded next action.
    - If it does not, align on the intended outcome in conversation and request W1 approval.

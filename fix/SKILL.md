@@ -61,6 +61,14 @@ Before deep investigation, ensure that all external sources are available locall
 
 Ask the user whether any Atlassian pages (Confluence, Jira tickets), incident reports, monitoring dashboards, log excerpts, or other external links should be captured for the triage. Accept URLs from the prompt, from the user's response, or discovered inside error messages and ticket descriptions.
 
+### Check Atlassian MCP availability
+
+Before fetching any Jira or Confluence content, verify the Atlassian MCP server is available by attempting a lightweight call using the `mcp__atlassian__*` tools. If the server is unreachable or returns a connection error, stop and advise the user:
+
+> Could you try restarting the MCP server? You can either:
+> 1. Run `! /mcp` in this prompt to check MCP server status
+> 2. Use `curl` with your MCP credentials to access the Atlassian API directly
+
 ### Check for an existing `./md` folder
 
 If a `./md` directory already exists under the resolved workspace root:

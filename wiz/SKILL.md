@@ -48,8 +48,8 @@ Determine whether the request identifies an existing WIZ instance. If a `.data/w
 
 Use this precedence:
 
-1. **Explicit Jira issue:** Fetch it with the available Atlassian/Jira integration. Read the summary, description, acceptance criteria, status, relevant comments or documents, parent/epic, children, and one hop of issue links. Follow deeper links only when they materially constrain scope, behavior, compatibility, rollout, or validation.
-2. **Explicit pull request:** Fetch it with the connector matching its host. Read the title, description, target and source refs, commits, changed files and diff, checks, unresolved review context, and linked work items. Fetch linked Jira issues through Atlassian when a key or link is present.
+1. **Explicit Jira issue:** Fetch it using the Atlassian MCP server tools (prefixed `mcp__atlassian__`). If the MCP server is unavailable, advise the user to run `! /mcp` to check status or use `curl` with their MCP credentials. Read the summary, description, acceptance criteria, status, relevant comments or documents, parent/epic, children, and one hop of issue links. Follow deeper links only when they materially constrain scope, behavior, compatibility, rollout, or validation.
+2. **Explicit pull request:** Fetch it with the connector matching its host. Read the title, description, target and source refs, commits, changed files and diff, checks, unresolved review context, and linked work items. Fetch linked Jira issues through the Atlassian MCP server when a key or link is present.
 3. **Current branch:** Inspect the repository root, branch, HEAD, status, upstream/default branch, recent history, and the merge-base diff. Keep committed, staged, unstaged, and untracked work distinct. Extract a Jira key only from clear evidence such as a conventional branch name, commit, or PR link; never choose among ambiguous keys.
 
 Prefer an explicit user target over inferred context. When both a ticket and PR are available, use the ticket as intent evidence and the PR/diff as implementation evidence.
@@ -63,6 +63,14 @@ Before deep analysis, ensure that all external sources are available locally as 
 ### Gather links
 
 Ask the user whether any Atlassian pages (Confluence, Jira tickets, epics), pull requests, design documents, or other external links should be captured for the review. Accept URLs from the prompt, from the user's response, or discovered inside ticket descriptions and PR bodies.
+
+### Check Atlassian MCP availability
+
+Before fetching any Jira or Confluence content, verify the Atlassian MCP server is available by attempting a lightweight call using the `mcp__atlassian__*` tools. If the server is unreachable or returns a connection error, stop and advise the user:
+
+> Could you try restarting the MCP server? You can either:
+> 1. Run `! /mcp` in this prompt to check MCP server status
+> 2. Use `curl` with your MCP credentials to access the Atlassian API directly
 
 ### Check for an existing `./md` folder
 

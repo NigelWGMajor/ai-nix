@@ -14,6 +14,14 @@ Acceptance criteria, deliverables, and key behavior must be visible in Jira for:
 - Test automation consuming structured criteria
 - PMs tracking progress
 
+## Atlassian MCP Server
+
+All Jira and Confluence access MUST use the Atlassian MCP server tools (prefixed `mcp__atlassian__`). Before the first Atlassian access in a session, verify the server is available by attempting a lightweight call. If the server is unreachable or returns a connection error, do not proceed with Atlassian-dependent operations. Instead, advise the user:
+
+> Could you try restarting the MCP server? You can either:
+> 1. Run `! /mcp` in this prompt to check MCP server status
+> 2. Use `curl` with your MCP credentials to access the Atlassian API directly
+
 ## Jira Issue Structure for DAC Portions
 
 ### Description Field
