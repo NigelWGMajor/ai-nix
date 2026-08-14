@@ -1,0 +1,4 @@
+interface:
+  display_name: "COP Sanity Review"
+  short_description: "Reality check for AI-engineered code"
+  default_prompt: "Use $cop to police the proposed implementation."

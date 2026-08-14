@@ -1,0 +1,10 @@
+# Local overrides (instance-specific, not shared)
+jira-fields.local.yaml
+*.local.yaml
+
+# Skill output instances
+.data/
+.dac/
+
+# Captured external references
+md/

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Divide and Conquer Delivery"
+  short_description: "Coordinate focused Jira delivery portions"
+  default_prompt: "Use $dac to partition this Jira-backed feature into coordinated, independently executable portions."

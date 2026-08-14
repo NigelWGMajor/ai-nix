@@ -1,0 +1,4 @@
+interface:
+  display_name: "NIX Workspace Analysis"
+  short_description: "Explain workspaces using staged insight"
+  default_prompt: "Use $nix to explain the current workspace or prompt through Reflect, Explore, Connect, Imagine, Produce, and Empower."

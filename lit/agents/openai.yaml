@@ -1,0 +1,4 @@
+interface:
+  display_name: "Layered Information Transformation"
+  short_description: "Turn dense sources into layered, traceable guides"
+  default_prompt: "Use $lit to synthesize these technical documents into a professional, evidence-linked guide."

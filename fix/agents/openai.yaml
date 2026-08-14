@@ -1,0 +1,4 @@
+interface:
+  display_name: "FIX Triage and Diagnosis"
+  short_description: "Multi-path hypothesis triage for bugs and failures"
+  default_prompt: "Use $fix to diagnose this symptom through structured multi-path triage."

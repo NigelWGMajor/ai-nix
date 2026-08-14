@@ -1,0 +1,4 @@
+interface:
+  display_name: "ACT Action Extraction"
+  short_description: "Turn analysis into tickets, summaries, and task lists"
+  default_prompt: "Use $act to extract a concise actionable artifact from this material."

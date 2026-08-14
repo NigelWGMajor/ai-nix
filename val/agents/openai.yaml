@@ -1,0 +1,4 @@
+interface:
+  display_name: "VAL Validation Design"
+  short_description: "Test strategies, test data, and coverage assessment"
+  default_prompt: "Use $val to design validation and generate test cases for this solution."

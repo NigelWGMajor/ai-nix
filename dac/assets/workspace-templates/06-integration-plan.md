@@ -1,0 +1,57 @@
+---
+artifact: integration-plan
+workstream: {{WORKSTREAM_ID}}
+stage: integration-plan
+status: not_started
+last_updated: {{NOW}}
+inputs: 03-decisions.md,04-portion-plan.md,05-jira-plan.md
+---
+
+<!-- Template note: symbols are examples from references/visual-language.md.
+     Always read visual-language.md and use its current assignments. -->
+
+# PR and Integration Plan
+
+## 💭 Strategy
+
+- Target branch:
+- Contract-first ordering:
+- Worktree or branch isolation:
+- Compatibility window:
+
+## 🔗 Portion integration
+
+| Portion | Jira | Base | Depends on | PR | Tests | Merge order | Status |
+|---|---|---|---|---|---|---|---|
+| P-001 | - | target branch | - | planned | To determine | 1 | proposed |
+
+## Integration graph
+
+```text
+P-001 / PR-001
+  -> P-002 / PR-002
+```
+
+## 📋 End-to-end verification
+
+| Parent criterion or risk | Verification | Required portions | Owner |
+|---|---|---|---|
+| M-001 | To determine | P-001 | - |
+
+## ⚠️ Rollout and rollback
+
+- Deployment order:
+- Flags, configuration, schema, or migration:
+- Monitoring and success signals:
+- Rollback trigger and method:
+- Data recovery limitations:
+
+## Remote boundary
+
+Approval of this artifact does not authorize branches, commits, pushes, PRs, merges, deployments, or Jira changes.
+
+## Approval record
+
+| Timestamp | Approver | Scope | Notes |
+|---|---|---|---|
+<!-- APPROVAL_LOG -->

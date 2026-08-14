@@ -1,0 +1,4 @@
+interface:
+  display_name: "WIZ Work-in-Progress Review"
+  short_description: "Deep review of Jira, PR, or branch work in context"
+  default_prompt: "Use $wiz to review the current ticket, pull request, or branch and produce a layered Markdown assessment."

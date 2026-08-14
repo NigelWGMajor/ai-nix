@@ -1,0 +1,4 @@
+interface:
+  display_name: "PIX Slide Generator"
+  short_description: "Turn documents into visual slideshows"
+  default_prompt: "Use $pix to transform the document into a Marp-compatible markdown slideshow."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "DAC Help"
+  short_description: "Guidance for DAC workflow phases and troubleshooting"
+  default_prompt: "Use $dac-help to get guidance on the current DAC phase or troubleshoot a stuck portion."

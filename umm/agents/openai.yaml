@@ -1,0 +1,4 @@
+interface:
+  display_name: "UMM Skill Navigator"
+  short_description: "Show available skills and suggest which to use"
+  default_prompt: "Use $umm to see available skills and get routing guidance."

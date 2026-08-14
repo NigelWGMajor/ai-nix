@@ -1,0 +1,16 @@
+# Jira instance-specific field mappings
+# Copy this file to jira-fields.local.yaml and fill in your values.
+# jira-fields.local.yaml is gitignored — it stays local to your machine.
+
+# Acceptance criteria custom field ID (run field discovery to find yours)
+acceptance_criteria_field: "customfield_XXXXX"
+
+# Optional: other custom fields your instance uses
+# story_points_field: "customfield_YYYYY"
+# team_field: "customfield_ZZZZZ"
+
+# Optional: default labels to copy to child issues
+# default_labels: ["team-backend", "squad-platform"]
+
+# Optional: parent field name (some instances use customfield for this)
+# parent_field: "parent"

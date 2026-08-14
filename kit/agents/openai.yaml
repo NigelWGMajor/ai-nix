@@ -1,0 +1,4 @@
+interface:
+  display_name: "KIT Speckit Analysis"
+  short_description: "Review SpecKit project status"
+  default_prompt: "Use $kit to reorient and sanity check a speckit-based branch."
