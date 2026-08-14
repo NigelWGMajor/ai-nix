@@ -88,11 +88,12 @@ Speaker notes should contain:
 
 Return a concise chat summary that names:
 
-- The slideshow path (`Findings.md` in the instance directory).
+- The slideshow paths (`Findings.md` for Marp source, `Findings.html` for interactive presentation).
 - The source document and its scope.
 - Slide count and depth level.
 - Material content omitted or compressed from the source.
-- Suggested presentation tool (Marp CLI, VS Code Marp extension).
+- Interactive HTML keyboard shortcuts: arrows/space to navigate, S for speaker notes, O for overview, F for fullscreen.
+- Note: HTML file requires internet for Mermaid CDN. For offline use, the Marp markdown source is also provided.
 - Any limitation a presenter should be aware of.
 
 Do not paste the full slideshow into the conversation unless the user requests it.

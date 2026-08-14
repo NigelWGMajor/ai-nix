@@ -183,8 +183,16 @@ Finalize and hand off:
 
 - Write the completed slideshow to `Findings.md` in the initialized instance.
 - Verify Marp frontmatter is present and correct.
+- Generate the interactive HTML slideshow by running the conversion script:
+
+```text
+python <skill-directory>/scripts/generate_html.py "<instance-path>/Findings.md" -o "<instance-path>/Findings.html"
+```
+
+The HTML file is a self-contained interactive slideshow with Mermaid diagram rendering (via CDN), keyboard navigation (arrows, space), speaker notes panel (S key), overview mode (O key), fullscreen (F key), and touch/swipe support. It requires no local tooling to present — just open in a browser.
+
 - Update `00-control.md` with final status, slide count, and any material limitations.
-- Return the concise handoff: output path, slide count, source document, key limitations, and suggested presentation tool.
+- Return the concise handoff: Marp markdown path, interactive HTML path, slide count, source document, key limitations, and keyboard shortcuts summary.
 
 ## Apply paired self-checks
 
@@ -230,10 +238,11 @@ Write the slideshow in Marp-compatible Markdown:
 
 Apply the quality gate in [references/documentation-standard.md](references/documentation-standard.md) and the PIX-specific gate in [references/output-contract.md](references/output-contract.md). Report:
 
-- The slideshow output path.
+- The slideshow output paths (Findings.md for Marp source, Findings.html for interactive presentation).
 - The source document and its scope.
 - Slide count and depth level.
 - Material content omitted or compressed.
-- Suggested presentation tool (Marp CLI, VS Code Marp extension, or compatible renderer).
+- Interactive HTML keyboard shortcuts: arrows/space to navigate, S for speaker notes, O for overview, F for fullscreen.
+- Note: the HTML file requires an internet connection for Mermaid diagram rendering (CDN).
 
 Recommend a narrow PIX improvement after real use only when recurring friction reveals a missing slide type, visual rule, or storyboard pattern. Do not silently modify the installed skill during slideshow generation.

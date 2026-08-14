@@ -102,8 +102,9 @@ Refine for presentation quality:
 Finalize and hand off:
 
 - Write completed slideshow to `Findings.md`.
+- Generate `Findings.html` by running `scripts/generate_html.py` against `Findings.md`. The HTML is a self-contained interactive slideshow with Mermaid rendering, keyboard navigation, speaker notes, and overview mode.
 - Update `00-control.md` to complete status.
-- Return handoff summary.
+- Return handoff summary including both output paths and keyboard shortcuts.
 
 ## Narrative arc
 
@@ -235,5 +236,7 @@ Read `visual-language.md` before adding symbols to slides or speaker notes. Use 
 - [ ] Survey <-> Compose: all essential source content is represented.
 - [ ] Storyboard <-> Polish: the final order matches the planned narrative arc.
 - [ ] Symbols come from the configured `visual-language.md` palette and are used sparingly.
+- [ ] An interactive HTML slideshow (`Findings.html`) was generated alongside the Marp markdown.
+- [ ] Mermaid diagrams render correctly in the HTML slideshow (no stray `<script>` tags in source content).
 - [ ] The source document was not modified.
 - [ ] No generated artifact is staged or added to source control.
