@@ -7,6 +7,12 @@ for %%S in (kit lit pix dac dac-help cop wiz fix val act umm) do (
     robocopy ".\nix\references" ".\%%S\references" "visual-language.md" /COPY:DAT /DCOPY:E
 )
 
+echo *** Copying nix master documentation-standard.md to all skills (except pix) ***
+for %%S in (kit lit cop wiz fix val) do (
+    if not exist ".\%%S\references" mkdir ".\%%S\references"
+    robocopy ".\nix\references" ".\%%S\references" "documentation-standard.md" /COPY:DAT /DCOPY:E
+)
+
 echo *** Copying jira-fields.local.yaml to agent roots ***
 if exist ".\jira-fields.local.yaml" (
     copy /Y ".\jira-fields.local.yaml" "%USERPROFILE%\.claude\jira-fields.local.yaml"

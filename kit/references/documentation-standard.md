@@ -1,6 +1,6 @@
 # Shared documentation standard
 
-Use this baseline for reader-facing Markdown produced by LIT, KIT, and NIX. Each skill package contains its own copy so it remains standalone. Keep the three copies byte-for-byte identical when this standard changes.
+Use this baseline for reader-facing Markdown produced by LIT, KIT, NIX, WIZ, COP, FIX, and VAL. Each skill package contains its own copy so it remains standalone. Keep copies byte-for-byte identical when this standard changes; PIX has its own slide-adapted version.
 
 ## Durable output and workspace storage
 
@@ -8,7 +8,7 @@ Use this baseline for reader-facing Markdown produced by LIT, KIT, and NIX. Each
 - Use a chat-only response only when the user explicitly requests it or the skill classifies the work as Compact and its own contract permits chat-only output.
 - Resolve the workspace root in this order: an explicit user-supplied workspace root, the configured workspace root that contains the subject, the repository root, then the current working directory.
 - Treat `.data` as an output directory, never as a workspace marker. Do not walk upward merely to reuse an existing `.data` directory.
-- Store a new run under `<workspace-root>/.data/<skill>-YY-MM-DD-<suffix>/`, where `<skill>` is `lit`, `kit`, or `nix` and the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
+- Store a new run under `<workspace-root>/.data/<skill>-YY-MM-DD-<suffix>/`, where `<skill>` is the skill prefix (`lit`, `kit`, `nix`, `wiz`, `cop`, `fix`, `val`) and the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.
 - Create `.data` when needed. Never modify `.gitignore` automatically and never stage, commit, or publish generated artifacts.
 - Follow stricter skill-specific safety rules. In particular, honor any requirement to refuse an unignored in-repository output path.
