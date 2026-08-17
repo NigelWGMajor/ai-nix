@@ -75,6 +75,23 @@ Choose canonical terminology for the synthesis when doing so improves comprehens
 
 Do not merge terms merely because they look similar. Preserve distinctions in scope, lifecycle, ownership, or technical meaning. Include a compact glossary or mapping table when more than a few aliases occur.
 
+## Source identifiers and shorthand
+
+  When sources use opaque identifiers (work item IDs like F1/E2, requirement codes like REQ-PM-001,
+  phase numbers, or internal acronyms) and those identifiers appear in the synthesis:
+
+  1. **Define before use.** Provide a reference table that maps each identifier to its full description
+     before using it in running text. Place this table in Foundations or at the start of the section
+     that introduces the identifiers.
+  2. **Link to origin.** Each identifier's first definition must include a relative link to the
+     source location where it is defined (heading, line, or section).
+  3. **Stand-alone readability.** A reader encountering any identifier in the document must be able
+     to resolve its meaning without leaving the document. The reference table satisfies this;
+     bare identifiers in prose without a prior definition do not.
+  4. **Derivative documents.** When a derivative artifact (Actions, slideshow, handoff) uses
+     identifiers from the parent Findings, it must include a header note linking back to the
+     parent's reference table and to the original source.
+
 ## Conflicts and uncertainty
 
 Do not flatten contradictions into smooth prose. For each material conflict:
@@ -165,3 +182,5 @@ Before completion, verify all of the following:
 - [ ] Each major section earns its cognitive cost.
 - [ ] The original source documents remain unchanged.
 - [ ] Persistence artifacts are sufficient to resume or audit the work.
+- [ ] Source-originated identifiers (work item IDs, requirement codes, phase numbers) are defined in a reference table before first use, with links to their source location.
+- [ ] Derivative artifacts link back to the parent document's identifier definitions.

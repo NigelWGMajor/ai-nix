@@ -63,3 +63,4 @@ Read `visual-language.md` before adding symbols. Use only its defined roles. The
 - [ ] Existing test quality is assessed, not just new coverage.
 - [ ] Symbols come from the configured `visual-language.md` palette.
 - [ ] Test code was not written without explicit authorization.
+- [ ] Opaque identifiers from sources (codes, IDs, shorthand) are defined before first use and linked to their origin.

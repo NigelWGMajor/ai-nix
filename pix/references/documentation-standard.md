@@ -113,3 +113,4 @@ Do not paste the full slideshow into the conversation unless the user requests i
 - [ ] The source document was not modified.
 - [ ] Generated artifacts remain outside source control.
 - [ ] The final chat handoff includes the output path and does not substitute for the slideshow.
+- [ ] Opaque identifiers from sources (codes, IDs, shorthand) are defined before first use and linked to their origin.

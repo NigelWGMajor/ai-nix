@@ -37,8 +37,7 @@ Available skills:
 👮 /cop  — Sanity review: challenge AI-generated code
 🛠️ /fix  — Triage: diagnose bugs through multi-path hypotheses
 🌡️ /val  — Validation: design tests, generate test data, assess coverage
-🎬 /act  — Action extract: turn analysis into tickets, summaries, tasks
-
+🎬 /act  — Action extract: turn analysis into actionable info 
 Tip: add ? to any skill for its capability card (e.g. /nix ?)
 ```
 

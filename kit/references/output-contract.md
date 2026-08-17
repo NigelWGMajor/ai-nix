@@ -132,6 +132,23 @@ Do not inflate severity because confidence is low, or lower severity merely beca
 
 Include strengths that reduce recovery risk, such as clean story boundaries, accurate tasks, focused tests, reversible design decisions, or a well-contained dirty worktree. Keep unresolved decisions and external blockers in this section so the action plan does not conceal its prerequisites.
 
+## Source identifiers and shorthand
+
+  When sources use opaque identifiers (work item IDs like F1/E2, requirement codes like REQ-PM-001,
+  phase numbers, or internal acronyms) and those identifiers appear in the synthesis:
+
+  1. **Define before use.** Provide a reference table that maps each identifier to its full description
+     before using it in running text. Place this table in Foundations or at the start of the section
+     that introduces the identifiers.
+  2. **Link to origin.** Each identifier's first definition must include a relative link to the
+     source location where it is defined (heading, line, or section).
+  3. **Stand-alone readability.** A reader encountering any identifier in the document must be able
+     to resolve its meaning without leaving the document. The reference table satisfies this;
+     bare identifiers in prose without a prior definition do not.
+  4. **Derivative documents.** When a derivative artifact (Actions, slideshow, handoff) uses
+     identifiers from the parent Findings, it must include a header note linking back to the
+     parent's reference table and to the original source.
+
 ## Resume comparison
 
 In Resume mode, include a delta from the prior KIT instance:
@@ -222,3 +239,5 @@ Read `visual-language.md` before adding symbols. Use only its defined roles and 
 - [ ] The `Next steps` plan is ordered, bounded, and immediately actionable.
 - [ ] No source, Git, Spec Kit, issue, PR, or remote mutation occurred without explicit authorization.
 - [ ] `00-control.md` contains the next safe action and sufficient state for another session.
+- [ ] Source-originated identifiers (work item IDs, requirement codes, phase numbers) are defined in a reference table before first use, with links to their source location.
+- [ ] Derivative artifacts link back to the parent document's identifier definitions.

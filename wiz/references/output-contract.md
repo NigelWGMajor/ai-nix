@@ -154,6 +154,22 @@ Give each concern both a seriousness level and a confidence level.
 
 Do not inflate seriousness to make a review look useful. Present low-confidence concerns as validation questions, not facts. If there are no substantiated blockers, say so.
 
+## Source identifiers and shorthand
+
+When sources use opaque identifiers (work item IDs like F1/E2, requirement codes like REQ-PM-001,  phase numbers, or internal acronyms) and those identifiers appear in the synthesis:
+
+1. **Define before use.** Provide a reference table that maps each identifier to its full description
+     before using it in running text. Place this table in Foundations or at the start of the section
+     that introduces the identifiers.
+2. **Link to origin.** Each identifier's first definition must include a relative link to the
+     source location where it is defined (heading, line, or section).
+3. **Stand-alone readability.** A reader encountering any identifier in the document must be able
+     to resolve its meaning without leaving the document. The reference table satisfies this;
+     bare identifiers in prose without a prior definition do not.
+4. **Derivative documents.** When a derivative artifact (Actions, slideshow, handoff) uses
+     identifiers from the parent Findings, it must include a header note linking back to the
+     parent's reference table and to the original source.
+
 ## Evidence and citations
 
 Classify material claims:
@@ -212,3 +228,4 @@ Include Jira tickets, PRs, documents, code areas, and command output that materi
 - [ ] The ending provides a concrete next action with stopping condition.
 - [ ] No remote or local mutation was performed merely to complete the review.
 - [ ] The response is proportionate to the user's requested depth.
+- [ ] Opaque identifiers from sources (codes, IDs, shorthand) are defined before first use and linked to their origin.
