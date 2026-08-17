@@ -87,3 +87,4 @@ Do not paste the full durable document into the conversation unless the user req
 - [ ] The ending provides an actionable next step and stopping condition.
 - [ ] Generated artifacts remain outside source control.
 - [ ] The final chat handoff includes the output path and does not substitute for the document.
+- [ ] Opaque identifiers from sources (codes, IDs, shorthand) are defined before first use and linked to their origin.

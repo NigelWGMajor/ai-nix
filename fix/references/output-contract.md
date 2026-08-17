@@ -46,6 +46,15 @@ Link evidence to hypotheses: "E-03 supports H-01, contradicts H-02."
 
 Read `visual-language.md` before adding symbols. Use only its defined roles. The visual-language reference is authoritative; its current symbol assignments override any symbols appearing in templates or examples elsewhere in this package.
 
+## Source identifiers and shorthand
+
+When sources or the triage itself uses opaque identifiers (hypothesis IDs like H-01, evidence IDs like E-03, requirement codes, work item IDs, or internal acronyms) and those identifiers appear in the report:
+
+1. **Define before use.** Provide a reference table or legend that maps each identifier to its full description before using it in running text.
+2. **Link to origin.** Each identifier's first definition must include a link to the source location where it is defined when the source is a local document.
+3. **Stand-alone readability.** A reader encountering any identifier must be able to resolve its meaning without leaving the document.
+4. **Derivative documents.** When a derivative artifact (ticket, handoff, action plan) uses identifiers from the triage report, it must link back to the report's definitions.
+
 ## Quality gate
 
 - [ ] The symptom is precisely documented before hypotheses are formed.
@@ -57,4 +66,5 @@ Read `visual-language.md` before adding symbols. Use only its defined roles. The
 - [ ] The proposed fix is minimal and targets the root cause.
 - [ ] Validation criteria for the fix are specific and testable.
 - [ ] Symbols come from the configured `visual-language.md` palette.
+- [ ] Source-originated identifiers (hypothesis IDs, requirement codes, work item IDs) are defined before first use and linked to their source.
 - [ ] No code mutation was performed merely to complete the triage.

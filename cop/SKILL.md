@@ -241,4 +241,5 @@ Before returning the review, verify:
 - Good aspects are included and evidenced.
 - Repository lines and document links are present where feasible.
 - Symbols come from the configured `visual-language.md` palette.
+- Opaque identifiers from sources (codes, IDs, shorthand) are defined before first use and linked to their origin.
 - No remote or local mutation was performed merely to complete the review.

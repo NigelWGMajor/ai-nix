@@ -71,6 +71,7 @@ Extract only what the target audience needs:
 - Preserve critical context that would be lost without it.
 - Preserve uncertainty — do not polish qualified findings into confident assertions.
 - Keep source traceability: if the artifact references a finding, the reader should be able to trace it back.
+- When the source uses opaque identifiers (work item IDs, requirement codes, phase numbers), define them in the artifact or link to the parent document's definitions.
 - Rank information by action value, not by source order or volume.
 
 ### 3. Shape
@@ -143,4 +144,5 @@ Before returning the artifact, verify:
 - Uncertainty and limitations from the source are preserved, not polished away.
 - The artifact is self-contained — the reader should not need to read the source to act on it.
 - The artifact is concise — every sentence earns its place.
+- Source-originated identifiers are defined or linked to their definitions in the parent document.
 - No action was taken (no ticket created, no message sent, no code changed) without explicit authorization.
