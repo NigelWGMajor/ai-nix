@@ -184,3 +184,4 @@ Before completion, verify all of the following:
 - [ ] Persistence artifacts are sufficient to resume or audit the work.
 - [ ] Source-originated identifiers (work item IDs, requirement codes, phase numbers) are defined in a reference table before first use, with links to their source location.
 - [ ] Derivative artifacts link back to the parent document's identifier definitions.
+- [ ] Every empty or placeholder content block in source documents (blank code fences, stub tables, TODO sections) is acknowledged in the synthesis — either with a gap annotation describing the expected content, or as an explicit unknown. None are silently dropped.

@@ -18,7 +18,7 @@ Act is the last-mile skill. It takes the output of any other skill (or raw mater
 - Contain the entire method in this package.
 - Never require, invoke, or read RECIPE, LIT, KIT, NIX, WIZ, their phase skills, their caches, or their outputs at runtime.
 - Do not require subagents, mentor agents, special slash commands, or model routing.
-- Always produce output in the conversation. Act does not create `.data/` instances — its value is immediacy, not durability. If the user wants to save the output, they can copy it or ask for a file.
+- Always produce output in the conversation. When the source is a `.data/<skill>-*` instance, also write the artifact to `Actions.md` in that same instance directory so it is discoverable by `/umm` and other skills that scan for completed work. Act does not create its own `.data/` instances.
 - Do not perform the underlying analysis. If the source material is insufficient, recommend the appropriate analysis skill first.
 - Read-only: do not create Jira tickets, send messages, or push content to external systems unless the user separately authorizes that specific action.
 
@@ -124,6 +124,7 @@ Format for the target medium:
 Present the artifact:
 
 - Return the shaped artifact in the conversation, ready to copy.
+- When the source is a `.data/<skill>-*` instance's `Findings.md`, also write the artifact to `Actions.md` in that instance directory alongside the source. This makes the action extraction discoverable by `/umm` and other skills that scan for completed work.
 - If the target is a Jira ticket, format with clear field labels so it can be pasted into Jira.
 - If multiple artifacts were requested, separate them clearly.
 - State what was omitted and why, so the user can judge completeness.
