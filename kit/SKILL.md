@@ -77,21 +77,64 @@ If no `./md` directory exists, create it when the first external reference is co
 
 For each confirmed URL:
 
-1. Fetch the content and convert it to clean Markdown.
-2. Write it to `./md/<slugified-title>.md` with YAML frontmatter:
+1. **Fetch the full content.**
+   - **Confluence pages:** Fetch via the REST API v1 with `?expand=body.storage,version,space,ancestors`. The response's `body.storage.value` is Confluence storage-format HTML, which preserves code blocks, macros, and structured content that higher-level rendering APIs may strip. Save the raw JSON response to a temporary file for the conversion step.
+   - **Web pages:** Use WebFetch or curl. Prefer fetching the raw or printer-friendly version when available.
+   - **Jira issues:** Use the Atlassian MCP tools or the REST API with fields expanded.
 
-```yaml
----
-source: "<original URL>"
-captured: "<YYYY-MM-DD>"
-title: "<page or issue title>"
-type: "<confluence | jira-issue | jira-epic | web | api-doc | pull-request | other>"
----
-```
+2. **Convert to clean Markdown with code-block preservation.**
 
-3. Preserve the document's semantic structure (headings, lists, tables, code blocks). Strip navigation chrome, sidebars, and boilerplate.
-4. For Jira issues, include key fields (summary, status, type, assignee, labels, description, and acceptance criteria) as structured frontmatter or a leading metadata table.
-5. For Confluence pages, preserve the page hierarchy context (space, parent page) in frontmatter when available.
+   **For Confluence pages, use the bundled converter script:**
+
+   ```text
+   python <skill-directory>/scripts/convert_confluence.py <raw-response.json> <workspace>/md/<slugified-title>.md
+   ```
+
+   The converter handles all Confluence storage-format elements that standard HTML-to-markdown tools lose — code macros (`ac:structured-macro`), noformat blocks, panels, admonitions, expand/collapse sections, images, and emoticons. It:
+   - Extracts code content from `<ac:plain-text-body>` CDATA children before general HTML conversion (the step that tools universally miss).
+   - Converts `<ol>` to numbered lists and `<ul>` to bullet lists, with nested list support and proper handling of `<p>` tags inside `<li>` elements.
+   - Writes YAML frontmatter with source URL, capture date, title, type, space, parent page, and version.
+   - Verifies output: counts source macros vs output code fences, detects empty code blocks, and appends a `## Capture gaps` section if any content was lost.
+   - Prints a verification summary showing macro counts, fence counts, and gap status.
+
+   After running the converter, check its summary output. If it reports empty fences or fewer output fences than source macros, investigate before proceeding.
+
+   **For non-Confluence sources**, or when the converter is unavailable, convert manually. Handle these Confluence elements explicitly — they are the most common sources of lost content:
+
+   | Confluence HTML element | Contains | Markdown conversion |
+   |---|---|---|
+   | `<ac:structured-macro ac:name="code">` | Source code with optional language and title | Fenced code block with language identifier; preserve title as a comment or preceding bold line |
+   | `<ac:structured-macro ac:name="noformat">` | Preformatted text (commands, output, config) | Fenced code block (no language) |
+   | `<ac:structured-macro ac:name="panel">` | Callout/info panels with body content | Blockquote with panel title as bold first line |
+   | `<ac:structured-macro ac:name="info\|note\|warning\|tip">` | Admonition content | Blockquote prefixed with admonition type |
+   | `<ac:structured-macro ac:name="expand">` | Collapsible sections | `<details>/<summary>` or a subsection |
+   | `<pre>` | Inline preformatted text | Fenced code block |
+   | `<ac:plain-text-body>` or `<ac:rich-text-body>` | The actual body content inside macros | Extract the text content; do not discard |
+   | `<ac:image>` | Embedded images (no text equivalent) | `<!-- [image: alt-text or filename] -->` placeholder noting the image exists |
+
+   The actual text content inside code and noformat macros lives within a `<ac:plain-text-body>` CDATA child. Extract its text verbatim — do not skip it because it is wrapped in CDATA or nested inside a macro element.
+
+   When using any other conversion library or tool, verify its output against the raw HTML for every code fence in the result. Libraries commonly strip `<ac:structured-macro>` elements entirely because they do not recognize them as standard HTML.
+
+3. **Write the result** (if not already written by the converter) to `./md/<slugified-title>.md` with YAML frontmatter:
+
+   ```yaml
+   ---
+   source: "<original URL>"
+   captured: "<YYYY-MM-DD>"
+   title: "<page or issue title>"
+   type: "<confluence | jira-issue | jira-epic | web | api-doc | pull-request | other>"
+   ---
+   ```
+
+4. **Preserve** the document's semantic structure (headings, lists, tables, code blocks). Strip navigation chrome, sidebars, and boilerplate.
+
+5. **Verify capture completeness.** After writing the file (whether by converter or manually), scan it for empty or placeholder content blocks (blank code fences, empty table cells that clearly held content, stub sections). If any are found:
+   - First, re-examine the raw fetched content (HTML or API response) to determine whether the content was present in the source but lost during conversion. If so, fix the conversion and rewrite the file.
+   - If the source itself contained no content (the block was genuinely empty on the page), or the content is an image/attachment with no text equivalent, append a `## Capture gaps` section at the end of the captured file listing each empty block with its heading context, the reason (e.g., "embedded image", "empty on source page"), and a note about whether re-fetching could recover it.
+
+6. For Jira issues, include key fields (summary, status, type, assignee, labels, description, and acceptance criteria) as structured frontmatter or a leading metadata table.
+7. For Confluence pages, preserve the page hierarchy context (space, parent page) in frontmatter when available.
 
 ### Use captured documents
 
