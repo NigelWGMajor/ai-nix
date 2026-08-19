@@ -22,6 +22,7 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
    - `fix/guidance.md`
    - `val/guidance.md`
    - `act/guidance.md`
+   - `mem/guidance.md`
 
 2. Display this compact catalog:
 
@@ -38,6 +39,7 @@ Available skills:
 🛠️ /fix  — Triage: diagnose bugs through multi-path hypotheses
 🌡️ /val  — Validation: design tests, generate test data, assess coverage
 🎬 /act  — Action extract: turn analysis into actionable info
+🎗️ /mem  — Note recall: search markdown notes for relevant passages
 
 Tip: add ? to any skill for its capability card (e.g. /nix ?)
 ```
@@ -48,7 +50,7 @@ Tip: add ? to any skill for its capability card (e.g. /nix ?)
 Typical flows:
 
 Documentation   📚 lit -> 🖼️ pix
-Research        🦄 nix -> 📚 lit -> 🖼️ pix
+Research        🎗️ mem -> 🦄 nix -> 📚 lit -> 🖼️ pix
 Design          🦄 nix -> 📚 lit -> 🖼️ pix
 Issue triage    🦄 nix -> 🪄 wiz -> 📚 lit -> 🖼️ pix
 Epics           🦄 nix -> 🪄 wiz -> 🧩 dac
@@ -59,6 +61,7 @@ PRs             🦄 nix -> 🪄 wiz -> 👮 cop
 Bugs/Incidents  🛠️ fix -> 🎬 act or 🛠️ fix -> 👮 cop
 Test planning   🌡️ val
 Communication   (any) -> 🎬 act
+Note search     🎗️ mem
 ```
 
 4. Check for recent skill output. Scan `.data/` for instance directories modified today (by file timestamp on `Findings.md` or `00-control.md`). Also check `.dac/` for active workstreams. If any are found, show a "Recent work" section after the applicability table:
@@ -149,6 +152,9 @@ Needs attention:
 
 **User:** `/umm I need to write a ticket for this bug`
 → Show the catalog, then: `Suggestion: /fix -> /act — diagnose the bug, then extract a ticket description`
+
+**User:** `/umm where did we discuss caching strategy?`
+→ Show the catalog, then: `Suggestion: /mem — search your markdown notes for passages about caching strategy`
 
 **User:** `/umm what needs my attention?`
 → Show the catalog, then run the deep scan and show needs-attention items prominently. If no instances exist, say so.

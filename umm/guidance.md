@@ -14,7 +14,7 @@
 | Compatible skills |             |
 | ----------------- | ----------- |
 | Preprocessors     | —           |
-| Postprocessors    | any skill   |
+| Postprocessors    | any skill, mem |
 
 ## What it does
 
