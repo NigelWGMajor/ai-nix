@@ -32,6 +32,15 @@ def alphabetic_suffix(index: int) -> str:
     return result
 
 
+def slugify(text: str) -> str:
+    """Convert text to a lowercase hyphenated slug suitable for filenames."""
+    text = text.lower().strip()
+    text = re.sub(r"[^a-z0-9\s-]", "", text)
+    text = re.sub(r"[\s-]+", "-", text)
+    text = text.strip("-")
+    return text[:80]
+
+
 def single_line(value: str) -> str:
     return " ".join(value.splitlines()).strip()
 
@@ -46,6 +55,7 @@ def control_text(
     audience: str,
     outcome: str,
     depth: str,
+    output_filename: str,
 ) -> str:
     return f"""
 # TUT control
@@ -58,7 +68,7 @@ def control_text(
 - Audience: {audience}
 - Outcome: {outcome}
 - Depth: {depth.title()}
-- Final document: `Findings.md`
+- Final document: `{output_filename}`
 
 ## Scope and evidence boundary
 
@@ -149,6 +159,17 @@ def allocate_instance(data_dir: Path, date_value: str) -> Path:
     raise RuntimeError("could not allocate an available TUT instance suffix")
 
 
+def build_output_filename(slug: str | None, topic: str, part: str | None) -> str:
+    """Build the descriptive output filename from slug/topic and optional part."""
+    effective_slug = slug if slug else slugify(topic)
+    if not effective_slug:
+        effective_slug = "tutorial"
+    name = f"tutorial-{effective_slug}"
+    if part:
+        name += f"-part-{part}"
+    return f"{name}.md"
+
+
 def create_instance(
     workspace: Path,
     date_value: str,
@@ -156,21 +177,24 @@ def create_instance(
     audience: str,
     outcome: str,
     depth: str,
+    slug: str | None = None,
+    part: str | None = None,
 ) -> Path:
     template = Path(__file__).resolve().parents[1] / "assets" / "findings-template.md"
     if not template.is_file():
         raise FileNotFoundError(f"findings template not found: {template}")
 
+    output_filename = build_output_filename(slug, topic, part)
     instance = allocate_instance(workspace / ".data", date_value)
     created = dt.datetime.now(tz=dt.timezone.utc).isoformat()
     try:
         write_text(
             instance / "00-control.md",
-            control_text(created, topic, audience, outcome, depth),
+            control_text(created, topic, audience, outcome, depth, output_filename),
         )
         write_text(instance / "01-evidence.md", EVIDENCE)
         write_text(instance / "02-outline.md", OUTLINE)
-        shutil.copyfile(template, instance / "Findings.md")
+        shutil.copyfile(template, instance / output_filename)
     except Exception:
         shutil.rmtree(instance, ignore_errors=True)
         raise
@@ -195,6 +219,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--audience", default="Technically informed readers.")
     parser.add_argument("--outcome", default="Complete the described task independently.")
     parser.add_argument("--depth", choices=("brief", "standard", "comprehensive"), default="standard")
+    parser.add_argument(
+        "--slug",
+        default=None,
+        help="Filename slug for the output file. Derived from --topic when omitted.",
+    )
+    parser.add_argument(
+        "--part",
+        default=None,
+        help="Part suffix for multi-part tutorials (e.g., a, b). Appended as -part-<value>.",
+    )
     return parser.parse_args()
 
 
@@ -218,6 +252,8 @@ def main() -> int:
             audience=single_line(args.audience),
             outcome=single_line(args.outcome),
             depth=args.depth,
+            slug=args.slug,
+            part=args.part,
         )
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)

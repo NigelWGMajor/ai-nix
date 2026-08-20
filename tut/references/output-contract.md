@@ -87,11 +87,11 @@ Each step must include:
 
 ### Verification checkpoint format
 
-Mark checkpoints distinctly using the visual-language palette. Each checkpoint should include:
+Mark checkpoints with **✔️ Checkpoint:** so they are visually distinct and scannable. Each checkpoint should include:
 
 - The check to perform (command, URL to visit, file to inspect).
 - The expected result (exact output, status code, visible state).
-- What to do if the check fails (brief pointer to Troubleshooting or a corrective action).
+- What to do if the check fails (use 🩹 for the recovery note — brief pointer to Troubleshooting or a corrective action).
 
 ### Step dependencies
 
@@ -123,6 +123,25 @@ For Mermaid:
 - Follow every diagram with prose interpretation.
 
 Read `visual-language.md` before adding symbols. Use only its palette. The visual-language reference is authoritative.
+
+## Inline symbols
+
+Use symbols from `visual-language.md` to mark recurring item types throughout the tutorial body. These are scanning aids, not decoration:
+
+| Item type               | Symbol | Example usage                                                    |
+| ----------------------- | ------ | ---------------------------------------------------------------- |
+| Verification checkpoint | ✔️     | `**✔️ Checkpoint:**` before each verification block              |
+| Expected result         | ✔️     | Prefix expected-output descriptions                              |
+| Gotcha or workaround    | 🩹     | Inline note about a common pitfall, "if this fails" recovery     |
+| Warning                 | ⚠️     | Consequential caveat the reader must heed before proceeding      |
+| Key point               | 📌     | Critical detail that affects later steps or is easy to miss      |
+| Open question           | ❓     | Something the reader may need to investigate for their context   |
+
+Rules:
+- A step with no gotchas or warnings needs no inline symbols beyond its checkpoint marker.
+- Keep density restrained and consistent within the document.
+- Every symbol must be paired with explicit text — never the sole carrier of meaning.
+- Section headings still use the shared output-spine palette (💭, 🧭, 🔗, 💡, etc.).
 
 ## Code blocks
 
@@ -168,5 +187,7 @@ Include only sources that materially informed the tutorial content.
 - [ ] Troubleshooting covers common failure modes (Comprehensive).
 - [ ] Symbols come from the configured palette and remain restrained.
 - [ ] The ending provides a clear next action.
-- [ ] The instance path uses `<workspace-root>/.data/tut-YY-MM-DD-<suffix>` and did not overwrite existing work.
+- [ ] The instance path uses `<workspace-root>/.data/tut-YY-MM-DD-<suffix>` (relative to the repository root, not the shell's CWD) and did not overwrite existing work.
+- [ ] The reader-facing output file is named `tutorial-<slug>.md` (or `tutorial-<slug>-part-<letter>.md` for multi-part), not a generic name.
+- [ ] Inline symbols (✔️, 🩹, ⚠️, 📌) are used consistently for checkpoints, gotchas, warnings, and key points.
 - [ ] Generated artifacts remain outside source control.

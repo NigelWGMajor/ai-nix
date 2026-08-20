@@ -95,19 +95,23 @@ flowchart TD
 
 [Explain non-obvious parameters or choices when needed]
 
-**Verification checkpoint:**
+📌 [Call out any key detail that affects later steps or is easy to miss]
+
+⚠️ [Consequential caveat the reader must heed before proceeding — omit when none apply]
+
+**✔️ Checkpoint:**
 
 ```bash
 [command to verify success]
 ```
 
-Expected result:
+✔️ Expected result:
 
 ```
 [expected output]
 ```
 
-If this fails, [brief corrective guidance or pointer to Troubleshooting].
+🩹 If this fails, [brief corrective guidance or pointer to Troubleshooting].
 
 ---
 
@@ -115,7 +119,13 @@ If this fails, [brief corrective guidance or pointer to Troubleshooting].
 
 **Purpose:** [What this step achieves and why]
 
-[Continue the pattern for each step]
+[Continue the pattern for each step. Use inline symbols consistently:
+- ✔️ for verification checkpoints and expected results
+- 🩹 for gotchas, workarounds, and "if this fails" notes
+- ⚠️ for warnings the reader must heed
+- 📌 for key points that affect later steps
+- ❓ for things the reader may need to investigate
+Omit symbols that don't apply to a given step.]
 
 ## 🟰 Variations and alternatives
 

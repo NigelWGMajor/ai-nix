@@ -67,20 +67,45 @@ Wait for the user's answers before proceeding to Pass 2.
 
 ## Create the tutorial instance
 
-For Standard or Comprehensive work, initialize a durable instance before substantial research:
+For Standard or Comprehensive work, initialize a durable instance before substantial research.
+
+### Resolve the workspace root
+
+The `.data/tut-*` instance directory MUST be created under the workspace root, which is the repository root (the directory containing `.git`), NOT the shell's current working directory. Resolve the workspace root in this order:
+
+1. An explicit user-supplied workspace path.
+2. The repository root (the nearest ancestor containing `.git`).
+3. Only as a last resort: the current working directory.
+
+Always pass `--workspace` explicitly with the resolved root.
+
+### Initialize
 
 ```text
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --topic "<topic>" --audience "<audience>" --outcome "<outcome>" --depth <standard|comprehensive>
 ```
 
-The initializer creates the next collision-safe `.data/tut-YY-MM-DD-<suffix>` directory under the resolved workspace root. It creates `.data` when needed, never overwrites an existing instance, and copies the reader-facing template to `Findings.md`. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker.
+Optional arguments:
+
+- `--slug "<slug>"`: override the auto-generated filename slug (derived from `--topic` when omitted).
+- `--part "<letter>"`: append a `-part-<letter>` suffix for multi-part tutorials.
+
+The initializer creates the next collision-safe `.data/tut-YY-MM-DD-<suffix>` directory under the resolved workspace root. It creates `.data` when needed, never overwrites an existing instance, and copies the reader-facing template with a descriptive name derived from the topic (e.g., `tutorial-local-spicedb-dev-environment.md`).
+
+### Output file naming
+
+The reader-facing tutorial file is named `tutorial-<slug>.md` where `<slug>` is a lowercase-hyphenated version of the topic. For multi-part tutorials, each part is suffixed: `tutorial-<slug>-part-a.md`, `tutorial-<slug>-part-b.md`, etc. The actual filename is recorded in `00-control.md` under `Final document`.
+
+When a tutorial is large enough to warrant splitting (e.g., distinct stages that can be followed independently), create separate instance parts using the `--part` argument.
+
+### Instance contents
 
 Maintain:
 
 - `00-control.md`: identity, topic, audience, outcome, scope, phase, progress, assumptions, questions, and next safe action.
 - `01-evidence.md`: material sources, references, tools, and limitations.
 - `02-outline.md`: tutorial structure, step sequence, and planned diagrams.
-- `Findings.md`: professional reader-facing tutorial document.
+- `tutorial-<slug>.md`: professional reader-facing tutorial document (name recorded in `00-control.md`).
 
 Checkpoint `00-control.md` after each meaningful stage and before stopping. If the user explicitly requests chat-only output, do not create an instance. For Brief work, create an instance only when the user asks to save the result.
 
@@ -110,7 +135,7 @@ Design the tutorial structure in `02-outline.md`:
 
 ### 2c. Draft
 
-Write the tutorial to `Findings.md` using the template from `assets/findings-template.md`.
+Write the tutorial to the named output file (recorded in `00-control.md`) using the template from `assets/findings-template.md`.
 
 Before drafting:
 
@@ -124,7 +149,14 @@ Before drafting:
 - Lead with what the reader will achieve and what they need before starting.
 - Number all steps. Use sub-steps (1a, 1b) only when a step has parallel or optional paths.
 - Show every command, configuration change, or action the reader must perform in a fenced code block with the appropriate language identifier.
-- After each significant step or group, include a **verification checkpoint** — a command, expected output, or observable state that confirms the step succeeded. Use a distinctive marker (from visual-language.md) so checkpoints are easy to scan.
+- After each significant step or group, include a **verification checkpoint** — a command, expected output, or observable state that confirms the step succeeded. Mark checkpoints with ✔️ so they are easy to scan.
+- Use inline symbols from `visual-language.md` to mark recurring item types throughout the tutorial. These aid scanning without cluttering prose:
+  - ✔️ for verification checkpoints and expected results.
+  - 🩹 for gotchas, workarounds, common pitfalls, and "if this fails" recovery notes.
+  - ⚠️ for consequential warnings the reader must heed before proceeding.
+  - 📌 for key points that affect later steps or are easy to miss.
+  - ❓ for open questions or things the reader may need to investigate.
+  Keep symbol density restrained — a step with no gotchas or warnings needs no inline symbols beyond its checkpoint marker.
 - Include diagrams using Mermaid where they materially improve understanding. Always follow a diagram with a prose interpretation. Use `%%{init: {'theme':'dark'}}%%` after the mermaid fence.
 - Explain the *why* behind non-obvious steps — not every step, just the ones where skipping the explanation would leave the reader cargo-culting.
 - For Comprehensive depth, include an "Alternative approaches" or "Variations" section where meaningful alternatives exist, and a "Troubleshooting" section covering common failure modes.
@@ -145,7 +177,7 @@ Before declaring the tutorial complete, perform these checks:
 
 ### 2e. Deliver
 
-Write the final tutorial to `Findings.md` and return a concise chat handoff.
+Write the final tutorial to the named output file and return a concise chat handoff.
 
 ## Compose the output
 
