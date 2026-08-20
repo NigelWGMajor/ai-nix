@@ -23,23 +23,28 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
    - `val/guidance.md`
    - `act/guidance.md`
    - `mem/guidance.md`
+   - `tut/guidance.md`
 
 2. Display this compact catalog:
 
 ```
 Available skills:
 
-🦄 /nix  — Quick discovery: explore a workspace or topic
-🪄 /wiz  — Deep review: analyze a ticket, PR, or branch in depth
-📚 /lit  — Document synthesis: turn dense sources into layered guides
-📃 /kit  — Speckit analysis: review speckit-based project status
-🖼️ /pix  — Slideshows: turn a document into a visual presentation
-🧩 /dac  — Divide & conquer: coordinate Jira-backed delivery
-👮 /cop  — Sanity review: challenge AI-generated code
-🛠️ /fix  — Triage: diagnose bugs through multi-path hypotheses
-🌡️ /val  — Validation: design tests, generate test data, assess coverage
-🎬 /act  — Action extract: turn analysis into actionable info
-🎗️ /mem  — Note recall: search markdown notes for relevant passages
+🦄 /nix *  — Quick discovery: explore a workspace or topic
+🪄 /wiz *  — Deep review: analyze a ticket, PR, or branch in depth
+📚 /lit *  — Document synthesis: turn dense sources into layered guides
+📃 /kit =  — Speckit analysis: review speckit-based project status
+🖼️ /pix *  — Slideshows: turn a document into a visual presentation
+🧩 /dac *  — Divide & conquer: coordinate Jira-backed delivery
+👮 /cop *  — Sanity review: challenge AI-generated code
+🛠️ /fix *  — Triage: diagnose bugs through multi-path hypotheses
+🌡️ /val *  — Validation: design tests, generate test data, assess coverage
+🎬 /act +  — Action extract: turn analysis into actionable info
+🎗️ /mem =  — Note recall: search markdown notes for relevant passages
+🎓 /tut *  — Tutorials: generate step-by-step how-to guides with diagrams
+🔮 /umm =  — This navigator
+
+=  read-only   +  adds to existing files   *  creates working files (.data/)
 
 Tip: add ? to any skill for its capability card (e.g. /nix ?)
 ```
@@ -60,6 +65,7 @@ Speckit         📃 kit
 PRs             🦄 nix -> 🪄 wiz -> 👮 cop
 Bugs/Incidents  🛠️ fix -> 🎬 act or 🛠️ fix -> 👮 cop
 Test planning   🌡️ val
+Tutorials       🦄 nix -> 🎓 tut -> 🖼️ pix
 Communication   (any) -> 🎬 act
 Note search     🎗️ mem
 ```
