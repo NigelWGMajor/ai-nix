@@ -6,7 +6,11 @@ Use this baseline for reader-facing Markdown produced by LIT, KIT, NIX, WIZ, COP
 
 - Treat a professional analysis, synthesis, recovery review, or handoff as a durable document, not terminal-only output.
 - Use a chat-only response only when the user explicitly requests it or the skill classifies the work as Compact and its own contract permits chat-only output.
-- Resolve the workspace root in this order: an explicit user-supplied workspace root, the configured workspace root that contains the subject, the repository root, then the current working directory.
+- Resolve the workspace root in this order:
+  1. An explicit user-supplied workspace root from the prompt
+  2. The repository root via MCP tool `vscode-workspace.get_workspace_root` if available
+  3. The repository root via `git rev-parse --show-toplevel` from the current directory
+  4. OS-specific fallback: `C:\.data` (Windows), `~/Library/Application Support/claude-skills` (macOS), or `~/.local/share/claude-skills` (Linux)
 - Treat `.data` as an output directory, never as a workspace marker. Do not walk upward merely to reuse an existing `.data` directory.
 - Store a new run under `<workspace-root>/.data/<skill>-YY-MM-DD-<suffix>/`, where `<skill>` is the skill prefix (`lit`, `kit`, `nix`, `wiz`, `cop`, `fix`, `val`) and the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.

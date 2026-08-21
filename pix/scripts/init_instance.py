@@ -11,13 +11,39 @@ import sys
 from pathlib import Path
 
 
+def get_fallback_path() -> Path:
+    """Return OS-specific fallback path when no git repository is found."""
+    if sys.platform == 'win32':
+        return Path('C:/.data')
+    elif sys.platform == 'darwin':
+        return Path.home() / 'Library' / 'Application Support' / 'claude-skills'
+    else:
+        return Path.home() / '.local' / 'share' / 'claude-skills'
+
+
+def call_mcp_tool(tool_name: str) -> dict | None:
+    """Try to call MCP tool for workspace root resolution."""
+    return None  # Placeholder for MCP integration
+
+
 def find_workspace(start: Path) -> Path:
     """Return the nearest ancestor that looks like a workspace."""
+    # 1. Try MCP tool if available
+    try:
+        mcp_result = call_mcp_tool('vscode-workspace.get_workspace_root')
+        if mcp_result and mcp_result.get('workspaceRoot'):
+            return Path(mcp_result['workspaceRoot'])
+    except Exception:
+        pass  # MCP not available, continue to git detection
+
+    # 2. Try git from current location
     start = start.expanduser().resolve()
     for candidate in (start, *start.parents):
         if (candidate / ".git").exists():
             return candidate
-    return start
+
+    # 3. Fallback to OS-specific data directory
+    return get_fallback_path()
 
 
 def alphabetic_suffix(index: int) -> str:

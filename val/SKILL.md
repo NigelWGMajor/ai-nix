@@ -157,9 +157,29 @@ Never inflate a simple validation into a deep test suite design. Never compress 
 
 ## Create the validation instance
 
-For Standard or Deep work, initialize a durable validation instance before substantial design:
+For Standard or Deep work, initialize a durable validation instance before substantial design.
 
-Create the instance as `.data/val-YY-MM-DD-<suffix>` under the resolved workspace root, using the next available lowercase alphabetic suffix. Create `.data` when needed. Never overwrite an existing instance or modify `.gitignore`.
+### Resolve the workspace root
+
+Before creating the instance, use the initialization script which automatically resolves the workspace root:
+
+```bash
+python <skill-directory>/scripts/init_instance.py \
+  --workspace <workspace-root> \
+  --target "<target-description>" \
+  --criteria "<acceptance-criteria>" \
+  --depth <standard|deep>
+```
+
+The script resolves workspace root in this order:
+1. Explicit `--workspace` argument (if provided)
+2. VSCode workspace via MCP tool (if available)
+3. Repository root via git: `git rev-parse --show-toplevel`
+4. OS-specific fallback: `C:\.data` (Windows), `~/Library/Application Support/claude-skills` (macOS/Linux)
+
+The workspace root is the repository root (containing `.git`), NOT the terminal's current working directory.
+
+If the Python script is unavailable, manually create the instance as `.data/val-YY-MM-DD-<suffix>` under the resolved workspace root, using the next available lowercase alphabetic suffix. Create `.data` when needed. Never overwrite an existing instance or modify `.gitignore`.
 
 Maintain:
 

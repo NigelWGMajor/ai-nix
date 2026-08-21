@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Create a collision-safe, durable NIX analysis instance."""
+"""Create a collision-safe, durable COP review instance."""
 
 from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
+import os
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -23,7 +26,10 @@ def get_fallback_path() -> Path:
 
 def call_mcp_tool(tool_name: str) -> dict | None:
     """Try to call MCP tool for workspace root resolution."""
-    return None  # Placeholder for MCP integration
+    # Note: This is a placeholder for MCP integration
+    # The actual implementation will depend on how Claude Code exposes MCP tools to Python
+    # For now, this returns None and we fall back to git detection
+    return None
 
 
 def find_workspace(start: Path) -> Path:
@@ -68,110 +74,113 @@ def write_text(path: Path, content: str) -> None:
 
 def control_text(
     created: str,
-    subject: str,
-    question: str,
-    audience: str,
+    target: str,
+    scope: str,
     depth: str,
 ) -> str:
     return f"""
-# NIX control
+# COP control
 
 ## Identity
 
 - Status: initialized
 - Created: {created}
-- Subject: {subject}
-- Question: {question}
-- Audience/use: {audience}
+- Target: {target}
+- Scope: {scope}
 - Depth: {depth.title()}
 - Final document: `Findings.md`
 
-## Scope and evidence boundary
+## Review passes
 
-- Included: To be resolved from the request and workspace.
-- Excluded: To be determined.
-- External research: Not included unless requested or required by the subject.
-- Mutation boundary: Read-only except this NIX instance.
+All passes must complete:
+1. Requirement alignment
+2. Schema and contract verification
+3. AI vulnerability scan
+4. Implementation coherence
+5. Test coverage and validation
+6. Risk and operational review
 
 ## Current stage
 
-Reflect and resolve the subject.
+Requirement alignment
 
 ## Completed work
 
-- Created the analysis instance and standard artifacts.
+- Created the review instance and standard artifacts.
 
 ## Assumptions and open questions
 
-- Record only assumptions that could materially affect the model or conclusion.
-- Resolve any ambiguity that would change the subject or workspace boundary.
+- Record only assumptions that could materially affect the review findings.
 
 ## Next safe action
 
-Frame the core question and inventory the material evidence in `01-evidence.md`.
+Identify what the implementation is solving and verify requirement alignment.
 """
 
 
 EVIDENCE = """
-# NIX evidence map
+# COP evidence map
 
 ## Boundary and freshness
 
-- Workspace or subject boundary:
-- External evidence boundary:
+- Review target:
+- Evidence boundary:
 - Freshness limitations:
 
-## Material sources and entry points
+## Material sources
 
-| ID | Source or entry point | Role | What it establishes | Evidence class or limitation |
+| ID | Source | Role | What it establishes | Limitation |
 | --- | --- | --- | --- | --- |
 | E001 | To be inspected | Unknown | | Unknown |
 
-## Conflicts, gaps, and diminishing-return boundary
+## Gaps and limitations
 
-- Conflicts:
 - Missing evidence:
-- Exploration stopping condition:
+- Inaccessible sources:
 """
 
 
 ANALYSIS = """
-# NIX working analysis
+# COP working analysis
 
-## Reflect
+## Pass 1: Requirement alignment
 
-## Explore
+## Pass 2: Schema and contract verification
 
-## Connect
+## Pass 3: AI vulnerability scan
 
-## Imagine
+## Pass 4: Implementation coherence
 
-## Produce
+## Pass 5: Test coverage and validation
 
-## Empower
+## Pass 6: Risk and operational review
 
-## Material findings, assumptions, conflicts, and unknowns
+## Finding register
+
+| ID | Pass | Category | Summary | Severity | Confidence |
+| --- | --- | --- | --- | --- | --- |
+
+## Material unknowns and recommendations
 """
 
 
 def allocate_instance(data_dir: Path, date_value: str) -> Path:
     data_dir.mkdir(parents=True, exist_ok=True)
     for index in range(26 * 27):
-        candidate = data_dir / f"nix-{date_value}-{alphabetic_suffix(index)}"
+        candidate = data_dir / f"cop-{date_value}-{alphabetic_suffix(index)}"
         try:
             candidate.mkdir()
             return candidate
         except FileExistsError:
             continue
-    raise RuntimeError("could not allocate an available NIX instance suffix")
+    raise RuntimeError("could not allocate an available COP instance suffix")
 
 
 def create_instance(
     workspace: Path,
     date_value: str,
-    subject: str,
-    question: str,
-    audience: str,
+    target: str,
+    scope: str,
     depth: str,
 ) -> Path:
     template = Path(__file__).resolve().parents[1] / "assets" / "findings-template.md"
@@ -183,7 +192,7 @@ def create_instance(
     try:
         write_text(
             instance / "00-control.md",
-            control_text(created, subject, question, audience, depth),
+            control_text(created, target, scope, depth),
         )
         write_text(instance / "01-evidence.md", EVIDENCE)
         write_text(instance / "02-analysis.md", ANALYSIS)
@@ -196,22 +205,21 @@ def create_instance(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create the next .data/nix-YY-MM-DD-<suffix> analysis instance."
+        description="Create the next .data/cop-YY-MM-DD-<suffix> review instance."
     )
     parser.add_argument(
         "--workspace",
         type=Path,
-        help="Workspace root. Defaults to the nearest Git root, otherwise the current directory.",
+        help="Workspace root. Defaults to the nearest Git root, otherwise the fallback path.",
     )
     parser.add_argument(
         "--date",
         default=dt.date.today().strftime("%y-%m-%d"),
         help="Instance date in YY-MM-DD format (default: today).",
     )
-    parser.add_argument("--subject", default="Current workspace")
-    parser.add_argument("--question", default="Build a usable mental model of the subject.")
-    parser.add_argument("--audience", default="Technically informed readers.")
-    parser.add_argument("--depth", choices=("compact", "standard", "deep"), default="standard")
+    parser.add_argument("--target", default="Current changes")
+    parser.add_argument("--scope", default="Changed files and immediate dependencies")
+    parser.add_argument("--depth", choices=("quick", "standard", "deep"), default="standard")
     return parser.parse_args()
 
 
@@ -231,9 +239,8 @@ def main() -> int:
         instance = create_instance(
             workspace=workspace,
             date_value=args.date,
-            subject=single_line(args.subject),
-            question=single_line(args.question),
-            audience=single_line(args.audience),
+            target=single_line(args.target),
+            scope=single_line(args.scope),
             depth=args.depth,
         )
     except (OSError, RuntimeError, ValueError) as exc:

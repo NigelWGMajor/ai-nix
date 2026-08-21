@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a collision-safe, resumable LIT analysis instance."""
+"""Create a collision-safe, durable FIX triage instance."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def find_workspace(start: Path) -> Path:
         if mcp_result and mcp_result.get('workspaceRoot'):
             return Path(mcp_result['workspaceRoot'])
     except Exception:
-        pass  # MCP not available, continue to git detection
+        pass
 
     # 2. Try git from current location
     start = start.expanduser().resolve()
@@ -50,165 +50,156 @@ def alphabetic_suffix(index: int) -> str:
     """Convert zero-based indexes to a, b, ..., z, aa, ab, ... ."""
     if index < 0:
         raise ValueError("suffix index must be non-negative")
-    result = ""
     value = index + 1
+    result = ""
     while value:
         value, remainder = divmod(value - 1, 26)
         result = chr(ord("a") + remainder) + result
     return result
 
 
+def single_line(value: str) -> str:
+    return " ".join(value.splitlines()).strip()
+
+
 def write_text(path: Path, content: str) -> None:
     path.write_text(content.strip() + "\n", encoding="utf-8")
 
 
-def control_text(purpose: str, audience: str) -> str:
+def control_text(
+    created: str,
+    symptom: str,
+    depth: str,
+) -> str:
     return f"""
-# LIT control
+# FIX control
 
 ## Identity
 
 - Status: initialized
-- Purpose: {purpose}
-- Audience: {audience}
+- Created: {created}
+- Symptom: {symptom}
+- Depth: {depth.title()}
 - Final document: `Findings.md`
 
-## Corpus boundary
+## Scope and evidence boundary
 
-- Included: To be inventoried.
+- Included: To be resolved from the symptom and workspace.
 - Excluded: To be determined.
-- Research authorization: Source corpus only unless explicitly expanded by the user.
+- External research: Not included unless required by the symptom.
+- Mutation boundary: Read-only except this FIX instance.
 
-## Current phase
+## Hypotheses
 
-Source orientation and inventory.
+To be formed after capturing the symptom precisely.
+
+## Current stage
+
+Capture - document the symptom precisely before forming hypotheses.
 
 ## Completed work
 
-- Created the analysis instance and standard artifacts.
-
-## Assumptions
-
-- Default output is professional Markdown in US English.
-- Default depth is orientation plus detailed reference.
-
-## Open questions
-
-- Confirm the target decision or activity if it is not explicit in the request.
-- Confirm any material corpus ambiguity.
+- Created the triage instance and standard artifacts.
 
 ## Next safe action
 
-Inventory the supplied sources in `01-evidence.md` without modifying them.
+Capture the symptom: what is the observable failure, when does it occur, where does it manifest?
 """
 
 
 EVIDENCE = """
-# Source inventory
+# FIX evidence map
 
-## Corpus boundary
+## Symptom
 
-- Included:
-- Excluded:
-- Unavailable or missing:
+Document the observable failure before investigation.
 
-## Sources
+## Evidence
 
-| ID | Source and location | Role | Version or date | Scope and authority | Availability | Currency | Relevance | Completeness | Decision value | Interpretation confidence | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S001 | To be inventoried | To be classified | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown | |
+| ID | Source or observation | Role | Supports/contradicts | Assessment |
+| --- | --- | --- | --- | --- |
+| E-01 | To be gathered | Unknown | | Unknown |
 
-## Relationships
+## Hypothesis evaluation
 
-Record normative, supplementary, superseding, derivative, or hierarchical source relationships here.
+| Hypothesis | Evidence For | Evidence Against | Status |
+| --- | --- | --- | --- |
+| H-01 | | | Active |
 """
 
 
-ANALYSIS = """
-# Analysis
+TRIAGE = """
+# FIX triage trace
 
-## Essential concepts and claims
+## Hypothesis register
 
-## Terminology and aliases
+| ID | Hypothesis | Status | Confidence |
+| --- | --- | --- | --- |
 
-## Relationships, flows, and boundaries
+## Narrowing analysis
 
-## Agreements and conflicts
+## Root cause
 
-## Interpretations, synthesis, and inferences
+## Causal chain
 
-## Implications and recommendations
-
-## Assumptions, gaps, and unknowns
+## Contributing factors
 """
 
 
-STRUCTURE = """
-# Proposed structure
-
-## Reader journey
-
-## Comprehension dependencies
-
-## Section plan
-
-## Planned diagrams and visual aids
-
-List only visuals that materially improve comprehension and note the relationship each one explains.
-"""
+def allocate_instance(data_dir: Path, date_value: str) -> Path:
+    data_dir.mkdir(parents=True, exist_ok=True)
+    for index in range(26 * 27):
+        candidate = data_dir / f"fix-{date_value}-{alphabetic_suffix(index)}"
+        try:
+            candidate.mkdir()
+            return candidate
+        except FileExistsError:
+            continue
+    raise RuntimeError("could not allocate an available FIX instance suffix")
 
 
 def create_instance(
     workspace: Path,
     date_value: str,
-    purpose: str,
-    audience: str,
+    symptom: str,
+    depth: str,
 ) -> Path:
     template = Path(__file__).resolve().parents[1] / "assets" / "findings-template.md"
     if not template.is_file():
         raise FileNotFoundError(f"findings template not found: {template}")
 
-    data_dir = workspace / ".data"
-    data_dir.mkdir(parents=True, exist_ok=True)
-
-    instance_dir = None
-    for index in range(26 * 27):
-        candidate = data_dir / f"lit-{date_value}-{alphabetic_suffix(index)}"
-        try:
-            candidate.mkdir()
-        except FileExistsError:
-            continue
-        instance_dir = candidate
-        break
-
-    if instance_dir is None:
-        raise RuntimeError("could not allocate an available LIT instance suffix")
-
-    write_text(instance_dir / "00-control.md", control_text(purpose, audience))
-    write_text(instance_dir / "01-evidence.md", EVIDENCE)
-    write_text(instance_dir / "02-analysis.md", ANALYSIS)
-    write_text(instance_dir / "03-structure.md", STRUCTURE)
-
-    shutil.copyfile(template, instance_dir / "Findings.md")
-    return instance_dir
+    instance = allocate_instance(workspace / ".data", date_value)
+    created = dt.datetime.now(tz=dt.timezone.utc).isoformat()
+    try:
+        write_text(
+            instance / "00-control.md",
+            control_text(created, symptom, depth),
+        )
+        write_text(instance / "01-evidence.md", EVIDENCE)
+        write_text(instance / "02-triage.md", TRIAGE)
+        shutil.copyfile(template, instance / "Findings.md")
+    except Exception:
+        shutil.rmtree(instance, ignore_errors=True)
+        raise
+    return instance
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create the next .data/lit-YY-MM-DD-<suffix> analysis instance."
+        description="Create the next .data/fix-YY-MM-DD-<suffix> triage instance."
     )
     parser.add_argument(
         "--workspace",
         type=Path,
-        help="Workspace root. Defaults to the nearest Git root, otherwise the current directory.",
+        help="Workspace root. Defaults to the nearest Git root, otherwise the fallback path.",
     )
     parser.add_argument(
         "--date",
         default=dt.date.today().strftime("%y-%m-%d"),
         help="Instance date in YY-MM-DD format (default: today).",
     )
-    parser.add_argument("--purpose", default="To be confirmed.")
-    parser.add_argument("--audience", default="Technically informed decision-makers.")
+    parser.add_argument("--symptom", default="Symptom to be diagnosed")
+    parser.add_argument("--depth", choices=("quick", "standard", "deep"), default="standard")
     return parser.parse_args()
 
 
@@ -228,8 +219,8 @@ def main() -> int:
         instance = create_instance(
             workspace=workspace,
             date_value=args.date,
-            purpose=args.purpose,
-            audience=args.audience,
+            symptom=single_line(args.symptom),
+            depth=args.depth,
         )
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)

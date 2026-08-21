@@ -90,6 +90,41 @@ Need to assist with reviewing information.
 
 All skills capture external references (Atlassian, web) into a `./md` folder as markdown snapshots before analysis. All use a shared visual language from `visual-language.md`.
 
+## Infrastructure
+
+### MCP Server: VSCode Workspace Discovery
+
+Located in `mcp-servers/vscode-workspace/`, this MCP server provides reliable workspace root resolution for all skills, independent of terminal CWD.
+
+**Setup:**
+```bash
+cd mcp-servers/vscode-workspace
+npm install
+```
+
+**Configure in `~/.claude/config.json`:**
+```json
+{
+  "mcpServers": {
+    "vscode-workspace": {
+      "command": "node",
+      "args": ["B:\\ai\\ai-nix\\mcp-servers\\vscode-workspace\\index.js"]
+    }
+  }
+}
+```
+
+See `mcp-servers/vscode-workspace/README.md` for full documentation.
+
+### Deployment
+
+Run `00-propagate-skills-to-claude-agent-codex.cmd` to deploy all skills from this source repo to:
+- `%USERPROFILE%\.claude\skills\`
+- `%USERPROFILE%\.codex\skills\`
+- `%USERPROFILE%\.agents\skills\`
+
+**Important:** Always edit skills in this repo (B:\ai\ai-nix), not in the deployed locations. Deployed copies are overwritten on each propagation.
+
 🚧 🚧 🚧 🚧 🚧 🚧 🚧 🚧 tasks
 
 ✔️ make the graphics consistent through the skill series

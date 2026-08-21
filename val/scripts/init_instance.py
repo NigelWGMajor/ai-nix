@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a collision-safe, resumable LIT analysis instance."""
+"""Create a collision-safe, durable VAL validation instance."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def find_workspace(start: Path) -> Path:
         if mcp_result and mcp_result.get('workspaceRoot'):
             return Path(mcp_result['workspaceRoot'])
     except Exception:
-        pass  # MCP not available, continue to git detection
+        pass
 
     # 2. Try git from current location
     start = start.expanduser().resolve()
@@ -50,165 +50,169 @@ def alphabetic_suffix(index: int) -> str:
     """Convert zero-based indexes to a, b, ..., z, aa, ab, ... ."""
     if index < 0:
         raise ValueError("suffix index must be non-negative")
-    result = ""
     value = index + 1
+    result = ""
     while value:
         value, remainder = divmod(value - 1, 26)
         result = chr(ord("a") + remainder) + result
     return result
 
 
+def single_line(value: str) -> str:
+    return " ".join(value.splitlines()).strip()
+
+
 def write_text(path: Path, content: str) -> None:
     path.write_text(content.strip() + "\n", encoding="utf-8")
 
 
-def control_text(purpose: str, audience: str) -> str:
+def control_text(
+    created: str,
+    target: str,
+    acceptance_criteria: str,
+    depth: str,
+) -> str:
     return f"""
-# LIT control
+# VAL control
 
 ## Identity
 
 - Status: initialized
-- Purpose: {purpose}
-- Audience: {audience}
+- Created: {created}
+- Target: {target}
+- Acceptance criteria: {acceptance_criteria}
+- Depth: {depth.title()}
 - Final document: `Findings.md`
 
-## Corpus boundary
+## Scope and evidence boundary
 
-- Included: To be inventoried.
+- Included: To be resolved from the target and requirements.
 - Excluded: To be determined.
-- Research authorization: Source corpus only unless explicitly expanded by the user.
+- External research: Not included unless required by validation.
+- Mutation boundary: Read-only except this VAL instance.
 
-## Current phase
+## Current stage
 
-Source orientation and inventory.
+Strategy - define test approach and coverage goals.
 
 ## Completed work
 
-- Created the analysis instance and standard artifacts.
+- Created the validation instance and standard artifacts.
 
-## Assumptions
+## Assumptions and open questions
 
-- Default output is professional Markdown in US English.
-- Default depth is orientation plus detailed reference.
-
-## Open questions
-
-- Confirm the target decision or activity if it is not explicit in the request.
-- Confirm any material corpus ambiguity.
+- Record only assumptions that could materially affect validation coverage.
 
 ## Next safe action
 
-Inventory the supplied sources in `01-evidence.md` without modifying them.
+Define validation strategy: what needs to be proven, what test levels apply, what risks exist?
 """
 
 
 EVIDENCE = """
-# Source inventory
+# VAL evidence map
 
-## Corpus boundary
+## Boundary and freshness
 
-- Included:
-- Excluded:
-- Unavailable or missing:
+- Target boundary:
+- Evidence boundary:
+- Freshness limitations:
 
-## Sources
+## Material sources and requirements
 
-| ID | Source and location | Role | Version or date | Scope and authority | Availability | Currency | Relevance | Completeness | Decision value | Interpretation confidence | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S001 | To be inventoried | To be classified | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown | |
+| ID | Source or requirement | Role | What it establishes | Limitation |
+| --- | --- | --- | --- | --- |
+| R001 | To be inspected | Unknown | | Unknown |
 
-## Relationships
+## Gaps and limitations
 
-Record normative, supplementary, superseding, derivative, or hierarchical source relationships here.
+- Missing information:
+- Test environment constraints:
 """
 
 
 ANALYSIS = """
-# Analysis
+# VAL working analysis
 
-## Essential concepts and claims
+## Test strategy
 
-## Terminology and aliases
+### Coverage goals
 
-## Relationships, flows, and boundaries
+### Risk areas
 
-## Agreements and conflicts
+### Test levels and approaches
 
-## Interpretations, synthesis, and inferences
+## Test data design
 
-## Implications and recommendations
+## Test cases
 
-## Assumptions, gaps, and unknowns
+| ID | Description | Input | Expected output | Priority |
+| --- | --- | --- | --- | --- |
+
+## Coverage assessment
+
+## Validation plan
+
+## Material unknowns and recommendations
 """
 
 
-STRUCTURE = """
-# Proposed structure
-
-## Reader journey
-
-## Comprehension dependencies
-
-## Section plan
-
-## Planned diagrams and visual aids
-
-List only visuals that materially improve comprehension and note the relationship each one explains.
-"""
+def allocate_instance(data_dir: Path, date_value: str) -> Path:
+    data_dir.mkdir(parents=True, exist_ok=True)
+    for index in range(26 * 27):
+        candidate = data_dir / f"val-{date_value}-{alphabetic_suffix(index)}"
+        try:
+            candidate.mkdir()
+            return candidate
+        except FileExistsError:
+            continue
+    raise RuntimeError("could not allocate an available VAL instance suffix")
 
 
 def create_instance(
     workspace: Path,
     date_value: str,
-    purpose: str,
-    audience: str,
+    target: str,
+    acceptance_criteria: str,
+    depth: str,
 ) -> Path:
     template = Path(__file__).resolve().parents[1] / "assets" / "findings-template.md"
     if not template.is_file():
         raise FileNotFoundError(f"findings template not found: {template}")
 
-    data_dir = workspace / ".data"
-    data_dir.mkdir(parents=True, exist_ok=True)
-
-    instance_dir = None
-    for index in range(26 * 27):
-        candidate = data_dir / f"lit-{date_value}-{alphabetic_suffix(index)}"
-        try:
-            candidate.mkdir()
-        except FileExistsError:
-            continue
-        instance_dir = candidate
-        break
-
-    if instance_dir is None:
-        raise RuntimeError("could not allocate an available LIT instance suffix")
-
-    write_text(instance_dir / "00-control.md", control_text(purpose, audience))
-    write_text(instance_dir / "01-evidence.md", EVIDENCE)
-    write_text(instance_dir / "02-analysis.md", ANALYSIS)
-    write_text(instance_dir / "03-structure.md", STRUCTURE)
-
-    shutil.copyfile(template, instance_dir / "Findings.md")
-    return instance_dir
+    instance = allocate_instance(workspace / ".data", date_value)
+    created = dt.datetime.now(tz=dt.timezone.utc).isoformat()
+    try:
+        write_text(
+            instance / "00-control.md",
+            control_text(created, target, acceptance_criteria, depth),
+        )
+        write_text(instance / "01-evidence.md", EVIDENCE)
+        write_text(instance / "02-analysis.md", ANALYSIS)
+        shutil.copyfile(template, instance / "Findings.md")
+    except Exception:
+        shutil.rmtree(instance, ignore_errors=True)
+        raise
+    return instance
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create the next .data/lit-YY-MM-DD-<suffix> analysis instance."
+        description="Create the next .data/val-YY-MM-DD-<suffix> validation instance."
     )
     parser.add_argument(
         "--workspace",
         type=Path,
-        help="Workspace root. Defaults to the nearest Git root, otherwise the current directory.",
+        help="Workspace root. Defaults to the nearest Git root, otherwise the fallback path.",
     )
     parser.add_argument(
         "--date",
         default=dt.date.today().strftime("%y-%m-%d"),
         help="Instance date in YY-MM-DD format (default: today).",
     )
-    parser.add_argument("--purpose", default="To be confirmed.")
-    parser.add_argument("--audience", default="Technically informed decision-makers.")
+    parser.add_argument("--target", default="Implementation to validate")
+    parser.add_argument("--criteria", default="Success criteria to be defined")
+    parser.add_argument("--depth", choices=("standard", "deep"), default="standard")
     return parser.parse_args()
 
 
@@ -228,8 +232,9 @@ def main() -> int:
         instance = create_instance(
             workspace=workspace,
             date_value=args.date,
-            purpose=args.purpose,
-            audience=args.audience,
+            target=single_line(args.target),
+            acceptance_criteria=single_line(args.criteria),
+            depth=args.depth,
         )
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
