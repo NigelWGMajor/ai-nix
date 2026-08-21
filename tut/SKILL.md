@@ -185,6 +185,11 @@ The tutorial document uses the shared output spine adapted for instructional con
 
 For Brief output, follow the same clarity and verification rules without loading or reproducing the full template.
 
+Always have an overview of the process, followed by the execution steps, followed by a troubleshooting appendix, and relegate details to a final appendix or appendices. Provide bookmark links to the appendices were appropriate.
+
+Use visual language conventions to aid communication
+
+
 ## Complete the tutorial
 
 Apply the shared quality gate in [references/documentation-standard.md](references/documentation-standard.md) and the TUT-specific gate in [references/output-contract.md](references/output-contract.md). Report:
