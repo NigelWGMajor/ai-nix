@@ -12,7 +12,7 @@ Use this baseline for reader-facing Markdown produced by LIT, KIT, NIX, WIZ, COP
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.
 - Create `.data` when needed. Never modify `.gitignore` automatically and never stage, commit, or publish generated artifacts.
 - Follow stricter skill-specific safety rules. In particular, honor any requirement to refuse an unignored in-repository output path.
-- Keep working notes and control artifacts in the instance, but always name the reader-facing deliverable `Findings.md`. Exception: TUT names its deliverable `tutorial-<slug>.md` for discoverability when the file is shared or copied outside the instance.
+- Keep working notes and control artifacts in the instance, but always name the reader-facing deliverable `Findings.md`. - EXCEPTION: TUT names its output artifacts tutorial-a.md.
 - When the user supplies an explicit output path, honor it. Retain an instance in the workspace when the skill requires resumability, and record the relationship between the instance and the requested deliverable.
 
 ## Reader-facing structure
