@@ -189,6 +189,7 @@ Always have an overview of the process, followed by the execution steps, followe
 
 Use visual language conventions to aid communication
 
+If the procedures being documented have different cardinality (e.g. single-time setup, everyday use) use sections to clarify the different use cases. Use the same visual language symbols in the tutorial as in the template.
 
 ## Complete the tutorial
 
