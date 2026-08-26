@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+"""Create a collision-safe, durable MAP instance."""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import re
+import shutil
+import sys
+from pathlib import Path
+
+
+def get_fallback_path() -> Path:
+    """Return OS-specific fallback path when no git repository is found."""
+    if sys.platform == 'win32':
+        return Path('C:/.data')
+    elif sys.platform == 'darwin':
+        return Path.home() / 'Library' / 'Application Support' / 'claude-skills'
+    else:
+        return Path.home() / '.local' / 'share' / 'claude-skills'
+
+
+def call_mcp_tool(tool_name: str) -> dict | None:
+    """Try to call MCP tool for workspace root resolution."""
+    return None  # Placeholder for MCP integration
+
+
+def find_workspace(start: Path) -> Path:
+    """Return the nearest ancestor that looks like a workspace."""
+    # 1. Try MCP tool if available
+    try:
+        mcp_result = call_mcp_tool('vscode-workspace.get_workspace_root')
+        if mcp_result and mcp_result.get('workspaceRoot'):
+            return Path(mcp_result['workspaceRoot'])
+    except Exception:
+        pass  # MCP not available, continue to git detection
+
+    # 2. Try git from current location
+    start = start.expanduser().resolve()
+    for candidate in (start, *start.parents):
+        if (candidate / ".git").exists():
+            return candidate
+
+    # 3. Fallback to OS-specific data directory
+    return get_fallback_path()
+
+
+def alphabetic_suffix(index: int) -> str:
+    """Convert zero-based indexes to a, b, ..., z, aa, ab, ... ."""
+    if index < 0:
+        raise ValueError("suffix index must be non-negative")
+    value = index + 1
+    result = ""
+    while value:
+        value, remainder = divmod(value - 1, 26)
+        result = chr(ord("a") + remainder) + result
+    return result
+
+
+def single_line(value: str) -> str:
+    return " ".join(value.splitlines()).strip()
+
+
+def write_text(path: Path, content: str) -> None:
+    path.write_text(content.strip() + "\n", encoding="utf-8")
+
+
+def control_text(
+    created: str,
+    branch: str,
+    ticket: str,
+    project_type: str,
+) -> str:
+    return f"""
+# MAP control
+
+## Identity
+
+- Status: initialized
+- Created: {created}
+- Branch: {branch}
+- Ticket: {ticket}
+- Project type: {project_type}
+- Output files: `map.md`, `map.upstream.md`
+
+## Scope
+
+- Branch commits: All since divergence from parent
+- Code analysis: Changed components and their call hierarchy
+- Ticket context: {ticket if ticket and ticket != "None" else "Not available"}
+- Related projects: To be determined (DAC, Speckit, etc.)
+
+## Current phase
+
+Context Triage - analyze branch and detect project type.
+
+## Completed work
+
+- Created the map instance and standard artifacts.
+
+## Assumptions and open questions
+
+- Record only assumptions that could materially affect the navigation map.
+- Resolve any ambiguity about scope or project context.
+
+## Next safe action
+
+Gather git evidence (commits, changed files, branch structure) in the conversation context.
+"""
+
+
+UPSTREAM_TEMPLATE = """# Upstream Navigation: [branch-name]
+
+<!-- This file follows the Upstream document format for VSCode extension -->
+<!-- See references/UPSTREAM-FORMAT-SPEC.md for format specification -->
+
+[Tree-structured list of code locations will be generated here]
+"""
+
+
+def allocate_instance(data_dir: Path, date_value: str) -> Path:
+    data_dir.mkdir(parents=True, exist_ok=True)
+    for index in range(26 * 27):
+        candidate = data_dir / f"map-{date_value}-{alphabetic_suffix(index)}"
+        try:
+            candidate.mkdir()
+            return candidate
+        except FileExistsError:
+            continue
+    raise RuntimeError("could not allocate an available MAP instance suffix")
+
+
+def create_instance(
+    workspace: Path,
+    date_value: str,
+    branch: str,
+    ticket: str,
+    project_type: str,
+) -> Path:
+    template = Path(__file__).resolve().parents[1] / "assets" / "map-template.md"
+    if not template.is_file():
+        raise FileNotFoundError(f"map template not found: {template}")
+
+    instance = allocate_instance(workspace / ".data", date_value)
+    created = dt.datetime.now(tz=dt.timezone.utc).isoformat()
+    try:
+        write_text(
+            instance / "00-control.md",
+            control_text(created, branch, ticket, project_type),
+        )
+        shutil.copyfile(template, instance / "map.md")
+        write_text(instance / "map.upstream.md", UPSTREAM_TEMPLATE)
+    except Exception:
+        shutil.rmtree(instance, ignore_errors=True)
+        raise
+    return instance
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Create the next .data/map-YY-MM-DD-<suffix> instance."
+    )
+    parser.add_argument(
+        "--workspace",
+        type=Path,
+        help="Workspace root. Defaults to the nearest Git root, otherwise the current directory.",
+    )
+    parser.add_argument(
+        "--date",
+        default=dt.date.today().strftime("%y-%m-%d"),
+        help="Instance date in YY-MM-DD format (default: today).",
+    )
+    parser.add_argument("--branch", default="current")
+    parser.add_argument("--ticket", default="None")
+    parser.add_argument(
+        "--project-type",
+        choices=("ticket-driven", "dac", "speckit", "utility", "main-history"),
+        default="ticket-driven"
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        if not re.fullmatch(r"\d{2}-\d{2}-\d{2}", args.date):
+            raise ValueError("date must use the exact YY-MM-DD format")
+        dt.datetime.strptime(args.date, "%y-%m-%d")
+        workspace = (
+            args.workspace.expanduser().resolve()
+            if args.workspace
+            else find_workspace(Path.cwd())
+        )
+        if not workspace.is_dir():
+            raise NotADirectoryError(f"workspace is not a directory: {workspace}")
+        instance = create_instance(
+            workspace=workspace,
+            date_value=args.date,
+            branch=single_line(args.branch),
+            ticket=single_line(args.ticket),
+            project_type=args.project_type,
+        )
+    except (OSError, RuntimeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print(instance)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

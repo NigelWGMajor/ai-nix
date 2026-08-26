@@ -23,6 +23,7 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
    - `val/guidance.md`
    - `act/guidance.md`
    - `mem/guidance.md`
+   - `map/guidance.md`
    - `tut/guidance.md`
 
 2. Display this compact catalog:
@@ -41,6 +42,7 @@ Available skills:
 🌡️ /val *  — Validation: design tests, generate test data, assess coverage
 🎬 /act +  — Action extract: turn analysis into actionable info
 🎗️ /mem =  — Note recall: search markdown notes for relevant passages
+🗺️ /map *  — Task navigator: map work in progress on any branch
 🎓 /tut *  — Tutorials: generate step-by-step how-to guides with diagrams
 🔮 /umm =  — This navigator
 
@@ -60,9 +62,10 @@ Design          🦄 nix -> 📚 lit -> 🖼️ pix
 Issue triage    🦄 nix -> 🪄 wiz -> 📚 lit -> 🖼️ pix
 Epics           🦄 nix -> 🪄 wiz -> 🧩 dac
 Stories         🦄 nix -> 🪄 wiz -> 🧩 dac
-WIP             🦄 nix -> 🪄 wiz -> 👮 cop -> 🌡️ val
+WIP             🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val
 Speckit         📃 kit
-PRs             🦄 nix -> 🪄 wiz -> 👮 cop
+PRs             🗺️ map -> 🪄 wiz -> 👮 cop
+Branch resume   🗺️ map
 Bugs/Incidents  🛠️ fix -> 🎬 act or 🛠️ fix -> 👮 cop
 Test planning   🌡️ val
 Tutorials       🦄 nix -> 🎓 tut -> 🖼️ pix
