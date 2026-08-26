@@ -61,27 +61,83 @@ This skill runs **inline and interactive** — time varies with complexity. Paus
    git rev-list --count HEAD ^$(git merge-base HEAD main)  # depth to main
    ```
 
-2. **Detect project context**
-   - Check for DAC: sibling branches matching pattern, DAC artifacts
-   - Check for Speckit: `spec.md`, `plan.md`, `tasks.md` in root or `.speckit/`
-   - Extract ticket: regex `(PD-\d{6}|\b\d{6}\b)` from branch name
-   - Check for other skill artifacts: `.data/fix-*`, `.data/nix-*`, etc.
+2. **Detect project context** (check in this order)
+   
+   **A. Find repository root:**
+   ```bash
+   git rev-parse --show-toplevel
+   ```
+   
+   **B. Check for DAC project:**
+   ```bash
+   # Look for .dac/ directory in repository root
+   test -d "$(git rev-parse --show-toplevel)/.dac" && echo "DAC project detected"
+   ```
+   If `.dac/` exists, this is a DAC project. Look for:
+   - `.dac/<workstream>/00-control.md` (identifies the workstream)
+   - `.dac/<workstream>/portions/` (identifies portions and their branches)
+   - Sibling branches matching the workstream pattern (use `git branch --list`)
+   
+   **C. Check for Speckit project:**
+   ```bash
+   # Look for specs/ directory OR .speckit/ directory
+   REPO_ROOT=$(git rev-parse --show-toplevel)
+   if test -d "$REPO_ROOT/specs"; then
+     # Check for spec artifacts in subdirectories
+     find "$REPO_ROOT/specs" -maxdepth 2 -name "spec.md" -o -name "plan.md" -o -name "tasks.md"
+   fi
+   test -d "$REPO_ROOT/.speckit" && echo "Speckit config detected"
+   ```
+   If either exists, this is a Speckit project. Typical artifacts:
+   - `specs/<feature>/spec.md` → specification complete
+   - `specs/<feature>/plan.md` → planning complete
+   - `specs/<feature>/tasks.md` → task breakdown complete
+   - `.speckit/` → configuration directory
+   
+   **D. Extract ticket:**
+   ```bash
+   # Regex: (PD-\d{6}|\b\d{6}\b) from branch name
+   git rev-parse --abbrev-ref HEAD | grep -oE '(PD-[0-9]{6}|[0-9]{6})'
+   ```
+   
+   **E. Check for other skill artifacts:**
+   ```bash
+   ls -d .data/fix-* .data/nix-* .data/wiz-* 2>/dev/null
+   ```
 
-3. **Interactive prompts** (if needed)
+3. **Report detection results**
+   
+   After automatic detection, report what was found:
+   ```
+   Detected: DAC project (workstream ABC-123, portion P-002)
+   Branch: feature/PD-123456-implement-auth
+   Ticket: PD-123456
+   Sibling branches: 4 other portions (2 complete, 1 in progress, 1 not started)
+   ```
+   
+4. **Interactive prompts** (only if needed)
    - Multiple related branches detected:
      > "This branch is 1 of 5 in a DAC set (3 complete, 2 in progress). Analyze:
-     > 1) Only this branch
+     > 1) Only this branch [default]
      > 2) This + incomplete branches
      > 3) All branches
      > 4) Custom selection"
    
+   - Multiple Speckit features found:
+     > "Found 3 Speckit features. Which should I map?
+     > 1) user-authentication (matches branch name) [default]
+     > 2) content-management
+     > 3) All features"
+   
    - Large commit history:
      > "Found 47 commits since divergence. Analyze:
-     > 1) All commits
+     > 1) All commits [default for DAC/Speckit]
      > 2) Last 10 commits
      > 3) Let me specify a range"
 
-### Phase 2: Evidence Gathering (varies)
+Ask clarifying questions only if multiple valid interpretations exist (see Interactive prompts above).
+
+### Phase 3: Evidence Gathering (varies)
 
 #### Git Evidence
 ```bash
@@ -106,13 +162,51 @@ Extract:
 If no Jira access or ticket not found, note it and continue.
 
 #### Project Context Evidence
-- **DAC**: Identify structure, sibling branch status (use git branch list + recent commit dates)
-- **Speckit**: Check completeness:
-  - `spec.md` exists → specification complete
-  - `plan.md` exists → planning complete
-  - `tasks.md` exists → task breakdown complete
-  - Implementation commits → work in progress
-- **Other skills**: Check `.data/` for recent skill outputs (fix, nix, wiz, etc.) — reference if relevant
+
+**DAC Project:**
+```bash
+REPO_ROOT=$(git rev-parse --show-toplevel)
+# Find workstream directory
+WORKSTREAM=$(ls -d $REPO_ROOT/.dac/*/ 2>/dev/null | head -1 | xargs basename)
+# Read control file for workstream identity
+cat "$REPO_ROOT/.dac/$WORKSTREAM/00-control.md"
+# List portions
+ls "$REPO_ROOT/.dac/$WORKSTREAM/portions/"
+# Check portion status and branches
+cat "$REPO_ROOT/.dac/$WORKSTREAM/portions/P-"*.md
+```
+Gather:
+- Workstream ID and parent ticket from `00-control.md`
+- Mission and success criteria from `01-mission.md`
+- Portion IDs, titles, and assigned branches from `portions/P-*.md`
+- Sibling branch status: `git branch --list '<pattern>*'` + recent commit dates
+- Check which portions have results in `results/`
+
+**Speckit Project:**
+```bash
+REPO_ROOT=$(git rev-parse --show-toplevel)
+# Find feature directories
+find "$REPO_ROOT/specs" -maxdepth 1 -type d -not -name specs
+# For each feature, check artifacts
+for feature in $REPO_ROOT/specs/*/; do
+  echo "Feature: $(basename $feature)"
+  test -f "$feature/spec.md" && echo "  ✅ spec.md"
+  test -f "$feature/plan.md" && echo "  ✅ plan.md"
+  test -f "$feature/tasks.md" && echo "  ✅ tasks.md"
+done
+```
+Check completeness for the relevant feature:
+- `spec.md` exists → specification complete
+- `plan.md` exists → planning complete
+- `tasks.md` exists → task breakdown complete
+- Read `tasks.md` to compare checked tasks vs. actual commits
+- Implementation commits → work in progress
+
+**Other skills:**
+```bash
+ls -ltr .data/*/00-control.md 2>/dev/null
+```
+Check `.data/` for recent skill outputs (fix, nix, wiz, etc.) — reference if relevant to current work
 
 #### Code Evidence (use code-indexing MCP)
 Use `search_graph`, `trace_path`, `get_code_snippet` to:
@@ -129,7 +223,7 @@ Use `search_graph`, `trace_path`, `get_code_snippet` to:
 
 Focus on **invocation sequence** (what needs to be in place for functionality), not individual method calls.
 
-### Phase 3: Status Analysis (inline)
+### Phase 4: Status Analysis (inline)
 
 Classify each contribution as:
 - ✅ **Complete** — Fully implemented, tested, no TODOs
@@ -149,11 +243,30 @@ Classify each contribution as:
 > 2) Partial (still in progress)
 > 3) Not sure / need more context"
 
-### Phase 4: Output Generation
+### Phase 5: Output Generation
 
 #### Output Location
-- **Default**: `.data/map-YY-MM-DD-a/` (if no peer skill context)
-- **With DAC/Speckit**: Check for existing project output directory, use that if present
+
+Determine output location based on project type:
+
+1. **DAC project**: Place map output in the DAC workspace
+   ```bash
+   # If .dac/<workstream>/ exists, create map there
+   mkdir -p .dac/<workstream>/map/
+   # Output: .dac/<workstream>/map/map.md and map.upstream.md
+   ```
+
+2. **Speckit project**: Place map output alongside the feature spec
+   ```bash
+   # If specs/<feature>/ exists, create map there
+   mkdir -p specs/<feature>/map/
+   # Output: specs/<feature>/map/map.md and map.upstream.md
+   ```
+
+3. **Default (ticket-driven, utility, main-history)**: Use standard `.data/` location
+   ```bash
+   # Output: .data/map-YY-MM-DD-a/map.md and map.upstream.md
+   ```
 
 #### File 1: map.md (Rich Context)
 
@@ -166,8 +279,17 @@ Classify each contribution as:
   - Parent: [Epic link] (if exists)
   - Related: [sibling links] (if exists)
 - **Project Type**: [DAC / Speckit / Ticket-driven / Utility]
-- **Speckit Status**: [spec ✅ | plan ✅ | tasks 🔶 | implementation ⬜] (if Speckit)
-- **DAC Status**: [1 of 5 branches, 3 complete, 1 in progress, 1 not started] (if DAC)
+- **DAC Context** (if DAC):
+  - Workstream: [workstream-id] (from `.dac/<workstream>/00-control.md`)
+  - Portion: [P-001] — [portion title] (from `.dac/<workstream>/portions/P-001.md`)
+  - Status: [1 of 5 portions, 3 complete, 1 in progress, 1 not started]
+  - Parent ticket: [link to parent Epic/Story]
+  - Related portions: [links to sibling portion branches]
+- **Speckit Context** (if Speckit):
+  - Feature: [feature-name] (from `specs/<feature>/`)
+  - Status: [spec ✅ | plan ✅ | tasks 🔶 | implementation ⬜]
+  - Tasks: [12 of 15 complete] (from `specs/<feature>/tasks.md`)
+  - Feature directory: [link to specs/<feature>/]
 
 ## Intent
 [Derived from ticket description, commit messages, and code changes — 2-3 sentences summarizing the goal]
@@ -247,29 +369,108 @@ Example:
 
 #### File 2: map.upstream.md (Concise Navigation)
 
-**TODO**: This will follow the Upstream document format specification (to be provided separately).
+This file follows the **Upstream Navigation Map Format** (see `references/UPSTREAM-FORMAT-SPEC.md`).
 
-For now, include placeholder:
+**Format Rules:**
+
+1. **Link format**: `[<FilePath>:<LineNumber>](<FilePath>#L<LineNumber>)`
+   - Display text: `path:line` (one-based line number)
+   - URL: `path#Lline` (GitHub-style anchor)
+   
+2. **Item format**: `Name | [link](url) | Layer`
+   - Three pipe-delimited fields
+   - Name: Component/method name
+   - Link: Markdown link in the format above
+   - Layer: Component type (Controller, Service, Repository, SQL, etc.)
+
+3. **Hierarchy**: Use 2 spaces per nesting level
+
+4. **Section headers**: `## <ID>: <Description>`
+   - Use `## P-NNN:` for DAC portions
+   - Use `## <Section name>` for other groupings
+
+**Template:**
+
 ```markdown
 # Upstream Navigation: [branch-name]
 
-<!-- This file follows the Upstream document format for VSCode extension -->
-<!-- Format spec: [reference to be added] -->
+<!-- Generated by /map skill -->
+<!-- Format: references/UPSTREAM-FORMAT-SPEC.md -->
 
-[Tree-structured list of code locations with layer identifiers]
-[Each row: description | hidden link | layer identifier]
-[Supports indentation for call hierarchy]
-[Comment lines for organization]
+## [Section]: [Component Group]
 
-<!-- Example structure (format TBD): -->
-ContentController.CreateContent [trunk/.../ContentController.cs:42] (Controller)
-  ContentOrchestrator.CreateContentAsync [trunk/.../ContentOrchestrator.cs:15] (Orchestrator)
-    ContentService.ValidateAndCreateAsync [trunk/.../ContentService.cs:89] (Service)
-      ContentRepository.InsertAsync [trunk/.../ContentRepository.cs:23] (Repository)
-        Content_Insert [trunk/.../Content_Insert.sql:1] (SQL)
+### [Layer Name]
+- [ComponentName] | [[RelativePath]:[Line]]([RelativePath]#L[Line]) | [Layer]
+  - [ChildComponent] | [[RelativePath]:[Line]]([RelativePath]#L[Line]) | [Layer]
+    - [GrandchildComponent] | [[RelativePath]:[Line]]([RelativePath]#L[Line]) | [Layer]
+
+---
+
+## End-to-End Flow
+
+### 1. Entry Point
+- [ControllerMethod] | [[Path]:[Line]]([Path]#L[Line]) | Controller
+
+### 2. Orchestration
+- [OrchestratorMethod] | [[Path]:[Line]]([Path]#L[Line]) | Orchestrator
+
+### 3. Business Logic
+- [ServiceMethod] | [[Path]:[Line]]([Path]#L[Line]) | Service
+
+### 4. Data Access
+- [RepositoryMethod] | [[Path]:[Line]]([Path]#L[Line]) | Repository
+  - [StoredProcedure] | [[Path]:[Line]]([Path]#L[Line]) | SQL
 ```
 
-### Phase 5: Output Delivery
+**Example:**
+
+```markdown
+# Upstream Navigation: feature/PD-123456-content-api
+
+<!-- Generated by /map on 2026-08-26 -->
+
+## Content Creation Flow
+
+### Controller Layer
+- ContentController.CreateContent | [Controllers/ContentController.cs:42](Controllers/ContentController.cs#L42) | Controller
+
+### Orchestrator Layer
+- ContentOrchestrator.CreateContentAsync | [Orchestrators/ContentOrchestrator.cs:15](Orchestrators/ContentOrchestrator.cs#L15) | Orchestrator
+
+### Service Layer
+- ContentService.ValidateAndCreateAsync | [Services/ContentService.cs:89](Services/ContentService.cs#L89) | Service
+
+### Repository Layer
+- ContentRepository.InsertAsync | [Repositories/ContentRepository.cs:23](Repositories/ContentRepository.cs#L23) | Repository
+  - Content_Insert | [SqlDb/Stored Procedures/Content_Insert.sql:1](SqlDb/Stored%20Procedures/Content_Insert.sql#L1) | SQL
+
+---
+
+## Status Summary
+
+### ✅ Complete
+- ContentController | [Controllers/ContentController.cs:42](Controllers/ContentController.cs#L42) | Controller
+- ContentService | [Services/ContentService.cs:89](Services/ContentService.cs#L89) | Service
+
+### 🔶 Partial
+- ContentOrchestrator | [Orchestrators/ContentOrchestrator.cs:15](Orchestrators/ContentOrchestrator.cs#L15) | Orchestrator
+
+### ⬜ Needed
+- Content_Insert stored procedure | [SqlDb/Stored Procedures/Content_Insert.sql:1](SqlDb/Stored%20Procedures/Content_Insert.sql#L1) | SQL
+```
+
+**Critical Format Requirements:**
+
+- ✅ **DO** use pipe-delimited format: `Name | [link](url) | Layer`
+- ✅ **DO** use link format: `[path:line](path#Lline)`
+- ✅ **DO** use 2 spaces per indent level
+- ✅ **DO** use relative paths from repository root
+- ✅ **DO** URL-encode paths with spaces (e.g., `Stored%20Procedures`)
+- ❌ **DON'T** use parentheses for layers like `(Controller)` — use pipe format
+- ❌ **DON'T** use square brackets for links in display text `[path:line]` — that should be `path:line`
+- ❌ **DON'T** forget the third pipe field (Layer) — it's required
+
+### Phase 6: Output Delivery
 
 After generating both files:
 1. Write to `.data/map-YYYY-MM-DD-a/map.md`

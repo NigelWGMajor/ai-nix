@@ -125,7 +125,20 @@ Both formats are **semantically equivalent** and support bidirectional conversio
 ### File Extension
 `.upstream.md`
 
-### Structure
+### Supported Formats
+
+The extension supports **two markdown format variants** for maximum flexibility:
+
+1. **Call Hierarchy Format** - Detailed upstream call chains with metadata
+2. **Navigation Map Format** - Component/file navigation with layer grouping
+
+Both formats can be mixed in the same file, and unrecognized sections are gracefully skipped.
+
+---
+
+### Format 1: Call Hierarchy (Detailed)
+
+For detailed upstream reference tracking with full metadata.
 
 ```
 # Upstream References Report
@@ -153,38 +166,86 @@ Generated: <LocaleDateTime>
       ...
 ```
 
-### Syntax Rules
+---
 
-1. **Headers**
-   - `# Upstream References Report` - Document title (required)
-   - `Generated: <timestamp>` - Generation timestamp (optional, ignored on import)
-   - `---` - Horizontal rule separates root searches (optional)
-   - `## Search N: <MethodName>` - Root search heading
+### Format 2: Navigation Map (Simplified)
 
-2. **Metadata Lines**
+For project navigation and component mapping.
+
+```
+# Upstream Navigation: <Project Name>
+
+## <Section-ID>: <Component Description>
+
+### <Layer Name>
+- <Component Name> | [<FilePath>:<LineNumber>](<FilePath>#L<LineNumber>) | <Layer>
+  - <Sub-component> | [<FilePath>:<LineNumber>](<FilePath>#L<LineNumber>) | <Layer>
+
+---
+
+## End-to-End Flow
+
+### N. <Step Name>
+- <Component> | [<FilePath>:<LineNumber>](<FilePath>#L<LineNumber>) | <Layer>
+```
+
+**Section ID patterns recognized:**
+- `## Search N:` - Call hierarchy search result
+- `## P-NNN:` - Project partition/component
+- `## <Any text>` - Generic section (creates a tree node)
+
+**Item formats recognized:**
+- `- [x] **Name**` - Checkbox format (call hierarchy)
+- `- Name | [link](url) | Layer` - Pipe-delimited format (navigation map)
+- `- [link text](url)` - Simple link format
+
+**Parser behavior:**
+- ✅ Parses all recognized formats
+- ✅ Creates tree nodes from level-2 headers (`##`)
+- ✅ Skips unrecognized content without error
+- ✅ Preserves hierarchical indentation
+- ✅ Extracts namespace from pipe-delimited layer field
+
+### Syntax Rules (Flexible)
+
+1. **Headers** (Any of these patterns creates a tree root)
+   - `## Search N: <MethodName>` - Call hierarchy search result
+   - `## P-NNN: <Description>` - Project partition/component  
+   - `## <Any text>` - Generic section (creates tree node with name from text)
+   - Level-1 headers (`#`) are treated as document titles (optional)
+
+2. **Metadata Lines** (Optional, Format 1 only)
    - `**Namespace:** <value>` - Namespace declaration
    - `**Location:** [<link>](<url>)` - File location with markdown link
    - `**HTTP Attribute:** <value>` - HTTP attribute annotation
 
-3. **Checkboxes**
-   - `- [x]` - Checked item
-   - `- [ ]` - Unchecked item
-   - Checkboxes preserve pruning/selection state
+3. **List Items** (Multiple formats supported)
+   - `- [x] **Name**` - Checkbox format with bold name (Format 1)
+   - `- Name | [file:line](url) | Layer` - Pipe-delimited (Format 2)
+   - `- [link text](url)` - Simple link format (extracts file/line from URL)
+   - Checkboxes: `[x]` = checked, `[ ]` = unchecked (defaults to checked if absent)
 
-4. **Indentation**
+4. **Indentation** (Hierarchical structure)
    - Each nesting level adds 2 spaces
-   - Reference locations are indented 2 spaces deeper than their parent
+   - Indented items become children of the parent item
+   - Sub-sections (###) group items but don't create tree nodes
 
 5. **Special Nodes**
    - `- 👇 <CommentText>` - Comment node (no checkbox)
    - `- [x] 📍 <FileName>:<Line>` - Reference location node
-   - Bold text (`**Name**`) indicates method/class nodes
+   - Bold text (`**Name**`) indicates method/class nodes (Format 1)
 
-6. **Links**
-   - Markdown links use format: `[text](path:line)` or `[text](path#Lline)`
-   - Links may be absolute or relative file paths
+6. **Links** (Flexible parsing)
+   - `[text](path:line)` or `[text](path#Lline)` - Standard formats
+   - Absolute or relative file paths supported
+   - URLs with `#L<line>` or `:<line>` suffix parsed for line numbers
 
-### Example Markdown
+7. **Namespace Extraction**
+   - Format 1: Explicit `**Namespace:**` metadata line
+   - Format 2: Third pipe-delimited field (`| Layer |`) becomes namespace
+   - Falls back to empty string if not present
+
+### Example: Format 1 (Call Hierarchy)
 
 ```markdown
 # Upstream References Report
@@ -211,6 +272,34 @@ Generated: 10/21/2025, 10:20:41 AM
         - [ ] [TagController.cs:193:53](c:\source\Degreed\trunk\Degreed.Web.vNext\Controllers\Api\TagController.cs#L193)
 ```
 
+### Example: Format 2 (Navigation Map)
+
+```markdown
+# Upstream Navigation: Feature Implementation
+
+<!-- Quick navigation file for Upstream extension -->
+
+## P-001: Database Layer (✅ Complete)
+
+### SQL Layer
+- BulkUpsert stored procedure | [Degreed.SqlDb/etl/Stored Procedures/BulkUpsert.sql:1](Degreed.SqlDb/etl/Stored%20Procedures/BulkUpsert.sql#L1) | SQL
+- Staging table | [Degreed.SqlDb/dbo/Tables/Staging.sql:1](Degreed.SqlDb/dbo/Tables/Staging.sql#L1) | SQL
+
+### Tests
+- BulkUpsert approval tests | [Database/SQL/ApprovalTests/BulkUpsert.sql:1](Database/SQL/ApprovalTests/BulkUpsert.sql#L1) | Test
+
+---
+
+## P-002: API Layer (🔶 In Progress)
+
+### Controller Layer
+- SkillsController file upload endpoint | [Degreed.Web.vNext/Controllers/SkillsController.cs:1](Degreed.Web.vNext/Controllers/SkillsController.cs#L1) | Controller
+  - CSV upload action | [Degreed.Web.vNext/Controllers/SkillsController.cs:50](Degreed.Web.vNext/Controllers/SkillsController.cs#L50) | Controller
+
+### Tests
+- Controller unit tests | [Degreed.Web.vNext.Tests/Controllers/SkillsControllerTests.cs:1](Degreed.Web.vNext.Tests/Controllers/SkillsControllerTests.cs#L1) | Test
+```
+
 ---
 
 ## Parsing Rules
@@ -225,39 +314,61 @@ Generated: 10/21/2025, 10:20:41 AM
 
 ### Markdown Parsing
 
-1. **Header Detection**
-   - Line starting with `## Search N:` begins a new root tree
-   - Capture method name after the colon
+**Philosophy:** The parser is **tolerant and flexible** - it recognizes multiple format patterns and gracefully skips unrecognized content.
 
-2. **Metadata Extraction**
-   - `**Namespace:**` line captures namespace
-   - `**Location:**` line extracts file path and line number from markdown link
-   - `**HTTP Attribute:**` line captures attribute text
+1. **Header Detection** (Flexible patterns)
+   - Line matching `/^##\s+Search\s+\d+:\s*/` → Call hierarchy format
+   - Line matching `/^##\s+P-\d+:/` → Navigation map partition format  
+   - Line matching `/^##\s+(.+)/` → Generic section (fallback)
+   - **Behavior:** Any level-2 header creates a root tree node; unmatched headers are skipped
 
-3. **Hierarchy Building**
+2. **Metadata Extraction** (Optional, format-specific)
+   - `**Namespace:**` line captures namespace (Format 1)
+   - `**Location:**` line extracts file path and line number from markdown link (Format 1)
+   - `**HTTP Attribute:**` line captures attribute text (Format 1)
+   - **Behavior:** Missing metadata is tolerated; fields default to empty/undefined
+
+3. **List Item Parsing** (Multiple formats)
+   - **Checkbox format:** `- [x] **Name**` → Parse as method node
+   - **Pipe format:** `- Name | [link](url) | Layer` → Parse name, link, namespace (layer)
+   - **Simple format:** `- [link text](url)` → Extract name and file from link
+   - **Behavior:** Parser tries all patterns; unmatched lines are skipped
+
+4. **Hierarchy Building**
    - Track indentation level (count leading spaces, divide by 2)
    - Child nodes are indented 2+ spaces relative to parent
-   - Section headers (`### Upstream Callers:`, `### Reference locations:`) are ignored as structural markers
+   - Section headers (`###`) are recognized but don't create nodes
+   - **Behavior:** Indentation determines parent-child relationships
 
-4. **Checkbox Parsing**
+5. **Checkbox Parsing** (Optional)
    - `[x]` → checked = true
    - `[ ]` → checked = false
-   - No checkbox → ignored or comment node
+   - No checkbox → checked = true (default)
+   - **Behavior:** Preserves pruning/selection state when present
 
-5. **Node Type Detection**
-   - Starts with `- 👇` → comment node (set isComment: true)
-   - Starts with `- [x] 📍` or `- [ ] 📍` → reference location (set isReference: true)
-   - Starts with `- [x] **` or `- [ ] **` → method/class node
-   - Extract node name from between `**` markers
+6. **Node Type Detection** (Pattern-based)
+   - Starts with `- 👇` → comment node (isComment: true)
+   - Starts with `- [x] 📍` or `- [ ] 📍` → reference location (isReference: true)
+   - Contains `**Name**` → method/class node
+   - Contains `| [link](url) |` → navigation item
+   - **Behavior:** First matching pattern wins; defaults to generic node
 
-6. **Link Parsing**
-   - Extract file path from markdown links: `[text](path:line)` or `[text](path#Lline)`
+7. **Link Parsing** (Flexible extraction)
+   - Patterns: `[text](path:line)`, `[text](path#Lline)`, `[text](path)`
    - Parse line numbers (convert to zero-based for storage)
-   - Parse character positions from `:character` suffix
+   - Parse character positions from `:character` suffix (if present)
+   - **Behavior:** Extracts file path from URL, line defaults to 0 if missing
 
-7. **HTTP Attribute Extraction**
+8. **HTTP Attribute Extraction** (Format 1 only)
    - Pattern: `[[attribute]]` at end of method name
    - Remove from name, store in httpAttribute field
+   - **Behavior:** Only applies to checkbox format items
+
+9. **Error Handling** (Graceful degradation)
+   - Unrecognized lines → skipped silently
+   - Malformed links → file/line default to empty/0
+   - Invalid indentation → attached to last valid parent
+   - **Philosophy:** Never fail due to unexpected content
 
 ### Round-Trip Guarantees
 
