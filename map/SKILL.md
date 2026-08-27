@@ -70,10 +70,21 @@ This skill runs **inline and interactive** — time varies with complexity. Paus
    
    **B. Check for DAC project:**
    ```bash
-   # Look for .dac/ directory in repository root
-   test -d "$(git rev-parse --show-toplevel)/.dac" && echo "DAC project detected"
+   # Look for .dac/ directory in repository root OR in common subdirectories (like trunk/)
+   REPO_ROOT=$(git rev-parse --show-toplevel)
+   if test -d "$REPO_ROOT/.dac"; then
+     echo "DAC project detected at repo root"
+   elif test -d "$REPO_ROOT/trunk/.dac"; then
+     echo "DAC project detected in trunk/"
+   elif test -d ".dac"; then
+     echo "DAC project detected in current directory"
+   fi
    ```
-   If `.dac/` exists, this is a DAC project. Look for:
+   If `.dac/` exists in any of these locations, this is a DAC project. The DAC directory may be:
+   - At the repository root: `$REPO_ROOT/.dac`
+   - In a subdirectory like `trunk/`: `$REPO_ROOT/trunk/.dac`
+   - Relative to current working directory: `./.dac`
+   Look for:
    - `.dac/<workstream>/00-control.md` (identifies the workstream)
    - `.dac/<workstream>/portions/` (identifies portions and their branches)
    - Sibling branches matching the workstream pattern (use `git branch --list`)
@@ -165,15 +176,23 @@ If no Jira access or ticket not found, note it and continue.
 
 **DAC Project:**
 ```bash
+# Find .dac directory (may be at repo root, in trunk/, or in cwd)
 REPO_ROOT=$(git rev-parse --show-toplevel)
+if test -d "$REPO_ROOT/.dac"; then
+  DAC_DIR="$REPO_ROOT/.dac"
+elif test -d "$REPO_ROOT/trunk/.dac"; then
+  DAC_DIR="$REPO_ROOT/trunk/.dac"
+elif test -d ".dac"; then
+  DAC_DIR=".dac"
+fi
 # Find workstream directory
-WORKSTREAM=$(ls -d $REPO_ROOT/.dac/*/ 2>/dev/null | head -1 | xargs basename)
+WORKSTREAM=$(ls -d $DAC_DIR/*/ 2>/dev/null | head -1 | xargs basename)
 # Read control file for workstream identity
-cat "$REPO_ROOT/.dac/$WORKSTREAM/00-control.md"
+cat "$DAC_DIR/$WORKSTREAM/00-control.md"
 # List portions
-ls "$REPO_ROOT/.dac/$WORKSTREAM/portions/"
+ls "$DAC_DIR/$WORKSTREAM/portions/"
 # Check portion status and branches
-cat "$REPO_ROOT/.dac/$WORKSTREAM/portions/P-"*.md
+cat "$DAC_DIR/$WORKSTREAM/portions/P-"*.md
 ```
 Gather:
 - Workstream ID and parent ticket from `00-control.md`
@@ -181,6 +200,7 @@ Gather:
 - Portion IDs, titles, and assigned branches from `portions/P-*.md`
 - Sibling branch status: `git branch --list '<pattern>*'` + recent commit dates
 - Check which portions have results in `results/`
+- PR links and status from portion metadata
 
 **Speckit Project:**
 ```bash
@@ -211,8 +231,9 @@ Check `.data/` for recent skill outputs (fix, nix, wiz, etc.) — reference if r
 #### Code Evidence (use code-indexing MCP)
 Use `search_graph`, `trace_path`, `get_code_snippet` to:
 1. Identify changed code components (from git diff)
-2. Trace call chains: `trace_path(function_name, mode=calls)` for key entry points
-3. Detect layers from namespace/folder/name conventions:
+2. **Get actual line numbers** — `search_graph` results include `start_line` field
+3. Trace call chains: `trace_path(function_name, mode=calls)` for key entry points
+4. Detect layers from namespace/folder/name conventions:
    - **Orchestrator**: `*.Orchestrator`, `/Orchestrators/`
    - **Controller**: `*.Controller`, `/Controllers/`
    - **Service**: `*.Service`, `/Services/`
@@ -223,6 +244,9 @@ Use `search_graph`, `trace_path`, `get_code_snippet` to:
 
 Focus on **invocation sequence** (what needs to be in place for functionality), not individual method calls.
 
+**CRITICAL for upstream.md**: Every code reference MUST have its actual line number from search_graph or grep -n. 
+The upstream navigation file is useless with default `:1` line numbers. When code doesn't exist on current branch 
+(e.g., DAC portions on sibling branches), note "on branch X" rather than linking with `:1`.
 ### Phase 4: Status Analysis (inline)
 
 Classify each contribution as:
@@ -298,11 +322,11 @@ Determine output location based on project type:
 [Tree-structured list showing invocation sequence with layers]
 
 Example:
-- **ContentController** (Controller) — ✅ Complete — [trunk/Degreed.Web.vNext/Controllers/ContentController.cs:42](file:///...)
-  - **ContentOrchestrator** (Orchestrator) — 🔶 Partial — [trunk/Degreed.Web.vNext/Orchestrators/ContentOrchestrator.cs:15](file:///...)
-    - **ContentService** (Service) — ✅ Complete — [trunk/Degreed.Core/Services/ContentService.cs:89](file:///...)
-      - **ContentRepository** (Repository) — ✅ Complete — [trunk/Degreed.Data/Repositories/ContentRepository.cs:23](file:///...)
-        - **Content_GetById** (SQL) — ⬜ Needed — [trunk/Degreed.SqlDb/dbo/Stored Procedures/Content_GetById.sql](file:///...)
+- **ContentController** (Controller) — ✅ Complete — [trunk/Degreed.Web.vNext/Controllers/ContentController.cs:42](trunk/Degreed.Web.vNext/Controllers/ContentController.cs:42)
+  - **ContentOrchestrator** (Orchestrator) — 🔶 Partial — [trunk/Degreed.Web.vNext/Orchestrators/ContentOrchestrator.cs:15](trunk/Degreed.Web.vNext/Orchestrators/ContentOrchestrator.cs:15)
+    - **ContentService** (Service) — ✅ Complete — [trunk/Degreed.Core/Services/ContentService.cs:89](trunk/Degreed.Core/Services/ContentService.cs:89)
+      - **ContentRepository** (Repository) — ✅ Complete — [trunk/Degreed.Data/Repositories/ContentRepository.cs:23](trunk/Degreed.Data/Repositories/ContentRepository.cs:23)
+        - **Content_GetById** (SQL) — ⬜ Needed — [trunk/Degreed.SqlDb/dbo/Stored%20Procedures/Content_GetById.sql:1](trunk/Degreed.SqlDb/dbo/Stored%20Procedures/Content_GetById.sql:1)
 
 [Use indentation to show call hierarchy — what calls what]
 
@@ -373,19 +397,35 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 
 **Format Rules:**
 
-1. **Link format**: `[<FilePath>:<LineNumber>](<FilePath>#L<LineNumber>)`
+1. **Link format**: `[<FilePath>:<LineNumber>](<FilePath>:<LineNumber>)`
    - Display text: `path:line` (one-based line number)
-   - URL: `path#Lline` (GitHub-style anchor)
+   - URL: `path:line` (IDE-style navigation, not GitHub `#L` format)
+   - **CRITICAL**: Line numbers MUST be actual code locations, not default `:1`
+   - The upstream viewer is for navigation - meaningless line numbers break its purpose
    
-2. **Item format**: `Name | [link](url) | Layer`
-   - Three pipe-delimited fields
-   - Name: Component/method name
-   - Link: Markdown link in the format above
-   - Layer: Component type (Controller, Service, Repository, SQL, etc.)
+2. **Getting actual line numbers** (REQUIRED):
+   - **Code search**: Use `search_graph(query, project)` - results include `start_line`
+   - **Grep**: `grep -n "class ClassName" file.cs` - shows line numbers
+   - **Read file**: Use Read tool and count to the class/method definition
+   - **Only use `:1`** when the file doesn't exist on current branch OR truly cannot be located
+   - For DAC portions on other branches: note "on branch X" instead of guessing `:1`
+3. **Item format** (CODE ONLY):
+   - **Use pipe format ONLY for code**: `Name | [link](url) | Layer`
+   - Three pipe-delimited fields for code members:
+     - Name: Class/method/procedure name (e.g., `ContentController.CreateContent`, `Users_Select`)
+     - Link: Markdown link with ACTUAL line number from code search
+     - Layer: Code type (Controller, Service, Repository, SP, Function, etc.)
+   - **For documents/sections**: Use plain markdown links without pipes
+     - Documents: `- [filename.md](path/to/file.md:line)` or `- [Section Name](path:line)`
+     - Section headers: `## Section Name` (no pipes)
+   - **Examples**:
+     - CODE: `- ContentController.CreateContent | [Controllers/ContentController.cs:42](Controllers/ContentController.cs:42) | Controller`
+     - DOCUMENT: `- [P-001.md](.dac/PD-112369/portions/P-001.md:15)` (no pipes)
+     - SECTION: `## P-001: Bulk Upsert Stored Procedure` (no pipes)
 
-3. **Hierarchy**: Use 2 spaces per nesting level
+4. **Hierarchy**: Use 2 spaces per nesting level
 
-4. **Section headers**: `## <ID>: <Description>`
+5. **Section headers**: `## <ID>: <Description>`
    - Use `## P-NNN:` for DAC portions
    - Use `## <Section name>` for other groupings
 
@@ -400,26 +440,26 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 ## [Section]: [Component Group]
 
 ### [Layer Name]
-- [ComponentName] | [[RelativePath]:[Line]]([RelativePath]#L[Line]) | [Layer]
-  - [ChildComponent] | [[RelativePath]:[Line]]([RelativePath]#L[Line]) | [Layer]
-    - [GrandchildComponent] | [[RelativePath]:[Line]]([RelativePath]#L[Line]) | [Layer]
+- [ComponentName] | [[RelativePath]:[Line]]([RelativePath]:[Line]) | [Layer]
+  - [ChildComponent] | [[RelativePath]:[Line]]([RelativePath]:[Line]) | [Layer]
+    - [GrandchildComponent] | [[RelativePath]:[Line]]([RelativePath]:[Line]) | [Layer]
 
 ---
 
 ## End-to-End Flow
 
 ### 1. Entry Point
-- [ControllerMethod] | [[Path]:[Line]]([Path]#L[Line]) | Controller
+- [ControllerMethod] | [[Path]:[Line]]([Path]:[Line]) | Controller
 
 ### 2. Orchestration
-- [OrchestratorMethod] | [[Path]:[Line]]([Path]#L[Line]) | Orchestrator
+- [OrchestratorMethod] | [[Path]:[Line]]([Path]:[Line]) | Orchestrator
 
 ### 3. Business Logic
-- [ServiceMethod] | [[Path]:[Line]]([Path]#L[Line]) | Service
+- [ServiceMethod] | [[Path]:[Line]]([Path]:[Line]) | Service
 
 ### 4. Data Access
-- [RepositoryMethod] | [[Path]:[Line]]([Path]#L[Line]) | Repository
-  - [StoredProcedure] | [[Path]:[Line]]([Path]#L[Line]) | SQL
+- [RepositoryMethod] | [[Path]:[Line]]([Path]:[Line]) | Repository
+  - [StoredProcedure] | [[Path]:[Line]]([Path]:[Line]) | SQL
 ```
 
 **Example:**
@@ -428,47 +468,57 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 # Upstream Navigation: feature/PD-123456-content-api
 
 <!-- Generated by /map on 2026-08-26 -->
+## Project Artifacts
+### Documents (no pipes for documents)
+- [spec.md](specs/content-api/spec.md:1)
+- [plan.md](specs/content-api/plan.md:1)
+- [P-001.md](.dac/PD-123456/portions/P-001.md:15)
+---
 
 ## Content Creation Flow
 
-### Controller Layer
-- ContentController.CreateContent | [Controllers/ContentController.cs:42](Controllers/ContentController.cs#L42) | Controller
+### Controller Layer (pipe format for code)
+- ContentController.CreateContent | [Controllers/ContentController.cs:42](Controllers/ContentController.cs:42) | Controller
 
 ### Orchestrator Layer
-- ContentOrchestrator.CreateContentAsync | [Orchestrators/ContentOrchestrator.cs:15](Orchestrators/ContentOrchestrator.cs#L15) | Orchestrator
+- ContentOrchestrator.CreateContentAsync | [Orchestrators/ContentOrchestrator.cs:15](Orchestrators/ContentOrchestrator.cs:15) | Orchestrator
 
 ### Service Layer
-- ContentService.ValidateAndCreateAsync | [Services/ContentService.cs:89](Services/ContentService.cs#L89) | Service
+- ContentService.ValidateAndCreateAsync | [Services/ContentService.cs:89](Services/ContentService.cs:89) | Service
 
 ### Repository Layer
-- ContentRepository.InsertAsync | [Repositories/ContentRepository.cs:23](Repositories/ContentRepository.cs#L23) | Repository
-  - Content_Insert | [SqlDb/Stored Procedures/Content_Insert.sql:1](SqlDb/Stored%20Procedures/Content_Insert.sql#L1) | SQL
+- ContentRepository.InsertAsync | [Repositories/ContentRepository.cs:23](Repositories/ContentRepository.cs:23) | Repository
+  - Content_Insert | [SqlDb/Stored Procedures/Content_Insert.sql:8](SqlDb/Stored%20Procedures/Content_Insert.sql:8) | SP
 
 ---
 
 ## Status Summary
 
-### ✅ Complete
-- ContentController | [Controllers/ContentController.cs:42](Controllers/ContentController.cs#L42) | Controller
-- ContentService | [Services/ContentService.cs:89](Services/ContentService.cs#L89) | Service
+### ✅ Complete (code with pipes)
+- ContentController.CreateContent | [Controllers/ContentController.cs:42](Controllers/ContentController.cs:42) | Controller
+- ContentService.ValidateAndCreateAsync | [Services/ContentService.cs:89](Services/ContentService.cs:89) | Service
 
 ### 🔶 Partial
-- ContentOrchestrator | [Orchestrators/ContentOrchestrator.cs:15](Orchestrators/ContentOrchestrator.cs#L15) | Orchestrator
+- ContentOrchestrator.CreateContentAsync | [Orchestrators/ContentOrchestrator.cs:15](Orchestrators/ContentOrchestrator.cs:15) | Orchestrator
 
 ### ⬜ Needed
-- Content_Insert stored procedure | [SqlDb/Stored Procedures/Content_Insert.sql:1](SqlDb/Stored%20Procedures/Content_Insert.sql#L1) | SQL
+- Content_Insert | [SqlDb/Stored Procedures/Content_Insert.sql:8](SqlDb/Stored%20Procedures/Content_Insert.sql:8) | SP
 ```
 
 **Critical Format Requirements:**
 
-- ✅ **DO** use pipe-delimited format: `Name | [link](url) | Layer`
-- ✅ **DO** use link format: `[path:line](path#Lline)`
+- ✅ **DO** use pipe-delimited format for CODE ONLY: `Name | [link](url) | Layer`
+- ✅ **DO** use plain markdown links for documents/sections: `[doc.md](path:line)` (no pipes)
+- ✅ **DO** use link format: `[path:line](path:line)` with ACTUAL line numbers from code search
 - ✅ **DO** use 2 spaces per indent level
 - ✅ **DO** use relative paths from repository root
 - ✅ **DO** URL-encode paths with spaces (e.g., `Stored%20Procedures`)
+- ✅ **DO** get actual line numbers via `search_graph`, `grep -n`, or Read tool
+- ❌ **DON'T** use pipe format for document/section references — only for code
 - ❌ **DON'T** use parentheses for layers like `(Controller)` — use pipe format
 - ❌ **DON'T** use square brackets for links in display text `[path:line]` — that should be `path:line`
-- ❌ **DON'T** forget the third pipe field (Layer) — it's required
+- ❌ **DON'T** forget the third pipe field (Layer) for code items — it's required
+- ❌ **DON'T** default all line numbers to `:1` — meaningless for navigation
 
 ### Phase 6: Output Delivery
 
@@ -480,8 +530,8 @@ After generating both files:
 ```
 Work map generated for branch `[name]`.
 
-📄 Rich context: [file:///.../.data/map-YYYY-MM-DD-a/map.md](file:///.../.data/map-YYYY-MM-DD-a/map.md)
-🔗 Quick nav: [file:///.../.data/map-YYYY-MM-DD-a/map.upstream.md](file:///.../.data/map-YYYY-MM-DD-a/map.upstream.md)
+📄 Rich context: .data/map-YYYY-MM-DD-a/map.md
+🔗 Quick nav: .data/map-YYYY-MM-DD-a/map.upstream.md
 
 **Summary**: [one-line summary of status — e.g., "3 components complete, 2 partial, 1 needed"]
 **Next step**: [most immediate action item]
@@ -498,8 +548,32 @@ Work map generated for branch `[name]`.
 - Keep prompts concise (max 4 options)
 - Default to reasonable choices, but ask when ambiguous
 
+### Path Resolution
+
+All file paths in both `map.md` and `map.upstream.md` MUST be relative — never absolute.
+
+**Determine the path root (in order of precedence):**
+1. **Git repo detected**: Use `git rev-parse --show-toplevel` as the root. All paths are relative to the repo root.
+2. **Multi-folder workspace, no git**: Use the workspace folder that contains the file as the root. Each file's path is relative to its own workspace folder root.
+3. **Single folder, no git**: Use the current working directory as the root.
+
+```bash
+# Step 1: Try git
+PATH_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$PATH_ROOT" ]; then
+  # Step 2/3: Fall back to workspace root or cwd
+  PATH_ROOT=$(pwd)
+fi
+```
+
+**Applying path resolution:**
+- When writing links in both output files, strip the `PATH_ROOT` prefix from every absolute path to produce a relative path.
+- Example: if repo root is `/home/user/project` and a file is at `/home/user/project/src/Controllers/FooController.cs`, the link path is `src/Controllers/FooController.cs`.
+- On Windows, normalize backslashes to forward slashes in link paths.
+- URL-encode spaces in paths (e.g., `Stored%20Procedures`).
+
 ### Link Format
-- **Code**: `file:///[absolute-path]:[line]` or `[relative-path]:[line]` if IDE supports
+- **Code**: `[relative-path]:[line]` — relative to the resolved path root (see Path Resolution above)
 - **Jira**: `https://degreedjira.atlassian.net/browse/[ticket]`
 - **Git**: Use commit SHAs, branch names
 

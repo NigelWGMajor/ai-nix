@@ -11,7 +11,12 @@
 | Safe output folder   | ✔️      |             |
 | Needs write approval | ❌      |             |
 
-| Compatible skills |                        |
-| ----------------- | ---------------------- |
-| Preprocessors     | —                      |
-| Postprocessors    | wiz, cop, act          |
+| Compatible skills |               |
+| ----------------- | ------------- |
+| Preprocessors     | dac,          |
+| Preprocessors     | dac, speckit  |
+| Postprocessors    | wiz, cop, act |
+
+Output to /map-yy-mm-dd-a/:
+- map.md
+- map.upstream.md

@@ -20,9 +20,9 @@
 [Tree-structured list showing invocation sequence with layers]
 
 Example structure:
-- **ComponentName** (Layer) — ✅ Complete — [file:line](file:///path)
-  - **ChildComponent** (Layer) — 🔶 Partial — [file:line](file:///path)
-    - **GrandchildComponent** (Layer) — ⬜ Needed — [file:line](file:///path)
+- **ComponentName** (Layer) — ✅ Complete — [relative/path/File.cs:42](relative/path/File.cs:42)
+  - **ChildComponent** (Layer) — 🔶 Partial — [relative/path/Child.cs:15](relative/path/Child.cs:15)
+    - **GrandchildComponent** (Layer) — ⬜ Needed — [relative/path/Grandchild.cs:8](relative/path/Grandchild.cs:8)
 
 [Use indentation to show call hierarchy — what calls what]
 
