@@ -282,22 +282,22 @@ Generated: 10/21/2025, 10:20:41 AM
 ## P-001: Database Layer (✅ Complete)
 
 ### SQL Layer
-- BulkUpsert stored procedure | [Degreed.SqlDb/etl/Stored Procedures/BulkUpsert.sql:1](Degreed.SqlDb/etl/Stored%20Procedures/BulkUpsert.sql#L1) | SQL
-- Staging table | [Degreed.SqlDb/dbo/Tables/Staging.sql:1](Degreed.SqlDb/dbo/Tables/Staging.sql#L1) | SQL
+- BulkUpsert stored procedure | [Degreed.SqlDb/etl/Stored Procedures/BulkUpsert.sql:1](file:///C:/source/Degreed/trunk/Degreed.SqlDb/etl/Stored%20Procedures/BulkUpsert.sql#L1) | SQL
+- Staging table | [Degreed.SqlDb/dbo/Tables/Staging.sql:1](file:///C:/source/Degreed/trunk/Degreed.SqlDb/dbo/Tables/Staging.sql#L1) | SQL
 
 ### Tests
-- BulkUpsert approval tests | [Database/SQL/ApprovalTests/BulkUpsert.sql:1](Database/SQL/ApprovalTests/BulkUpsert.sql#L1) | Test
+- BulkUpsert approval tests | [Database/SQL/ApprovalTests/BulkUpsert.sql:1](file:///C:/source/Degreed/trunk/Database/SQL/ApprovalTests/BulkUpsert.sql#L1) | Test
 
 ---
 
 ## P-002: API Layer (🔶 In Progress)
 
 ### Controller Layer
-- SkillsController file upload endpoint | [Degreed.Web.vNext/Controllers/SkillsController.cs:1](Degreed.Web.vNext/Controllers/SkillsController.cs#L1) | Controller
-  - CSV upload action | [Degreed.Web.vNext/Controllers/SkillsController.cs:50](Degreed.Web.vNext/Controllers/SkillsController.cs#L50) | Controller
+- SkillsController file upload endpoint | [Degreed.Web.vNext/Controllers/SkillsController.cs:1](file:///C:/source/Degreed/trunk/Degreed.Web.vNext/Controllers/SkillsController.cs#L1) | Controller
+  - CSV upload action | [Degreed.Web.vNext/Controllers/SkillsController.cs:50](file:///C:/source/Degreed/trunk/Degreed.Web.vNext/Controllers/SkillsController.cs#L50) | Controller
 
 ### Tests
-- Controller unit tests | [Degreed.Web.vNext.Tests/Controllers/SkillsControllerTests.cs:1](Degreed.Web.vNext.Tests/Controllers/SkillsControllerTests.cs#L1) | Test
+- Controller unit tests | [Degreed.Web.vNext.Tests/Controllers/SkillsControllerTests.cs:1](file:///C:/source/Degreed/trunk/Degreed.Web.vNext.Tests/Controllers/SkillsControllerTests.cs#L1) | Test
 ```
 
 ---

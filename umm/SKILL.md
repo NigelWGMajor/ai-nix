@@ -31,7 +31,7 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
 ```
 Available skills:
 
-🦄 /nix *  — Quick discovery: explore a workspace or topic
+🦄 /nix *  — Quick discovery: explore a workspace, branch or topic
 🪄 /wiz *  — Deep review: analyze a ticket, PR, or branch in depth
 📚 /lit *  — Document synthesis: turn dense sources into layered guides
 📃 /kit =  — Speckit analysis: review speckit-based project status
@@ -39,11 +39,11 @@ Available skills:
 🧩 /dac *  — Divide & conquer: coordinate Jira-backed delivery
 👮 /cop *  — Sanity review: challenge AI-generated code
 🛠️ /fix *  — Triage: diagnose bugs through multi-path hypotheses
-🌡️ /val *  — Validation: design tests, generate test data, assess coverage
-🎬 /act +  — Action extract: turn analysis into actionable info
-🎗️ /mem =  — Note recall: search markdown notes for relevant passages
-🗺️ /map *  — Task navigator: map work in progress on any branch
-🎓 /tut *  — Tutorials: generate step-by-step how-to guides with diagrams
+🌡️ /val *  — Validation: design tests, generate test data, coverage
+🎬 /act +  — Action extract: distill analysis into actionable info
+🎗️ /mem =  — Memo recall: search markdown notes for relevant information
+🗺️ /map *  — Navigator: map wip on a branch or workspace
+🎓 /tut *  — Tutorial: generate step-by-step how-to guides with diagrams
 🔮 /umm =  — This navigator
 
 =  read-only   +  adds to existing files   *  creates working files (.data/)

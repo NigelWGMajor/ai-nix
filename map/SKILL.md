@@ -269,6 +269,28 @@ Classify each contribution as:
 
 ### Phase 5: Output Generation
 
+#### Path Resolution (ALL context types)
+
+Before writing any link in either output file, resolve EVERY file path to an absolute `file:///` URL. This applies uniformly to all context types — DAC artifacts, Speckit specs, code files, documents, and any other references. No link should use a relative path in the URL portion.
+
+```bash
+# Determine PATH_ROOT once at the start of output generation
+PATH_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$PATH_ROOT" ]; then
+  PATH_ROOT=$(pwd)
+fi
+# On Windows, convert to forward slashes: C:/source/project
+# Every link URL: file:///$PATH_ROOT/relative/path#Lline
+```
+
+Apply this to:
+- **Code references**: `file:///$PATH_ROOT/src/Controller.cs#L42`
+- **DAC artifacts**: `file:///$PATH_ROOT/.dac/workstream/portions/P-001.md#L15`
+- **Speckit artifacts**: `file:///$PATH_ROOT/specs/feature/spec.md#L1`
+- **Test files**: `file:///$PATH_ROOT/tests/ControllerTests.cs#L10`
+- **SQL files**: `file:///$PATH_ROOT/SqlDb/Stored%20Procedures/Proc.sql#L8`
+- **Any other file**: Always absolute, never relative
+
 #### Output Location
 
 Determine output location based on project type:
@@ -322,11 +344,11 @@ Determine output location based on project type:
 [Tree-structured list showing invocation sequence with layers]
 
 Example:
-- **ContentController** (Controller) — ✅ Complete — [trunk/Degreed.Web.vNext/Controllers/ContentController.cs:42](trunk/Degreed.Web.vNext/Controllers/ContentController.cs:42)
-  - **ContentOrchestrator** (Orchestrator) — 🔶 Partial — [trunk/Degreed.Web.vNext/Orchestrators/ContentOrchestrator.cs:15](trunk/Degreed.Web.vNext/Orchestrators/ContentOrchestrator.cs:15)
-    - **ContentService** (Service) — ✅ Complete — [trunk/Degreed.Core/Services/ContentService.cs:89](trunk/Degreed.Core/Services/ContentService.cs:89)
-      - **ContentRepository** (Repository) — ✅ Complete — [trunk/Degreed.Data/Repositories/ContentRepository.cs:23](trunk/Degreed.Data/Repositories/ContentRepository.cs:23)
-        - **Content_GetById** (SQL) — ⬜ Needed — [trunk/Degreed.SqlDb/dbo/Stored%20Procedures/Content_GetById.sql:1](trunk/Degreed.SqlDb/dbo/Stored%20Procedures/Content_GetById.sql:1)
+- **ContentController** (Controller) — ✅ Complete — [trunk/Degreed.Web.vNext/Controllers/ContentController.cs:42](file:///C:/source/Degreed/trunk/Degreed.Web.vNext/Controllers/ContentController.cs#L42)
+  - **ContentOrchestrator** (Orchestrator) — 🔶 Partial — [trunk/Degreed.Web.vNext/Orchestrators/ContentOrchestrator.cs:15](file:///C:/source/Degreed/trunk/Degreed.Web.vNext/Orchestrators/ContentOrchestrator.cs#L15)
+    - **ContentService** (Service) — ✅ Complete — [trunk/Degreed.Core/Services/ContentService.cs:89](file:///C:/source/Degreed/trunk/Degreed.Core/Services/ContentService.cs#L89)
+      - **ContentRepository** (Repository) — ✅ Complete — [trunk/Degreed.Data/Repositories/ContentRepository.cs:23](file:///C:/source/Degreed/trunk/Degreed.Data/Repositories/ContentRepository.cs#L23)
+        - **Content_GetById** (SQL) — ⬜ Needed — [trunk/Degreed.SqlDb/dbo/Stored Procedures/Content_GetById.sql:1](file:///C:/source/Degreed/trunk/Degreed.SqlDb/dbo/Stored%20Procedures/Content_GetById.sql#L1)
 
 [Use indentation to show call hierarchy — what calls what]
 
@@ -397,11 +419,13 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 
 **Format Rules:**
 
-1. **Link format**: `[<FilePath>:<LineNumber>](<FilePath>:<LineNumber>)`
-   - Display text: `path:line` (one-based line number)
-   - URL: `path:line` (IDE-style navigation, not GitHub `#L` format)
+1. **Link format**: `[<DisplayPath>:<LineNumber>](file:///<AbsolutePath>#L<LineNumber>)`
+   - Display text: `relative-path:line` (shortened for readability, one-based line number)
+   - URL: `file:///absolute/path#Lline` (absolute file:/// protocol with #L format)
    - **CRITICAL**: Line numbers MUST be actual code locations, not default `:1`
    - The upstream viewer is for navigation - meaningless line numbers break its purpose
+   - Windows example: `[src/file.cs:42](file:///C:/project/src/file.cs#L42)`
+   - Linux example: `[src/file.py:15](file:///home/user/project/src/file.py#L15)`
    
 2. **Getting actual line numbers** (REQUIRED):
    - **Code search**: Use `search_graph(query, project)` - results include `start_line`
@@ -409,18 +433,25 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
    - **Read file**: Use Read tool and count to the class/method definition
    - **Only use `:1`** when the file doesn't exist on current branch OR truly cannot be located
    - For DAC portions on other branches: note "on branch X" instead of guessing `:1`
+
 3. **Item format** (CODE ONLY):
-   - **Use pipe format ONLY for code**: `Name | [link](url) | Layer`
+   - **Use pipe format ONLY for code**: `Name | [DisplayPath:Line](file:///AbsolutePath#LLine) | Layer`
    - Three pipe-delimited fields for code members:
-     - Name: Class/method/procedure name (e.g., `ContentController.CreateContent`, `Users_Select`)
-     - Link: Markdown link with ACTUAL line number from code search
-     - Layer: Code type (Controller, Service, Repository, SP, Function, etc.)
+     - **Name**: Component identifier extracted from code analysis:
+       - Methods: `ClassName.MethodName` (e.g., `ContentController.CreateContent`)
+       - Stored Procedures: `ProcedureName` (e.g., `Users_Select`, `Content_Insert`)
+       - Classes: `ClassName` (e.g., `ContentService`)
+       - Extract from `search_graph()` qualified name or parse from source
+     - **Link**: Markdown link with absolute file:/// URL and ACTUAL line number
+       - Display: shortened relative path (e.g., `Controllers/ContentController.cs:42`)
+       - URL: absolute path with file:/// protocol
+     - **Layer**: Code type (Controller, Service, Repository, SP, Function, Orchestrator, etc.)
    - **For documents/sections**: Use plain markdown links without pipes
-     - Documents: `- [filename.md](path/to/file.md:line)` or `- [Section Name](path:line)`
+     - Documents: `- [filename.md](file:///absolute/path/to/file.md#Lline)`
      - Section headers: `## Section Name` (no pipes)
    - **Examples**:
-     - CODE: `- ContentController.CreateContent | [Controllers/ContentController.cs:42](Controllers/ContentController.cs:42) | Controller`
-     - DOCUMENT: `- [P-001.md](.dac/PD-112369/portions/P-001.md:15)` (no pipes)
+     - CODE: `- ContentController.CreateContent | [Controllers/ContentController.cs:42](file:///C:/source/project/Controllers/ContentController.cs#L42) | Controller`
+     - DOCUMENT: `- [P-001.md](file:///C:/source/project/.dac/PD-112369/portions/P-001.md#L15)` (no pipes)
      - SECTION: `## P-001: Bulk Upsert Stored Procedure` (no pipes)
 
 4. **Hierarchy**: Use 2 spaces per nesting level
@@ -436,30 +467,31 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 
 <!-- Generated by /map skill -->
 <!-- Format: references/UPSTREAM-FORMAT-SPEC.md -->
+<!-- Link format: Name | [display:line](file:///absolute#Lline) | Layer -->
 
 ## [Section]: [Component Group]
 
 ### [Layer Name]
-- [ComponentName] | [[RelativePath]:[Line]]([RelativePath]:[Line]) | [Layer]
-  - [ChildComponent] | [[RelativePath]:[Line]]([RelativePath]:[Line]) | [Layer]
-    - [GrandchildComponent] | [[RelativePath]:[Line]]([RelativePath]:[Line]) | [Layer]
+- [ComponentName] | [[DisplayPath]:[Line]](file:///[AbsolutePath]#L[Line]) | [Layer]
+  - [ChildComponent] | [[DisplayPath]:[Line]](file:///[AbsolutePath]#L[Line]) | [Layer]
+    - [GrandchildComponent] | [[DisplayPath]:[Line]](file:///[AbsolutePath]#L[Line]) | [Layer]
 
 ---
 
 ## End-to-End Flow
 
 ### 1. Entry Point
-- [ControllerMethod] | [[Path]:[Line]]([Path]:[Line]) | Controller
+- [ControllerMethod] | [[DisplayPath]:[Line]](file:///[AbsolutePath]#L[Line]) | Controller
 
 ### 2. Orchestration
-- [OrchestratorMethod] | [[Path]:[Line]]([Path]:[Line]) | Orchestrator
+- [OrchestratorMethod] | [[DisplayPath]:[Line]](file:///[AbsolutePath]#L[Line]) | Orchestrator
 
 ### 3. Business Logic
-- [ServiceMethod] | [[Path]:[Line]]([Path]:[Line]) | Service
+- [ServiceMethod] | [[DisplayPath]:[Line]](file:///[AbsolutePath]#L[Line]) | Service
 
 ### 4. Data Access
-- [RepositoryMethod] | [[Path]:[Line]]([Path]:[Line]) | Repository
-  - [StoredProcedure] | [[Path]:[Line]]([Path]:[Line]) | SQL
+- [RepositoryMethod] | [[DisplayPath]:[Line]](file:///[AbsolutePath]#L[Line]) | Repository
+  - [StoredProcedure] | [[DisplayPath]:[Line]](file:///[AbsolutePath]#L[Line]) | SQL
 ```
 
 **Example:**
@@ -468,57 +500,61 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 # Upstream Navigation: feature/PD-123456-content-api
 
 <!-- Generated by /map on 2026-08-26 -->
+<!-- Link format: Name | [display:line](file:///absolute#Lline) | Layer -->
+
 ## Project Artifacts
 ### Documents (no pipes for documents)
-- [spec.md](specs/content-api/spec.md:1)
-- [plan.md](specs/content-api/plan.md:1)
-- [P-001.md](.dac/PD-123456/portions/P-001.md:15)
+- [spec.md](file:///C:/source/project/specs/content-api/spec.md#L1)
+- [plan.md](file:///C:/source/project/specs/content-api/plan.md#L1)
+- [P-001.md](file:///C:/source/project/.dac/PD-123456/portions/P-001.md#L15)
 ---
 
 ## Content Creation Flow
 
 ### Controller Layer (pipe format for code)
-- ContentController.CreateContent | [Controllers/ContentController.cs:42](Controllers/ContentController.cs:42) | Controller
+- ContentController.CreateContent | [Controllers/ContentController.cs:42](file:///C:/source/project/Controllers/ContentController.cs#L42) | Controller
 
 ### Orchestrator Layer
-- ContentOrchestrator.CreateContentAsync | [Orchestrators/ContentOrchestrator.cs:15](Orchestrators/ContentOrchestrator.cs:15) | Orchestrator
+- ContentOrchestrator.CreateContentAsync | [Orchestrators/ContentOrchestrator.cs:15](file:///C:/source/project/Orchestrators/ContentOrchestrator.cs#L15) | Orchestrator
 
 ### Service Layer
-- ContentService.ValidateAndCreateAsync | [Services/ContentService.cs:89](Services/ContentService.cs:89) | Service
+- ContentService.ValidateAndCreateAsync | [Services/ContentService.cs:89](file:///C:/source/project/Services/ContentService.cs#L89) | Service
 
 ### Repository Layer
-- ContentRepository.InsertAsync | [Repositories/ContentRepository.cs:23](Repositories/ContentRepository.cs:23) | Repository
-  - Content_Insert | [SqlDb/Stored Procedures/Content_Insert.sql:8](SqlDb/Stored%20Procedures/Content_Insert.sql:8) | SP
+- ContentRepository.InsertAsync | [Repositories/ContentRepository.cs:23](file:///C:/source/project/Repositories/ContentRepository.cs#L23) | Repository
+  - Content_Insert | [SqlDb/Stored Procedures/Content_Insert.sql:8](file:///C:/source/project/SqlDb/Stored%20Procedures/Content_Insert.sql#L8) | SP
 
 ---
 
 ## Status Summary
 
 ### ✅ Complete (code with pipes)
-- ContentController.CreateContent | [Controllers/ContentController.cs:42](Controllers/ContentController.cs:42) | Controller
-- ContentService.ValidateAndCreateAsync | [Services/ContentService.cs:89](Services/ContentService.cs:89) | Service
+- ContentController.CreateContent | [Controllers/ContentController.cs:42](file:///C:/source/project/Controllers/ContentController.cs#L42) | Controller
+- ContentService.ValidateAndCreateAsync | [Services/ContentService.cs:89](file:///C:/source/project/Services/ContentService.cs#L89) | Service
 
 ### 🔶 Partial
-- ContentOrchestrator.CreateContentAsync | [Orchestrators/ContentOrchestrator.cs:15](Orchestrators/ContentOrchestrator.cs:15) | Orchestrator
+- ContentOrchestrator.CreateContentAsync | [Orchestrators/ContentOrchestrator.cs:15](file:///C:/source/project/Orchestrators/ContentOrchestrator.cs#L15) | Orchestrator
 
 ### ⬜ Needed
-- Content_Insert | [SqlDb/Stored Procedures/Content_Insert.sql:8](SqlDb/Stored%20Procedures/Content_Insert.sql:8) | SP
+- Content_Insert | [SqlDb/Stored Procedures/Content_Insert.sql:8](file:///C:/source/project/SqlDb/Stored%20Procedures/Content_Insert.sql#L8) | SP
 ```
 
 **Critical Format Requirements:**
 
-- ✅ **DO** use pipe-delimited format for CODE ONLY: `Name | [link](url) | Layer`
-- ✅ **DO** use plain markdown links for documents/sections: `[doc.md](path:line)` (no pipes)
-- ✅ **DO** use link format: `[path:line](path:line)` with ACTUAL line numbers from code search
+- ✅ **DO** use pipe-delimited format for CODE ONLY: `Name | [DisplayPath:Line](file:///AbsolutePath#LLine) | Layer`
+- ✅ **DO** use plain markdown links for documents/sections: `[doc.md](file:///absolute/path#Lline)` (no pipes)
+- ✅ **DO** use absolute file:/// URLs with #L format: `[display:line](file:///absolute/path#Lline)`
 - ✅ **DO** use 2 spaces per indent level
-- ✅ **DO** use relative paths from repository root
-- ✅ **DO** URL-encode paths with spaces (e.g., `Stored%20Procedures`)
+- ✅ **DO** use absolute paths with file:/// protocol (Windows: `file:///C:/path`, Linux: `file:///home/path`)
+- ✅ **DO** URL-encode spaces in URLs (e.g., `Stored%20Procedures` → `Stored%2520Procedures` in URL part)
 - ✅ **DO** get actual line numbers via `search_graph`, `grep -n`, or Read tool
+- ✅ **DO** extract Name field from qualified names: `ClassName.MethodName` or `ProcedureName`
 - ❌ **DON'T** use pipe format for document/section references — only for code
 - ❌ **DON'T** use parentheses for layers like `(Controller)` — use pipe format
 - ❌ **DON'T** use square brackets for links in display text `[path:line]` — that should be `path:line`
 - ❌ **DON'T** forget the third pipe field (Layer) for code items — it's required
 - ❌ **DON'T** default all line numbers to `:1` — meaningless for navigation
+- ❌ **DON'T** use relative paths — always use absolute file:/// URLs
 
 ### Phase 6: Output Delivery
 
@@ -550,11 +586,11 @@ Work map generated for branch `[name]`.
 
 ### Path Resolution
 
-All file paths in both `map.md` and `map.upstream.md` MUST be relative — never absolute.
+All file paths in both `map.md` and `map.upstream.md` MUST be absolute with `file:///` protocol.
 
 **Determine the path root (in order of precedence):**
-1. **Git repo detected**: Use `git rev-parse --show-toplevel` as the root. All paths are relative to the repo root.
-2. **Multi-folder workspace, no git**: Use the workspace folder that contains the file as the root. Each file's path is relative to its own workspace folder root.
+1. **Git repo detected**: Use `git rev-parse --show-toplevel` as the root.
+2. **Multi-folder workspace, no git**: Use the workspace folder that contains the file as the root.
 3. **Single folder, no git**: Use the current working directory as the root.
 
 ```bash
@@ -567,13 +603,17 @@ fi
 ```
 
 **Applying path resolution:**
-- When writing links in both output files, strip the `PATH_ROOT` prefix from every absolute path to produce a relative path.
-- Example: if repo root is `/home/user/project` and a file is at `/home/user/project/src/Controllers/FooController.cs`, the link path is `src/Controllers/FooController.cs`.
-- On Windows, normalize backslashes to forward slashes in link paths.
-- URL-encode spaces in paths (e.g., `Stored%20Procedures`).
+- When writing links in both output files, convert every file path to an absolute `file:///` URL.
+- Example: if repo root is `/home/user/project` and a file is at `/home/user/project/src/Controllers/FooController.cs`, the link path is `file:///home/user/project/src/Controllers/FooController.cs`.
+- On Windows, use three slashes after `file:` and convert backslashes to forward slashes: `file:///C:/Users/name/project/src/file.cs`.
+- URL-encode spaces in paths (e.g., `Stored%20Procedures` becomes `Stored%2520Procedures` in URLs).
+- The display text in markdown links should show a shortened relative path for readability: `[src/file.cs:42](file:///C:/full/path/src/file.cs#L42)`.
 
 ### Link Format
-- **Code**: `[relative-path]:[line]` — relative to the resolved path root (see Path Resolution above)
+- **Code**: `[display-path:line](file:///absolute/path:line#Lline)` — absolute file:/// URLs (see Path Resolution above)
+  - Display text uses a shortened relative path for readability
+  - URL uses full absolute path with file:/// protocol
+  - Example: `[src/file.cs:42](file:///C:/project/src/file.cs#L42)`
 - **Jira**: `https://degreedjira.atlassian.net/browse/[ticket]`
 - **Git**: Use commit SHAs, branch names
 
