@@ -77,6 +77,8 @@ The `.data/tut-*` instance directory MUST be created under the workspace root, w
 2. The repository root (the nearest ancestor containing `.git`).
 3. Only as a last resort: the current working directory.
 
+**Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
+
 Always pass `--workspace` explicitly with the resolved root.
 
 ### Initialize

@@ -7,6 +7,7 @@ Use this baseline for slideshow output produced by PIX. Adapts the shared LIT/KI
 - Treat a slideshow as a durable artifact, not terminal-only output.
 - Use a chat-only response only when the user explicitly requests it or the skill classifies the work as Short and the user permits chat-only output.
 - Resolve the workspace root in this order: an explicit user-supplied workspace root, the configured workspace root that contains the source, the repository root, then the current working directory.
+- **Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
 - Treat `.data` as an output directory, never as a workspace marker. Do not walk upward merely to reuse an existing `.data` directory.
 - Store a new run under `<workspace-root>/.data/pix-YY-MM-DD-<suffix>/`, where the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.

@@ -11,6 +11,7 @@ Use this baseline for reader-facing Markdown produced by LIT, KIT, NIX, WIZ, COP
   2. The repository root via MCP tool `vscode-workspace.get_workspace_root` if available
   3. The repository root via `git rev-parse --show-toplevel` from the current directory
   4. OS-specific fallback: `C:\.data` (Windows), `~/Library/Application Support/claude-skills` (macOS), or `~/.local/share/claude-skills` (Linux)
+- **Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
 - Treat `.data` as an output directory, never as a workspace marker. Do not walk upward merely to reuse an existing `.data` directory.
 - Store a new run under `<workspace-root>/.data/<skill>-YY-MM-DD-<suffix>/`, where `<skill>` is the skill prefix (`lit`, `kit`, `nix`, `wiz`, `cop`, `fix`, `val`) and the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.

@@ -177,6 +177,8 @@ The script resolves workspace root in this order:
 
 The workspace root is the repository root (containing `.git`), NOT the terminal's current working directory.
 
+**Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
+
 If the Python script is unavailable, manually create the instance as `.data/fix-YY-MM-DD-<suffix>` under the resolved workspace root, using the next available lowercase alphabetic suffix. Create `.data` when needed. Never overwrite an existing instance or modify `.gitignore`.
 
 Maintain:
