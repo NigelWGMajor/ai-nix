@@ -180,12 +180,11 @@ def render_tree(source_root: Path, destination_root: Path, values: Dict[str, str
         if source.is_dir():
             destination.mkdir(parents=True, exist_ok=True)
             continue
+        if source.name.endswith("-template.md"):
+            continue
         destination.parent.mkdir(parents=True, exist_ok=True)
         content = source.read_text(encoding="utf-8")
-        replacements = values
-        if source.name.endswith("-template.md"):
-            replacements = {key: value for key, value in values.items() if key != "NOW"}
-        for token, value in replacements.items():
+        for token, value in values.items():
             content = content.replace("{{" + token + "}}", value)
         destination.write_text(content, encoding="utf-8")
 
@@ -538,11 +537,13 @@ def command_portion_create(args: argparse.Namespace) -> int:
     destination = safe_member(workspace, f"portions/{portion_id}.md", must_exist=False)
     if destination.exists():
         raise ValueError(f"Portion already exists: {portion_id}")
-    template = workspace / "portions" / "portion-template.md"
+    template = Path(__file__).resolve().parent.parent / "assets" / "workspace-templates" / "portions" / "portion-template.md"
     if not template.is_file():
         raise ValueError(f"Portion template is missing: {template}")
     content = template.read_text(encoding="utf-8")
+    control_data = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
     values = {
+        "WORKSTREAM_ID": control_data.get("workstream", ""),
         "PORTION_ID": portion_id,
         "PORTION_TITLE": args.title.strip() or portion_id,
         "DEPENDS_ON": ",".join(dependencies) if dependencies else "-",
@@ -638,11 +639,13 @@ def command_result_create(args: argparse.Namespace) -> int:
     destination = safe_member(workspace, f"results/{portion_id}.md", must_exist=False)
     if destination.exists():
         raise ValueError(f"Result already exists: {destination}")
-    template = workspace / "results" / "result-template.md"
+    template = Path(__file__).resolve().parent.parent / "assets" / "workspace-templates" / "results" / "result-template.md"
     if not template.is_file():
         raise ValueError(f"Result template is missing: {template}")
     content = template.read_text(encoding="utf-8")
+    control_data = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
     values = {
+        "WORKSTREAM_ID": control_data.get("workstream", ""),
         "PORTION_ID": portion_id,
         "EXECUTOR": portion_data.get("executor", "unknown"),
         "NOW": now_iso(),
