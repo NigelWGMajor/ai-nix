@@ -60,7 +60,7 @@ Status indicators:
 Major phases:
 1. **Align** - Mission, Evidence, Decisions approved
 2. **Partition** - Portion plan approved
-3. **Jira** - Jira organization reviewed and approved
+3. **Jira** - Jira allocation strategy decided and approved by user
 4. **Execute** - Portions routed and executing
 5. **Integrate** - PRs merged, convergence complete
 
@@ -86,7 +86,7 @@ python <skill-dir>/scripts/dac.py init --workstream ABC-123 --repo-root . --titl
 
 Read [references/artifact-contract.md](references/artifact-contract.md) before initializing, approving, resuming, or validating a workspace.
 
-Read [references/jira-integration.md](references/jira-integration.md) for Jira field discovery, acceptance criteria formatting, and the Jira organization review step.
+Read [references/jira-integration.md](references/jira-integration.md) for Jira field discovery, acceptance criteria formatting, and the Jira allocation decision step.
 
 Read [references/visual-language.md](references/visual-language.md). This file is the authoritative source for all symbols used in DAC artifacts. Its current assignments override any symbols hardcoded in templates or other reference files. Use its shared output-spine and evidence-status palettes when composing workspace artifacts and completion reports.
 
@@ -104,7 +104,7 @@ Resolve decisions that could alter portion boundaries or shared contracts before
 
 ### 2. Partition by outcomes
 
-Produce `04-portion-plan.md`. Prefer portions that are independently understandable, testable, reviewable, and suitable for one Jira child and one PR.
+Produce `04-portion-plan.md`. Prefer portions that are independently understandable, testable, reviewable, and suitable for one PR each.
 
 Each portion must have:
 
@@ -118,31 +118,55 @@ Each portion must have:
 
 Prefer vertical slices. Create a foundation portion only for a genuinely shared contract, additive schema, compatibility adapter, migration, or reusable capability. Reject cycles, hidden blockers, unsafe parallel file overlap, and partitions that merely mirror architecture layers.
 
-### 3. Review Jira organization (MANDATORY)
+### 3. Jira allocation decision (MANDATORY)
 
-**ALWAYS pause after portion plan approval to review Jira structure,** regardless of complexity:
+**ALWAYS pause after portion plan approval to decide Jira ticket allocation.** Never create, modify, or propose creating Jira issues until the user has explicitly chosen a strategy and approved the specific actions.
 
-Present the proposed Jira organization:
+#### Present the allocation context
+
+Summarize enough information for the user to make an informed decision:
+
+| Portion | Outcome | Complexity | Dependencies | Change surface |
+|---------|---------|------------|--------------|----------------|
+| P-001   | ...     | ...        | ...          | ...            |
+
+Include:
+- Total number of portions and their dependency structure
+- Whether portions touch overlapping or disjoint files/systems
+- Estimated scope of each portion (small fix vs. substantial feature)
+- Any existing Jira children or related tickets already in the hierarchy
+
+#### Ask the user to choose an allocation strategy
+
+Present the options clearly and wait for the user's decision:
+
+- **A) No new tickets** — All portions are tracked under the parent issue. Best when the work is small, tightly coupled, or would not benefit from separate tracking. Portions still exist in the `.dac/` workspace for coordination but no Jira children are created.
+- **B) One ticket per partition** — Create a child Story for each portion. Best when portions are independently assignable, substantial enough to warrant separate tracking, or need distinct status visibility.
+- **C) Custom mapping** — Some portions share a ticket, others get their own, or some map to existing tickets. The user specifies the grouping.
+
+**Do NOT default to any option.** Present the context and options, then wait for the user to decide.
+
+#### After the user chooses
+
+- **If A (no new tickets):** Record the decision in `05-jira-plan.md` with strategy `none`. Skip Jira child creation. Proceed to portion envelopes, referencing only the parent ticket.
+- **If B or C:** Present the proposed Jira organization for approval:
 
 | Portion | Proposed Jira | Type | Parent | Rationale |
 |---------|--------------|------|--------|-----------|
 | P-001   | ...          | ...  | ...    | ...       |
 
-**Jira child issue requirements:**
+**Jira child issue requirements (when creating):**
 - **Always create child issues as Stories** (never subtasks) for better tracking
 - **Copy parent labels** to all child issues
 - **Copy parent team field** to all child issues
 - Link children to parent with "Created By" relationship
 
-**Questions to ask:**
+**Additional questions to resolve:**
 - Should we reuse existing issues or create new ones?
 - What work is in DAC scope vs. handled separately?
 - Are there additional labels needed for specific portions?
 
-**Simple case example:** "Both PRs under ABC-123, no new tickets needed"
-**Complex case example:** "Create 4 Story issues linked to parent ABC-123, inheriting labels and team"
-
-After Jira structure approved, produce:
+After Jira allocation strategy and specific actions are approved, produce:
 
 - `05-jira-plan.md` for the proposed parent, child issues, links, ownership, exact remote actions, and acceptance criteria field discovery.
 - `06-integration-plan.md` for branches or worktrees, PR bases, merge order, compatibility states, rollout, and rollback.
@@ -236,9 +260,22 @@ Pause the affected portion when:
 
 Classify the discovery as local, parent-level, contract-changing, or new scope. Handle local discoveries inside the child. Route all others to the parent decision register, mark affected portions stale or blocked, and reapprove their envelopes before continuing.
 
+## Branch sync
+Use the `sync` subcommand to check whether portion branches are up to date with the parent integration branch. This is useful after merging PRs into the parent, after rebasing, or when resuming work after time away.
+```bash
+python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123
+python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123 --parent-branch main
+```
+The sync report shows each portion's branch status:
+- **Behind** — commits on the parent not yet in the portion branch (needs merge)
+- **Ahead** — portion-specific commits not yet in parent (expected for active PRs)
+- **Remote** — whether the local branch is pushed to origin
+- **Action** — `MERGE PARENT` if the portion branch is behind, `PUSH` if unpushed
+Branch discovery is automatic: the helper matches portion Jira ticket numbers to local branch names. You can also add a `branch` field to portion frontmatter for explicit mapping.
+Sync is read-only (R0). To act on suggestions, ask `/dac` to merge the parent into portion branches (requires C3 approval) and push (requires R4 approval).
 ## Helper boundaries
 
-The bundled helper manages Markdown under one `.dac` workspace. It can initialize, validate, record approvals and decisions, create portions and results, derive readiness, and record permitted state transitions. It never invokes Jira, Spec Kit, another skill, Git, tests, builds, deployment, or network tools.
+The bundled helper manages Markdown under one `.dac` workspace. It can initialize, validate, record approvals and decisions, create portions and results, derive readiness, record permitted state transitions, and report git sync status of portion branches. Except for the `sync` subcommand (which invokes `git` read-only), it never invokes Jira, Spec Kit, another skill, Git, tests, builds, deployment, or network tools.
 
 ```bash
 python <skill-dir>/scripts/dac.py status --workspace .dac/ABC-123
@@ -247,6 +284,7 @@ python <skill-dir>/scripts/dac.py approve --workspace .dac/ABC-123 --artifact 01
 python <skill-dir>/scripts/dac.py decision --workspace .dac/ABC-123 --id DEC-001 --question "Question" --outcome "Decision" --by "Name"
 python <skill-dir>/scripts/dac.py transition --workspace .dac/ABC-123 --portion P-001 --to executing
 python <skill-dir>/scripts/dac.py result create --workspace .dac/ABC-123 --portion P-001
+python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123
 ```
 
 ## Completion response
@@ -260,6 +298,131 @@ Produce a completion summary using symbols from `visual-language.md`. Report the
 
 Use the shared evidence link conventions from `artifact-contract.md` for Jira tickets, PRs, and file references.
 
+## Solo Ticket Management
+
+DAC can manage individual tickets that aren't part of a larger parent-child coordination structure. Solo tickets live alongside portions in the `.dac/<workstream>/` workspace and benefit from DAC's acceptance criteria discipline, branch management, and progress tracking.
+
+### When to use solo tickets
+
+- Add existing work demands to DAC management without creating artificial parent Epic
+- Ensure proper acceptance criteria on standalone tickets
+- Track branch sync status for individual tickets
+- Maintain structured work records for tickets with common workstream ancestor
+- Bridge between informal work and full DAC coordination
+
+### Solo ticket folder structure
+
+```
+.dac/<workstream>/
+  solo/
+    ABC-456.md          # Solo ticket envelope
+    ABC-789.md
+  results/
+    ABC-456-result.md   # Solo ticket results
+```
+
+### Solo commands
+
+#### Adopt an existing ticket
+
+```bash
+python <skill-dir>/scripts/dac.py solo adopt \
+  --workspace .dac/ABC-123 \
+  --ticket-id ABC-456 \
+  --title "Fix authentication bug" \
+  --outcome "Users can log in reliably" \
+  --ac "- [ ] Login succeeds for valid credentials\n- [ ] Error message for invalid credentials" \
+  --executor direct \
+  --jira-url "https://jira.example.com/browse/ABC-456" \
+  --branch "feature/ABC-456-auth-fix"
+```
+
+This creates a solo envelope at `.dac/ABC-123/solo/ABC-456.md` with:
+- Work scope and acceptance criteria
+- Branch tracking
+- Status: `adopted`
+- Authority model (W1, C3, V2, R4)
+
+#### Create a new solo ticket
+
+```bash
+python <skill-dir>/scripts/dac.py solo create \
+  --workspace .dac/ABC-123 \
+  --ticket-id ABC-789 \
+  --title "Add request logging" \
+  --outcome "All API requests are logged" \
+  --executor direct \
+  --base-branch main
+```
+
+**Note:** Jira ticket creation happens outside this script (via Atlassian MCP tools). This command creates the DAC envelope after the ticket exists.
+
+#### Check solo ticket status
+
+```bash
+python <skill-dir>/scripts/dac.py solo status --workspace .dac/ABC-123
+```
+
+Shows all solo tickets with their status, branch, executor, and last update.
+
+#### Transition solo ticket state
+
+```bash
+python <skill-dir>/scripts/dac.py solo transition \
+  --workspace .dac/ABC-123 \
+  --ticket-id ABC-456 \
+  --to executing \
+  --by "Developer Name" \
+  --reason "Starting implementation"
+```
+
+Valid transitions:
+- `assessed` → `adopted`, `superseded`
+- `adopted` → `executing`, `blocked`, `superseded`
+- `executing` → `blocked`, `pr_open`, `complete`, `superseded`
+- `blocked` → `executing`, `superseded`
+- `pr_open` → `blocked`, `integrated`, `superseded`
+- `integrated` → `complete`
+
+#### Branch sync for solo tickets
+
+The `sync` command includes solo tickets:
+
+```bash
+python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123
+```
+
+Output shows both portions (P:) and solo tickets (S:):
+```
+Legend: P:portion S:solo
+
+Item         Status      Branch                Behind  Ahead  Remote      Action
+P:P-001      executing   feature/P-001-api     0       3      unpushed    PUSH
+S:ABC-456    executing   feature/ABC-456-auth  2       1      in sync     MERGE PARENT
+```
+
+### Solo ticket workflow
+
+1. **Adopt or create** - Bring ticket under DAC management
+2. **Review envelope** - Ensure acceptance criteria, scope, test obligations clear
+3. **Create branch** - Follow branch naming from envelope
+4. **Execute** - Implement with authority model (W1, C3, V2, R4)
+5. **Track progress** - Use `transition` to update status
+6. **Sync branch** - Keep up to date with parent branch
+7. **Record result** - Create result artifact on completion
+
+### Promoting solo tickets to portions
+
+When a solo ticket grows into part of a larger initiative, you can:
+
+1. Create or identify the parent Epic/Feature
+2. Initialize DAC coordination for the parent
+3. Convert the solo envelope to a portion envelope
+4. Add to portion plan and integration plan
+5. Remove from `solo/` directory
+
+This preserves the work and audit trail while integrating into full DAC coordination.
+
 ## Getting Help
 
 Type `/dac-help` at any time for:
@@ -268,3 +431,4 @@ Type `/dac-help` at any time for:
 - Jira strategy recommendations
 - Troubleshooting stuck portions
 - How to resume after interruption
+- Solo ticket vs. portion decision

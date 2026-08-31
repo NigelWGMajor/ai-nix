@@ -202,6 +202,14 @@ Gather:
 - Check which portions have results in `results/`
 - PR links and status from portion metadata
 
+**Resolve code on sibling branches** (REQUIRED for each portion branch):
+```bash
+# For each portion branch, discover its changed files
+git diff --name-only <parent-branch>...<portion-branch>
+# Get line numbers for key classes/methods without checking out
+git show <portion-branch>:<file-path> | grep -n "class\|public.*async\|interface"
+```
+Build full `file:///` links for every code component — these paths are valid once the portion merges. Do NOT leave sibling-branch code as unlinked plain text.
 **Speckit Project:**
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -245,8 +253,26 @@ Use `search_graph`, `trace_path`, `get_code_snippet` to:
 Focus on **invocation sequence** (what needs to be in place for functionality), not individual method calls.
 
 **CRITICAL for upstream.md**: Every code reference MUST have its actual line number from search_graph or grep -n. 
-The upstream navigation file is useless with default `:1` line numbers. When code doesn't exist on current branch 
-(e.g., DAC portions on sibling branches), note "on branch X" rather than linking with `:1`.
+The upstream navigation file is useless with default `:1` line numbers.
+
+#### Resolving Files on Sibling Branches (DAC portions, unmerged PRs)
+When code lives on a sibling branch (e.g., DAC portion branches, open PR branches), you MUST still resolve full file paths and line numbers. The files will exist at those paths once merged, so the links remain valid for navigation after merge. Use `git` to inspect the sibling branch without checking it out:
+```bash
+# Step 1: Discover which files the sibling branch changed vs parent
+git diff --name-only <parent-branch>...<sibling-branch>
+# Step 2: Get line numbers for key classes/methods on that branch
+git show <sibling-branch>:<file-path> | grep -n "class\|public.*async\|interface"
+# Step 3: Build full file:/// links using PATH_ROOT + the file path
+# These resolve once the branch merges into parent
+```
+**Do NOT** fall back to plain text like "on branch X" without a link. Every code component gets a full `file:///` link with an actual line number, plus a note that the file is on a sibling branch:
+```markdown
+## P-002: CSV Validation (🔶 PR #55807 Open)
+Code on branch `023-pd-130894-csv-validation` — paths resolve after checkout/merge.
+### Collector Layer
+- GenericCsvSkillLevelDescriptions | [trunk/.../GenericCsvSkillLevelDescriptions.cs:68](file:///C:/source/Degreed/trunk/.../GenericCsvSkillLevelDescriptions.cs#L68) | Collector
+```
+The section header notes the branch; each item still gets a navigable link. This is critical because the map is used for task resumption — the user will often check out that branch next, and the links must work when they do.
 ### Phase 4: Status Analysis (inline)
 
 Classify each contribution as:
@@ -358,17 +384,23 @@ Example:
 - **[Author 2]**: [N] commits, most recent [date/time ago] — "[most recent commit message]"
 
 ## Sequence (Invocation Chain)
-[High-level flow showing what needs to be in place for functionality]
+[High-level flow showing what needs to be in place for functionality.
+Every step MUST include a resolved file:/// link — even for code on sibling branches.
+Use `git show <branch>:<path> | grep -n` to get line numbers for code not on the current branch.]
 
 Example:
-1. **API Endpoint** (`POST /api/content`) → `ContentController.CreateContent`
-2. **Orchestration** → `ContentOrchestrator.CreateContentAsync` (coordinates validation, creation, notification)
-3. **Business Logic** → `ContentService.ValidateAndCreateAsync` (validation rules)
-4. **Data Access** → `ContentRepository.InsertAsync` (EF Core)
-5. **Database** → `Content_Insert` stored procedure (SQL)
-6. **Messaging** → `ServiceBusPublisher.PublishAsync` (ContentCreated event)
+1. **API Endpoint** (`POST /api/content`)
+   → [`ContentController.CreateContent`](file:///C:/source/Degreed/trunk/.../ContentController.cs#L42) (P-004 🔶)
+2. **Orchestration**
+   → [`ContentOrchestrator.CreateContentAsync`](file:///C:/source/Degreed/trunk/.../ContentOrchestrator.cs#L15) (P-003 🔶)
+3. **Business Logic**
+   → [`ContentService.ValidateAndCreateAsync`](file:///C:/source/Degreed/trunk/.../ContentService.cs#L89) (P-001 ✅)
+4. **Data Access**
+   → [`ContentRepository.InsertAsync`](file:///C:/source/Degreed/trunk/.../ContentRepository.cs#L23) (P-001 ✅)
+5. **Database**
+   → [`Content_Insert`](file:///C:/source/Degreed/trunk/.../Content_Insert.sql#L8) (P-001 ✅)
 
-[Focus on layers and dependencies, not every method call]
+[Focus on layers and dependencies, not every method call. Include portion status indicators when in DAC context.]
 
 ## Status Summary
 
@@ -431,8 +463,8 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
    - **Code search**: Use `search_graph(query, project)` - results include `start_line`
    - **Grep**: `grep -n "class ClassName" file.cs` - shows line numbers
    - **Read file**: Use Read tool and count to the class/method definition
-   - **Only use `:1`** when the file doesn't exist on current branch OR truly cannot be located
-   - For DAC portions on other branches: note "on branch X" instead of guessing `:1`
+   - **Only use `:1`** when the file truly cannot be located on any branch
+   - For DAC portions / code on other branches: use `git show <branch>:<path> | grep -n` to get actual line numbers, then link with full `file:///` path. Note the branch in the section header, not on each line
 
 3. **Item format** (CODE ONLY):
    - **Use pipe format ONLY for code**: `Name | [DisplayPath:Line](file:///AbsolutePath#LLine) | Layer`

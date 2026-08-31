@@ -13,7 +13,7 @@ Approve a partition only when:
 - intermediate repository and deployment states remain safe
 - deferred work has a safe boundary, owner, and revisit trigger
 
-Prefer one portion, Jira child, executor package, and PR. Split further when a portion cannot fit comfortably in one focused reasoning and implementation cycle.
+Prefer one portion, one executor package, and one PR. When the chosen Jira allocation strategy includes child tickets, prefer one Jira child per portion. Split further when a portion cannot fit comfortably in one focused reasoning and implementation cycle.
 
 ## Result review
 

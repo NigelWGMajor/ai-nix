@@ -12,6 +12,15 @@ inputs: 01-mission.md,03-decisions.md,04-portion-plan.md
 
 # Jira Visibility Plan
 
+## Allocation strategy
+
+<!-- Record the user's chosen strategy: none | per-partition | custom -->
+**Strategy:** To determine
+**Rationale:** To determine
+
+<!-- If strategy is "none", the hierarchy table below may contain only the parent.
+     If "per-partition" or "custom", list each portion's Jira mapping. -->
+
 ## 🔗 Hierarchy
 
 | Portion | Proposed issue | Type | Parent | Owner | Dependencies | Status |

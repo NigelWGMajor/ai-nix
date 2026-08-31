@@ -2,13 +2,13 @@
 
 echo *** Copying nix master visual-language.md to all skills ***
 pause
-for %%S in (kit lit pix dac dac-help cop wiz fix val act umm mem map tut) do (
+for %%S in (kit lit pix dac dac-help cop wiz fix val act umm mem map tut dora) do (
     if not exist ".\%%S\references" mkdir ".\%%S\references"
     robocopy ".\nix\references" ".\%%S\references" "visual-language.md" /COPY:DAT /DCOPY:E
 )
 
 echo *** Copying nix master documentation-standard.md to all skills (except pix) ***
-for %%S in (kit lit cop wiz fix val map tut) do (
+for %%S in (kit lit cop wiz fix val map tut dora) do (
     if not exist ".\%%S\references" mkdir ".\%%S\references"
     robocopy ".\nix\references" ".\%%S\references" "documentation-standard.md" /COPY:DAT /DCOPY:E
 )

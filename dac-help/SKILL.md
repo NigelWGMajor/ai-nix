@@ -1,6 +1,6 @@
 ---
 name: dac-help
-description: Get guidance on DAC (Divide-and-Conquer) workflow. Use when stuck, unsure about next steps, or need advice on partitioning strategy, Jira organization, or executor choice.
+description: Get guidance on DAC (Divide-and-Conquer) workflow. Use when stuck, unsure about next steps, or need advice on partitioning strategy, Jira allocation, executor choice, or solo ticket management.
 ---
 
 # DAC Help
@@ -16,7 +16,7 @@ Provide contextual guidance for users working with the DAC (Divide-and-Conquer) 
 - Unsure if you need DAC for your work
 - Stuck in a DAC phase and not sure what to do next
 - Need advice on how to partition work
-- Confused about Jira organization strategy
+- Confused about Jira allocation strategy
 - Don't know which executor to choose for a portion
 - Want to understand what phase you're in
 - Need to recover from a mistake or drift
@@ -46,36 +46,48 @@ Don't use DAC when:
 - Single PR with clear scope
 - Exploratory spike or prototype
 - Quick bug fix
-- Solo work with no coordination needs
+
+**Consider solo tickets when:**
+- You have existing tickets that need structure but no parent coordination
+- Work items share a common ancestor but aren't tightly coupled
+- You want acceptance criteria discipline for standalone work
+- Tickets might later become part of larger initiatives
 
 ### Partitioning Strategies
 
-**Simple case (1 Jira ticket):**
-- Split into 2-3 portions for clean PRs
-- Example: "DB schema" + "Backend API" under one ticket
-- No new Jira tickets needed
+Partitioning is about splitting *work* into clean, testable, independently reviewable portions. Jira ticket allocation is a separate decision that comes after.
 
-**Complex case (Epic or multiple stories):**
-- Each portion gets its own Jira sub-task
-- Clear dependency tracking
-- Independent review and merge
+**Good partitions:**
+- Each has one coherent outcome and can be tested independently
+- Boundaries follow vertical slices, not architecture layers
+- Dependencies are explicit and acyclic
+- Each maps naturally to one PR
 
 **Anti-patterns:**
 - Portions that can't be tested independently
 - Circular dependencies between portions
 - Portions that merely mirror layers (all DB work in one portion)
 
-### Jira Organization Strategies
+### Jira Allocation Strategies
 
-**When to create sub-tasks:**
-- Multiple independent work items under one story
-- Need separate tracking for each deliverable
-- Different implementers
+DAC always pauses after partitioning to let the user decide how (or whether) to allocate Jira tickets. The coordinator presents context and options — it never creates tickets without explicit permission.
 
-**When to keep it simple:**
-- Work fits in 1-2 PRs
+**No new tickets (strategy: none):**
+- Work fits in 1-2 PRs under the parent ticket
 - Same implementer throughout
-- Natural sequence (DB → API → Tests)
+- Portions are tightly coupled or small
+- Natural sequence doesn't need separate tracking
+
+**One ticket per partition (strategy: per-partition):**
+- Multiple independent work items needing separate tracking
+- Different implementers or reviewers per portion
+- Each portion is substantial enough to warrant its own Story
+- Team needs individual status visibility in Jira
+
+**Custom mapping (strategy: custom):**
+- Some portions share a ticket, others get their own
+- Some portions map to existing tickets already in the hierarchy
+- Mixed ownership where only some parts need separate tracking
 
 ### Executor Choice
 
@@ -86,6 +98,52 @@ Don't use DAC when:
 | `skill:<name>` | Specialized workflow available | `skill:db-migration` for schema changes |
 | `discovery` | Need research before design | "What libraries handle this use case?" |
 | `human` | Requires organizational decision | "Which team owns this service?" |
+
+### Solo Tickets vs. Portions
+
+**Use solo tickets when:**
+- Existing tickets need DAC structure without artificial parent Epic
+- Work items share common ancestor but aren't coordinated
+- You want acceptance criteria discipline and branch tracking for standalone work
+- Tickets might later become part of larger initiatives
+
+**Use portions when:**
+- Work is part of coordinated parent outcome
+- Dependencies between work items matter
+- Parent decisions affect multiple portions
+- You need integration planning across portions
+
+**You can use both:** Portions for coordinated work under a parent, solo tickets for related but independent work in the same workstream.
+
+**Solo ticket commands:**
+```bash
+# Adopt existing ticket
+python <skill-dir>/scripts/dac.py solo adopt \
+  --workspace .dac/ABC-123 \
+  --ticket-id ABC-456 \
+  --title "Fix auth bug" \
+  --outcome "Users can log in reliably"
+
+# Check solo ticket status
+python <skill-dir>/scripts/dac.py solo status --workspace .dac/ABC-123
+
+# Transition solo ticket state
+python <skill-dir>/scripts/dac.py solo transition \
+  --workspace .dac/ABC-123 \
+  --ticket-id ABC-456 \
+  --to executing
+```
+
+### Branch Sync
+Use `/dac sync` (or ask `/dac` to check sync) to see whether portion branches and solo ticket branches are up to date with the parent integration branch.
+```bash
+python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123
+```
+This reports behind/ahead counts, remote push status, and suggests merge or push commands for any out-of-sync active branches. Shows both portions (P:) and solo tickets (S:). Useful after:
+- Merging a portion PR into the parent branch
+- Pulling updates from `main` into the parent
+- Resuming work after time away
+The report is read-only. To act on its suggestions, ask `/dac` to merge and push (C3/R4 approval required).
 
 ### Common Issues
 
@@ -106,6 +164,12 @@ Don't use DAC when:
 - Create new portion with next ID (P-005, etc.)
 - Update portion plan to show new dependency
 - Route when ready
+
+**"I started work informally and now need structure"**
+- Use `dac solo adopt` to bring ticket under management
+- Establish proper acceptance criteria in envelope
+- Track branch sync status
+- Later promote to portion if it becomes part of larger coordination
 
 **"Jira and .dac/ are out of sync"**
 - Treat `.dac/` as source of truth for decisions and dependencies
@@ -128,10 +192,10 @@ Don't use DAC when:
 - Tip: Each portion should have its own PR and test evidence
 
 **Jira Phase:**
-- Focus: Ensure team visibility matches technical plan
-- Key artifacts: Jira plan, Jira issues created
-- Common mistake: Skipping this on "simple" work
-- Tip: Always pause here - answer might be "no new tickets needed" but still ask
+- Focus: User decides Jira allocation strategy — no tickets created without explicit permission
+- Key artifacts: Jira plan with chosen strategy (none / per-partition / custom)
+- Common mistake: Assuming tickets should be created; creating tickets without asking
+- Tip: Present partition context (scope, dependencies, complexity) so the user can make an informed choice. "No new tickets" is a valid and common outcome
 
 **Execute Phase:**
 - Focus: Route portions to appropriate executors

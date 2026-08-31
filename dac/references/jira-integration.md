@@ -141,22 +141,20 @@ The acceptance criteria field uses ADF (Atlassian Document Format) with task lis
 
 ## Workflow Integration
 
-### Before Creating Portion Envelopes
+### Jira Allocation Decision (before creating portion envelopes)
 
-**Add Jira Organization Review Step** between "Portion Plan Approval" and "Portion Envelope Creation"
+After the portion plan is approved, **always pause** to let the user decide the Jira allocation strategy. Present enough context (portion count, scope, dependencies, existing children) for the user to choose:
 
-Present proposed Jira structure to user:
+- **No new tickets** — work tracked under the parent only
+- **One ticket per partition** — a child Story per portion
+- **Custom mapping** — user-specified grouping or reuse of existing tickets
 
-| Portion | Proposed Jira | Type | Parent | Rationale |
-|---------|--------------|------|--------|-----------|
-| P-001   | New sub-task | Sub-task | ABC-123 | ... |
-| P-002   | New sub-task | Sub-task | ABC-123 | ... |
+**Never create Jira issues without explicit user permission.** The coordinator must present the allocation options, wait for the user's decision, and then get approval for the specific actions before any R4 mutation.
 
-**Questions to ask:**
-1. Should these portions be sub-tasks under a parent story, or peer stories?
-2. Is there a natural parent issue for grouping?
-3. Should we reuse existing issues or create new ones?
-4. What work is in DAC scope vs. handled separately (e.g., frontend, docs)?
+If the user chooses to create tickets, resolve:
+1. Should these be peer Stories linked to a parent, or some other structure?
+2. Should we reuse existing issues or create new ones?
+3. What work is in DAC scope vs. handled separately (e.g., frontend, docs)?
 
 **Get explicit approval before proceeding to portion envelope creation.**
 
@@ -257,12 +255,13 @@ Add explicit Jira content section to portion template:
 
 Before marking Jira integration complete:
 
-- [ ] All portion Jira issues created
-- [ ] Description field contains deliverables, key behavior, dependencies, and `.dac/` reference
-- [ ] Acceptance criteria in dedicated field (NOT in description)
-- [ ] Acceptance criteria use proper ADF task list format
-- [ ] Dependency links established between Jira issues
-- [ ] Jira keys recorded in portion envelope frontmatter
+- [ ] Allocation strategy recorded in `05-jira-plan.md` (none / per-partition / custom)
+- [ ] If creating tickets: all planned portion Jira issues created
+- [ ] If creating tickets: description field contains deliverables, key behavior, dependencies, and `.dac/` reference
+- [ ] If creating tickets: acceptance criteria in dedicated field (NOT in description)
+- [ ] If creating tickets: acceptance criteria use proper ADF task list format
+- [ ] If creating tickets: dependency links established between Jira issues
+- [ ] Jira keys (or parent-only reference) recorded in portion envelope frontmatter
 - [ ] Team can see all acceptance criteria without accessing `.dac/` files
 
 ## Reference Implementation

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import re
 import shutil
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -28,6 +29,28 @@ ALLOWED_STATUSES = {
     "integrated",
     "complete",
     "superseded",
+}
+
+SOLO_STATUSES = {
+    "assessed",
+    "adopted",
+    "executing",
+    "blocked",
+    "pr_open",
+    "integrated",
+    "complete",
+    "superseded",
+}
+
+SOLO_TRANSITIONS = {
+    "assessed": {"adopted", "superseded"},
+    "adopted": {"executing", "blocked", "superseded"},
+    "executing": {"blocked", "pr_open", "complete", "superseded"},
+    "blocked": {"executing", "superseded"},
+    "pr_open": {"blocked", "integrated", "superseded"},
+    "integrated": {"complete"},
+    "complete": set(),
+    "superseded": set(),
 }
 
 REQUIRED_FILES = [
@@ -212,6 +235,22 @@ def portion_records(workspace: Path) -> Dict[str, Tuple[Path, Dict[str, str]]]:
         portion_id = data.get("portion_id", "")
         if portion_id:
             records[portion_id] = (path, data)
+    return records
+
+
+def solo_records(workspace: Path) -> Dict[str, Tuple[Path, Dict[str, str]]]:
+    """Return solo ticket records keyed by ticket_id."""
+    records: Dict[str, Tuple[Path, Dict[str, str]]] = {}
+    solo_dir = workspace / "solo"
+    if not solo_dir.exists():
+        return records
+    for path in sorted(solo_dir.glob("*.md")):
+        if path.name.endswith("-template.md"):
+            continue
+        data = parse_frontmatter(path.read_text(encoding="utf-8"))
+        ticket_id = data.get("ticket_id", "")
+        if ticket_id:
+            records[ticket_id] = (path, data)
     return records
 
 
@@ -614,6 +653,358 @@ def command_result_create(args: argparse.Namespace) -> int:
     update_control_timestamp(workspace, values["NOW"])
     print(destination)
     return 0
+def _git(*cmd: str) -> Tuple[int, str]:
+    result = subprocess.run(
+        ["git"] + list(cmd), capture_output=True, text=True
+    )
+    return result.returncode, result.stdout.strip()
+def _discover_branch(jira: str) -> str:
+    if not jira:
+        return ""
+    ticket_match = re.search(r"[A-Za-z]+-(\d+)", jira)
+    if not ticket_match:
+        return ""
+    ticket_num = ticket_match.group(1)
+    rc, out = _git("branch", "--list", f"*{ticket_num}*")
+    if rc != 0 or not out:
+        return ""
+    candidates = [b.strip().lstrip("* +") for b in out.splitlines() if b.strip()]
+    if len(candidates) == 1:
+        return candidates[0]
+    return ""
+def command_solo_adopt(args: argparse.Namespace) -> int:
+    """Adopt an existing Jira ticket into solo management."""
+    workspace = ensure_workspace(Path(args.workspace))
+    ticket_id = validate_identifier(args.ticket_id, "Ticket ID")
+
+    # Ensure solo directory exists
+    solo_dir = workspace / "solo"
+    solo_dir.mkdir(exist_ok=True)
+
+    destination = safe_member(workspace, f"solo/{ticket_id}.md", must_exist=False)
+    if destination.exists():
+        raise ValueError(f"Solo ticket already exists: {ticket_id}")
+
+    template = Path(__file__).resolve().parent.parent / "assets" / "workspace-templates" / "solo" / "solo-template.md"
+    if not template.is_file():
+        raise ValueError(f"Solo template is missing: {template}")
+
+    content = template.read_text(encoding="utf-8")
+    timestamp = now_iso()
+
+    # Get workstream from control
+    control_data = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
+    workstream = control_data.get("workstream", "")
+
+    # Construct branch name
+    branch_name = args.branch or f"feature/{ticket_id}-{args.title.lower().replace(' ', '-')[:40]}"
+
+    values = {
+        "WORKSTREAM_ID": workstream,
+        "TICKET_ID": ticket_id,
+        "TITLE": args.title.strip() or ticket_id,
+        "OUTCOME": args.outcome.strip() if args.outcome else "To be defined",
+        "ACCEPTANCE_CRITERIA": args.ac.strip() if args.ac else "- [ ] To be defined",
+        "STATUS": "adopted",
+        "EXECUTOR": args.executor or "direct",
+        "JIRA_URL": args.jira_url.strip() if args.jira_url else f"https://jira.example.com/browse/{ticket_id}",
+        "BRANCH": branch_name,
+        "BASE_BRANCH": args.base_branch or "main",
+        "NOW": timestamp,
+        "SOURCE": "adopted from existing Jira ticket",
+    }
+
+    for token, value in values.items():
+        content = content.replace("{{" + token + "}}", value)
+
+    destination.write_text(content, encoding="utf-8")
+    update_control_timestamp(workspace, timestamp)
+
+    print(destination)
+    print(f"Adopted solo ticket {ticket_id}")
+    print("Next steps:")
+    print(f"1. Review and refine {destination.relative_to(workspace)}")
+    print(f"2. Ensure Jira ticket has proper acceptance criteria")
+    print(f"3. Create branch: git checkout -b {branch_name}")
+    return 0
+
+
+def command_solo_create(args: argparse.Namespace) -> int:
+    """Create a new solo ticket (Jira creation would happen outside this script)."""
+    workspace = ensure_workspace(Path(args.workspace))
+    ticket_id = args.ticket_id.strip()
+
+    if not ticket_id:
+        print("Note: This command creates the DAC envelope.")
+        print("Create the Jira ticket first, then call with --ticket-id")
+        return 1
+
+    ticket_id = validate_identifier(ticket_id, "Ticket ID")
+
+    # Ensure solo directory exists
+    solo_dir = workspace / "solo"
+    solo_dir.mkdir(exist_ok=True)
+
+    destination = safe_member(workspace, f"solo/{ticket_id}.md", must_exist=False)
+    if destination.exists():
+        raise ValueError(f"Solo ticket already exists: {ticket_id}")
+
+    template = Path(__file__).resolve().parent.parent / "assets" / "workspace-templates" / "solo" / "solo-template.md"
+    if not template.is_file():
+        raise ValueError(f"Solo template is missing: {template}")
+
+    content = template.read_text(encoding="utf-8")
+    timestamp = now_iso()
+
+    # Get workstream from control
+    control_data = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
+    workstream = control_data.get("workstream", "")
+
+    # Construct branch name
+    branch_name = args.branch or f"feature/{ticket_id}-{args.title.lower().replace(' ', '-')[:40]}"
+
+    values = {
+        "WORKSTREAM_ID": workstream,
+        "TICKET_ID": ticket_id,
+        "TITLE": args.title.strip() or ticket_id,
+        "OUTCOME": args.outcome.strip() if args.outcome else "To be defined",
+        "ACCEPTANCE_CRITERIA": args.ac.strip() if args.ac else "- [ ] To be defined",
+        "STATUS": "adopted",
+        "EXECUTOR": args.executor or "direct",
+        "JIRA_URL": args.jira_url.strip() if args.jira_url else f"https://jira.example.com/browse/{ticket_id}",
+        "BRANCH": branch_name,
+        "BASE_BRANCH": args.base_branch or "main",
+        "NOW": timestamp,
+        "SOURCE": "created as new solo ticket",
+    }
+
+    for token, value in values.items():
+        content = content.replace("{{" + token + "}}", value)
+
+    destination.write_text(content, encoding="utf-8")
+    update_control_timestamp(workspace, timestamp)
+
+    print(destination)
+    print(f"Created solo ticket envelope for {ticket_id}")
+    print("Next steps:")
+    print(f"1. Review and complete {destination.relative_to(workspace)}")
+    print(f"2. Create branch: git checkout -b {branch_name}")
+    return 0
+
+
+def command_solo_status(args: argparse.Namespace) -> int:
+    """Show status of solo tickets."""
+    workspace = ensure_workspace(Path(args.workspace))
+    records = solo_records(workspace)
+
+    if not records:
+        print("No solo tickets found.")
+        return 0
+
+    print(f"Solo tickets in {workspace.name}:")
+    print()
+
+    headers = ("Ticket", "Status", "Branch", "Executor", "Last Updated")
+    widths = [len(h) for h in headers]
+
+    rows = []
+    for ticket_id in sorted(records):
+        _, data = records[ticket_id]
+        row = (
+            ticket_id,
+            data.get("status", "?"),
+            data.get("branch", "-"),
+            data.get("executor", "?"),
+            data.get("last_updated", "?"),
+        )
+        rows.append(row)
+        for i, val in enumerate(row):
+            widths[i] = max(widths[i], len(val))
+
+    print("  ".join(h.ljust(widths[i]) for i, h in enumerate(headers)))
+    print("  ".join("-" * w for w in widths))
+    for row in rows:
+        print("  ".join(val.ljust(widths[i]) for i, val in enumerate(row)))
+
+    return 0
+
+
+def command_solo_transition(args: argparse.Namespace) -> int:
+    """Record a state transition for a solo ticket."""
+    workspace = ensure_workspace(Path(args.workspace))
+    ticket_id = validate_identifier(args.ticket_id, "Ticket ID")
+    path = safe_member(workspace, f"solo/{ticket_id}.md")
+    text = path.read_text(encoding="utf-8")
+    data = parse_frontmatter(text)
+    current = data.get("status", "")
+    target = args.to
+
+    allowed = SOLO_TRANSITIONS.get(current, set())
+    if target not in allowed:
+        raise ValueError(f"Invalid solo ticket transition: {current!r} -> {target!r}")
+
+    timestamp = now_iso()
+    row = "| {timestamp} | {current} | {target} | {actor} | {reason} |".format(
+        timestamp=escape_cell(timestamp),
+        current=escape_cell(current),
+        target=escape_cell(target),
+        actor=escape_cell(args.by),
+        reason=escape_cell(args.reason or "-"),
+    )
+    text = update_frontmatter(text, {"status": target, "last_updated": timestamp})
+    text = append_before_marker(text, "<!-- STATE_LOG -->", row)
+    path.write_text(text, encoding="utf-8")
+    update_control_timestamp(workspace, timestamp)
+
+    print(f"Transitioned {ticket_id}: {current} -> {target}")
+    return 0
+
+
+def command_sync(args: argparse.Namespace) -> int:
+    workspace = ensure_workspace(Path(args.workspace))
+    portion_recs = portion_records(workspace)
+    solo_recs = solo_records(workspace)
+    parent_branch = args.parent_branch
+    if not parent_branch:
+        rc, out = _git("rev-parse", "--abbrev-ref", "HEAD")
+        if rc != 0:
+            raise ValueError("Could not determine current branch. Use --parent-branch.")
+        parent_branch = out
+    rc, _ = _git("rev-parse", "--verify", parent_branch)
+    if rc != 0:
+        raise ValueError(f"Parent branch not found: {parent_branch}")
+
+    rows: List[Tuple[str, ...]] = []
+    merge_cmds: List[str] = []
+    push_branches: List[str] = []
+
+    # Process portions
+    for portion_id in sorted(portion_recs):
+        _, data = portion_recs[portion_id]
+        status = data.get("status", "?")
+        branch = data.get("branch", "") or _discover_branch(data.get("jira", ""))
+        type_label = "P"
+
+        if not branch:
+            rows.append((f"{type_label}:{portion_id}", status, "(no branch)", "-", "-", "-", ""))
+            continue
+        rc, _ = _git("rev-parse", "--verify", branch)
+        if rc != 0:
+            rows.append((f"{type_label}:{portion_id}", status, branch, "-", "-", "-", "not found"))
+            continue
+        _, behind_s = _git("rev-list", "--count", f"{branch}..{parent_branch}")
+        _, ahead_s = _git("rev-list", "--count", f"{parent_branch}..{branch}")
+        behind = int(behind_s) if behind_s.isdigit() else -1
+        ahead = int(ahead_s) if ahead_s.isdigit() else -1
+        _, local_sha = _git("rev-parse", branch)
+        rc_r, remote_sha = _git("rev-parse", f"origin/{branch}")
+        if rc_r != 0:
+            remote_status = "no remote"
+        elif local_sha == remote_sha:
+            remote_status = "in sync"
+        else:
+            _, la_s = _git("rev-list", "--count", f"origin/{branch}..{branch}")
+            _, lb_s = _git("rev-list", "--count", f"{branch}..origin/{branch}")
+            la = int(la_s) if la_s.isdigit() else 0
+            lb = int(lb_s) if lb_s.isdigit() else 0
+            if la > 0 and lb > 0:
+                remote_status = f"diverged (+{la}/-{lb})"
+            elif la > 0:
+                remote_status = f"unpushed (+{la})"
+            else:
+                remote_status = f"behind remote (-{lb})"
+        active = status not in {"integrated", "complete", "superseded"}
+        note = ""
+        if behind > 0 and active:
+            merge_cmds.append(
+                f"git checkout {branch} && git merge {parent_branch} --no-edit"
+            )
+            note = "MERGE PARENT"
+        elif behind > 0:
+            note = "stale (merged/done)"
+        if "unpushed" in remote_status and active:
+            push_branches.append(branch)
+            note = f"{note}, PUSH" if note else "PUSH"
+        rows.append((
+            f"{type_label}:{portion_id}", status, branch,
+            str(behind), str(ahead), remote_status, note,
+        ))
+
+    # Process solo tickets
+    for ticket_id in sorted(solo_recs):
+        _, data = solo_recs[ticket_id]
+        status = data.get("status", "?")
+        branch = data.get("branch", "") or _discover_branch(ticket_id)
+        type_label = "S"
+
+        if not branch:
+            rows.append((f"{type_label}:{ticket_id}", status, "(no branch)", "-", "-", "-", ""))
+            continue
+        rc, _ = _git("rev-parse", "--verify", branch)
+        if rc != 0:
+            rows.append((f"{type_label}:{ticket_id}", status, branch, "-", "-", "-", "not found"))
+            continue
+        _, behind_s = _git("rev-list", "--count", f"{branch}..{parent_branch}")
+        _, ahead_s = _git("rev-list", "--count", f"{parent_branch}..{branch}")
+        behind = int(behind_s) if behind_s.isdigit() else -1
+        ahead = int(ahead_s) if ahead_s.isdigit() else -1
+        _, local_sha = _git("rev-parse", branch)
+        rc_r, remote_sha = _git("rev-parse", f"origin/{branch}")
+        if rc_r != 0:
+            remote_status = "no remote"
+        elif local_sha == remote_sha:
+            remote_status = "in sync"
+        else:
+            _, la_s = _git("rev-list", "--count", f"origin/{branch}..{branch}")
+            _, lb_s = _git("rev-list", "--count", f"{branch}..origin/{branch}")
+            la = int(la_s) if la_s.isdigit() else 0
+            lb = int(lb_s) if lb_s.isdigit() else 0
+            if la > 0 and lb > 0:
+                remote_status = f"diverged (+{la}/-{lb})"
+            elif la > 0:
+                remote_status = f"unpushed (+{la})"
+            else:
+                remote_status = f"behind remote (-{lb})"
+        active = status not in {"integrated", "complete", "superseded"}
+        note = ""
+        if behind > 0 and active:
+            merge_cmds.append(
+                f"git checkout {branch} && git merge {parent_branch} --no-edit"
+            )
+            note = "MERGE PARENT"
+        elif behind > 0:
+            note = "stale (merged/done)"
+        if "unpushed" in remote_status and active:
+            push_branches.append(branch)
+            note = f"{note}, PUSH" if note else "PUSH"
+        rows.append((
+            f"{type_label}:{ticket_id}", status, branch,
+            str(behind), str(ahead), remote_status, note,
+        ))
+
+    headers = ("Item", "Status", "Branch", "Behind", "Ahead", "Remote", "Action")
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i, val in enumerate(row):
+            widths[i] = max(widths[i], len(val))
+    print(f"Parent branch: {parent_branch}")
+    print(f"Legend: P:portion S:solo")
+    print()
+    print("  ".join(h.ljust(widths[i]) for i, h in enumerate(headers)))
+    print("  ".join("-" * w for w in widths))
+    for row in rows:
+        print("  ".join(val.ljust(widths[i]) for i, val in enumerate(row)))
+    if merge_cmds or push_branches:
+        print()
+        print("Suggested actions:")
+        for cmd in merge_cmds:
+            print(f"  {cmd}")
+        if push_branches:
+            print(f"  git push origin {' '.join(push_branches)}")
+    else:
+        print()
+        print("All active branches are in sync.")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -686,6 +1077,15 @@ def build_parser() -> argparse.ArgumentParser:
     transition_parser.add_argument("--by", default="coordinator")
     transition_parser.add_argument("--reason", default="")
     transition_parser.set_defaults(func=command_transition)
+    sync_parser = commands.add_parser(
+        "sync", help="Report git sync status of portion branches vs parent"
+    )
+    sync_parser.add_argument("--workspace", required=True)
+    sync_parser.add_argument(
+        "--parent-branch", default="",
+        help="Parent integration branch (default: current branch)",
+    )
+    sync_parser.set_defaults(func=command_sync)
 
     result_parser = commands.add_parser("result", help="Manage normalized results")
     result_commands = result_parser.add_subparsers(dest="result_command", required=True)
@@ -693,6 +1093,46 @@ def build_parser() -> argparse.ArgumentParser:
     result_create.add_argument("--workspace", required=True)
     result_create.add_argument("--portion", required=True)
     result_create.set_defaults(func=command_result_create)
+
+    # Solo ticket management
+    solo_parser = commands.add_parser("solo", help="Manage solo tickets")
+    solo_commands = solo_parser.add_subparsers(dest="solo_command", required=True)
+
+    solo_adopt = solo_commands.add_parser("adopt", help="Adopt an existing Jira ticket")
+    solo_adopt.add_argument("--workspace", required=True)
+    solo_adopt.add_argument("--ticket-id", required=True)
+    solo_adopt.add_argument("--title", required=True)
+    solo_adopt.add_argument("--outcome", default="")
+    solo_adopt.add_argument("--ac", default="", help="Acceptance criteria")
+    solo_adopt.add_argument("--executor", default="direct")
+    solo_adopt.add_argument("--jira-url", default="")
+    solo_adopt.add_argument("--branch", default="")
+    solo_adopt.add_argument("--base-branch", default="main")
+    solo_adopt.set_defaults(func=command_solo_adopt)
+
+    solo_create = solo_commands.add_parser("create", help="Create a new solo ticket envelope")
+    solo_create.add_argument("--workspace", required=True)
+    solo_create.add_argument("--ticket-id", required=True)
+    solo_create.add_argument("--title", required=True)
+    solo_create.add_argument("--outcome", default="")
+    solo_create.add_argument("--ac", default="", help="Acceptance criteria")
+    solo_create.add_argument("--executor", default="direct")
+    solo_create.add_argument("--jira-url", default="")
+    solo_create.add_argument("--branch", default="")
+    solo_create.add_argument("--base-branch", default="main")
+    solo_create.set_defaults(func=command_solo_create)
+
+    solo_status = solo_commands.add_parser("status", help="Show solo ticket status")
+    solo_status.add_argument("--workspace", required=True)
+    solo_status.set_defaults(func=command_solo_status)
+
+    solo_transition = solo_commands.add_parser("transition", help="Transition solo ticket state")
+    solo_transition.add_argument("--workspace", required=True)
+    solo_transition.add_argument("--ticket-id", required=True)
+    solo_transition.add_argument("--to", required=True, choices=sorted(SOLO_STATUSES))
+    solo_transition.add_argument("--by", default="coordinator")
+    solo_transition.add_argument("--reason", default="")
+    solo_transition.set_defaults(func=command_solo_transition)
 
     return parser
 
