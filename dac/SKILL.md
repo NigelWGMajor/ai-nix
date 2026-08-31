@@ -90,6 +90,24 @@ Read [references/jira-integration.md](references/jira-integration.md) for Jira f
 
 Read [references/visual-language.md](references/visual-language.md). This file is the authoritative source for all symbols used in DAC artifacts. Its current assignments override any symbols hardcoded in templates or other reference files. Use its shared output-spine and evidence-status palettes when composing workspace artifacts and completion reports.
 
+## Preview mode
+
+When the user invokes DAC with `preview` on the prompt line (e.g. `/dac preview ABC-123`), the entire run is confined to `.dac/` workspace writes (W1 only). No code changes (C3), no Jira or remote writes (R4), no builds or tests (V2). Because of this safety boundary:
+
+**Request blanket W1 approval once at the start** and then proceed through Align and Partition without pausing for per-artifact write permission. The user should only need to confirm once ("approve W1 for `.dac/<workstream>/`") and then see results, not a series of permission prompts.
+
+Run the full Align and Partition phases, produce the Jira allocation proposal (with acceptance criteria checklists), then **stop**. Display:
+
+```
+DAC Preview complete: [✓] Align → [✓] Partition → [●] Jira (proposed) → [ ] Execute → [ ] Integrate
+
+Preview stops here. The partition and Jira proposal above are ready for review.
+All artifacts are in .dac/<workstream>/ — no code, Jira, or remote changes were made.
+To proceed with ticket creation, run `/dac` again to resume from the Jira approval step.
+```
+
+Do not prompt for Jira approval, create tickets, or advance past the proposal. The workspace artifacts (mission, evidence, decisions, portion plan, and the proposed Jira plan) are written and available for review, but no R4 actions are taken.
+
 ## Coordinate the workstream
 
 ### 1. Align and investigate
@@ -116,7 +134,9 @@ Each portion must have:
 - a proposed executor route
 - an escalation boundary
 
-Prefer vertical slices. Create a foundation portion only for a genuinely shared contract, additive schema, compatibility adapter, migration, or reusable capability. Reject cycles, hidden blockers, unsafe parallel file overlap, and partitions that merely mirror architecture layers.
+**Split by expertise domain by default.** When work spans distinct expertise boundaries — SQL/database, Elasticsearch/search, backend/API, frontend/UI — create separate portions for each domain even if the changes are small. This ensures each portion can be routed to an appropriate executor and reviewed by domain experts. Only combine cross-domain work into a single portion when the changes are so tightly coupled that splitting would create circular dependencies.
+
+Prefer vertical slices within a domain. Create a foundation portion only for a genuinely shared contract, additive schema, compatibility adapter, migration, or reusable capability. Reject cycles, hidden blockers, unsafe parallel file overlap, and partitions that merely mirror architecture layers.
 
 ### 3. Jira allocation decision (MANDATORY)
 
@@ -136,24 +156,43 @@ Include:
 - Estimated scope of each portion (small fix vs. substantial feature)
 - Any existing Jira children or related tickets already in the hierarchy
 
-#### Ask the user to choose an allocation strategy
+#### Propose ticket allocation
 
-Present the options clearly and wait for the user's decision:
+**Default to one Jira ticket per portion** (option B). Present the proposed 1:1 mapping, then identify trivial portions that could reasonably be combined:
 
-- **A) No new tickets** — All portions are tracked under the parent issue. Best when the work is small, tightly coupled, or would not benefit from separate tracking. Portions still exist in the `.dac/` workspace for coordination but no Jira children are created.
-- **B) One ticket per partition** — Create a child Story for each portion. Best when portions are independently assignable, substantial enough to warrant separate tracking, or need distinct status visibility.
-- **C) Custom mapping** — Some portions share a ticket, others get their own, or some map to existing tickets. The user specifies the grouping.
+| Portion | Proposed Jira | Domain | Complexity | Consolidation candidate? |
+|---------|--------------|--------|------------|--------------------------|
+| P-001   | new Story    | SQL    | substantial | — |
+| P-002   | new Story    | backend | trivial   | could join P-003 (same domain, <1hr) |
+| P-003   | new Story    | backend | moderate  | — |
 
-**Do NOT default to any option.** Present the context and options, then wait for the user to decide.
+For each trivial portion (estimated under ~2 hours, single-file, no independent review value), suggest which sibling it could merge with and why. The user may then:
+
+- **Accept 1:1** — Proceed with one ticket per portion as proposed.
+- **Consolidate** — Merge the suggested trivial portions into their neighbors. Specify which groupings to apply.
+- **No new tickets** — Track all portions under the parent issue only. Best when the total work is small or tightly coupled.
+- **Custom mapping** — Any other grouping the user specifies.
+
+Wait for the user to decide before proceeding.
 
 #### After the user chooses
 
 - **If A (no new tickets):** Record the decision in `05-jira-plan.md` with strategy `none`. Skip Jira child creation. Proceed to portion envelopes, referencing only the parent ticket.
-- **If B or C:** Present the proposed Jira organization for approval:
+- **If B or C:** Present the proposed Jira organization for approval. For each proposed ticket, include the acceptance criteria as a markdown checklist exactly as they will appear in the Jira ticket:
 
 | Portion | Proposed Jira | Type | Parent | Rationale |
 |---------|--------------|------|--------|-----------|
 | P-001   | ...          | ...  | ...    | ...       |
+
+**P-001 — Acceptance Criteria:**
+- [ ] First criterion derived from parent success criteria
+- [ ] Second criterion specific to this portion's outcome
+- [ ] Relevant test or validation obligation
+
+**P-002 — Acceptance Criteria:**
+- [ ] ...
+
+Present every ticket's acceptance criteria in this checklist format so the user can review them in context before any Jira writes. These same checklists are written verbatim into `05-jira-plan.md` and into the Jira acceptance criteria field when tickets are created.
 
 **Jira child issue requirements (when creating):**
 - **Always create child issues as Stories** (never subtasks) for better tracking

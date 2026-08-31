@@ -145,6 +145,22 @@ This reports behind/ahead counts, remote push status, and suggests merge or push
 - Resuming work after time away
 The report is read-only. To act on its suggestions, ask `/dac` to merge and push (C3/R4 approval required).
 
+### Preview Mode
+
+Run `/dac preview ABC-123` to plan without side effects. Preview mode:
+
+- Runs Align and Partition phases fully (mission, evidence, decisions, portion plan, Jira proposal with acceptance criteria checklists)
+- **Requests W1 approval once** at the start, then writes all `.dac/` artifacts without further permission prompts
+- **Stops before Jira ticket creation** — no code (C3), Jira/remote (R4), or build/test (V2) actions are taken
+- Produces a complete, reviewable plan in `.dac/<workstream>/`
+
+To continue after reviewing, run `/dac` normally — it resumes from the Jira approval step.
+
+Preview is useful for:
+- Getting stakeholder buy-in on partitioning before committing to tickets
+- Reviewing acceptance criteria before they're written to Jira
+- Validating the approach when you're unsure about scope or splitting
+
 ### Common Issues
 
 **"I skipped the Jira review and regret it"**
