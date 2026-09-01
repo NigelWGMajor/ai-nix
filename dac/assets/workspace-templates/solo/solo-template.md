@@ -1,6 +1,7 @@
 ---
 artifact: solo
 workstream: {{WORKSTREAM_ID}}
+solo_id: {{SOLO_ID}}
 ticket_id: {{TICKET_ID}}
 stage: solo
 status: {{STATUS}}
@@ -10,12 +11,13 @@ executor: {{EXECUTOR}}
 jira: {{TICKET_ID}}
 jira_url: {{JIRA_URL}}
 branch: {{BRANCH}}
+base_branch: {{BASE_BRANCH}}
 ---
 
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# Solo Ticket: {{TITLE}}
+# {{WORKSTREAM_ID}} — {{SOLO_ID}}: {{TITLE}} ({{TICKET_ID}})
 
 ## 💭 Outcome and boundaries
 

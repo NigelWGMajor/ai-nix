@@ -69,19 +69,21 @@ Major phases:
 **Show progress indicator first.**
 
 1. Confirm the repository root, branch, HEAD, and worktree state without changing them.
-2. Identify the parent Jira issue or stable workstream ID. Do not guess among plausible parents.
+2. Identify the parent Jira issue or stable workstream ID. The normal form is `PD-######`; do not guess among plausible parents. Accept another key only when the user explicitly supplies that exact alternative key in the prompt.
 3. Discover available Jira, repository, GitHub, Spec Kit, and skill capabilities. For Jira access, use the Atlassian MCP server tools (prefixed `mcp__atlassian__`). Verify the server is available by attempting a lightweight call. If the server is unreachable or returns a connection error, advise the user:
 
    > Could you try restarting the MCP server? You can either:
    > 1. Run `! /mcp` in this prompt to check MCP server status
    > 2. Use `curl` with your MCP credentials to access the Atlassian API directly
 4. Look for `.dac/<workstream>/00-control.md`.
+   - For automatic discovery, only consider directories whose name exactly matches the parent-ticket form `PD-######` (case-insensitive). Ignore every other folder under `.dac/`, including legacy, scratch, and similarly named directories.
+   - If the user explicitly supplied a non-PD key, do not scan non-PD folders; check only the exact `.dac/<explicit-key>/00-control.md` path.
    - If it exists, read it first and resume its recorded next action.
    - If it does not, align on the intended outcome in conversation and request W1 approval.
 5. After W1 approval, initialize the workspace:
 
 ```bash
-python <skill-dir>/scripts/dac.py init --workstream ABC-123 --repo-root . --title "Outcome"
+python <skill-dir>/scripts/dac.py init --workstream PD-123456 --repo-root . --title "Outcome"
 ```
 
 Read [references/artifact-contract.md](references/artifact-contract.md) before initializing, approving, resuming, or validating a workspace.
@@ -92,21 +94,21 @@ Read [references/visual-language.md](references/visual-language.md). This file i
 
 ## Preview mode
 
-When the user invokes DAC with `preview` on the prompt line (e.g. `/dac preview ABC-123`), the entire run is confined to `.dac/` workspace writes (W1 only). No code changes (C3), no Jira or remote writes (R4), no builds or tests (V2). Because of this safety boundary:
+When the user invokes DAC with `preview` on the prompt line (e.g. `/dac preview PD-123456`), the entire run is confined to `.dac/` workspace writes (W1 only). No code changes (C3), no Jira or remote writes (R4), no builds or tests (V2). Because of this safety boundary:
 
 **Request blanket W1 approval once at the start** and then proceed through Align and Partition without pausing for per-artifact write permission. The user should only need to confirm once ("approve W1 for `.dac/<workstream>/`") and then see results, not a series of permission prompts.
 
-Run the full Align and Partition phases, produce the Jira allocation proposal (with acceptance criteria checklists), then **stop**. Display:
+Run the full Align and Partition phases, then write a non-binding, asynchronous allocation review to `05-jira-plan.md` and display the same table. The review must separate SQL, frontend (FE), and backend (BE) work; split large portions further at natural outcome or contract boundaries; and show optional same-discipline groupings. It is a planning artifact only: do not construct a final Jira creation payload, request R4 approval, or create tickets. Then **stop**.
 
 ```
 DAC Preview complete: [✓] Align → [✓] Partition → [●] Jira (proposed) → [ ] Execute → [ ] Integrate
 
-Preview stops here. The partition and Jira proposal above are ready for review.
+Preview stops here. The partition and asynchronous Jira allocation review are ready for review.
 All artifacts are in .dac/<workstream>/ — no code, Jira, or remote changes were made.
 To proceed with ticket creation, run `/dac` again to resume from the Jira approval step.
 ```
 
-Do not prompt for Jira approval, create tickets, or advance past the proposal. The workspace artifacts (mission, evidence, decisions, portion plan, and the proposed Jira plan) are written and available for review, but no R4 actions are taken.
+Do not prompt for Jira approval, create tickets, or advance past the proposal. On resumption, read and present the saved allocation table for confirmation before regenerating it. Regenerate only if the user asks to repartition, select a different grouping, or new evidence changes the portion boundary. The workspace artifacts (mission, evidence, decisions, portion plan, and the proposed Jira plan) are written and available for review, but no R4 actions are taken.
 
 ## Coordinate the workstream
 
@@ -140,7 +142,7 @@ Prefer vertical slices within a domain. Create a foundation portion only for a g
 
 ### 3. Jira allocation decision (MANDATORY)
 
-**ALWAYS pause after portion plan approval to decide Jira ticket allocation.** Never create, modify, or propose creating Jira issues until the user has explicitly chosen a strategy and approved the specific actions.
+**ALWAYS pause after portion plan approval to decide Jira ticket allocation.** A preview may propose non-binding allocation alternatives, but it must not create Jira issues, construct a final creation payload, or request R4 approval. A final mapping and any Jira action require the user's explicit confirmation and approval.
 
 #### Present the allocation context
 
@@ -158,27 +160,31 @@ Include:
 
 #### Propose ticket allocation
 
-**Default to one Jira ticket per portion** (option B). Present the proposed 1:1 mapping, then identify trivial portions that could reasonably be combined:
+Start from one proposed Story per portion. SQL, FE, and BE portions must always be separate because they use different review pipelines. Split a large portion into additional portions at natural outcome, contract, or independently testable change boundaries before suggesting Jira groupings. Do not group portions across those discipline boundaries.
 
-| Portion | Proposed Jira | Domain | Complexity | Consolidation candidate? |
-|---------|--------------|--------|------------|--------------------------|
-| P-001   | new Story    | SQL    | substantial | — |
-| P-002   | new Story    | backend | trivial   | could join P-003 (same domain, <1hr) |
-| P-003   | new Story    | backend | moderate  | — |
+Present and persist this exact table in `05-jira-plan.md`:
 
-For each trivial portion (estimated under ~2 hours, single-file, no independent review value), suggest which sibling it could merge with and why. The user may then:
+| Portion | Proposed Jira Issue | Type | Master | Dependencies | Status | Description | Suggested Grouping |
+|---------|---------------------|------|--------|--------------|--------|-------------|--------------------|
+| P-001 | New Story | Story | PD-123456 | - | proposed | Add SQL migration | A — combine with P-002 (same SQL review pipeline) |
+| P-002 | New Story | Story | PD-123456 | P-001 | proposed | Add SQL data backfill | A — combine with P-001 (same SQL review pipeline) |
+| P-003 | New Story | Story | PD-123456 | P-001 | proposed | Add backend API | — |
 
-- **Accept 1:1** — Proceed with one ticket per portion as proposed.
-- **Consolidate** — Merge the suggested trivial portions into their neighbors. Specify which groupings to apply.
-- **No new tickets** — Track all portions under the parent issue only. Best when the total work is small or tightly coupled.
-- **Custom mapping** — Any other grouping the user specifies.
+Each letter is a candidate grouping: portions bearing the same letter would share one Jira Story if selected. A dash means no grouping is suggested. The `Description` must be brief but sufficient for an asynchronous reviewer to understand the proposed ticket boundary.
+
+The user may then:
+
+- **Use portions** — keep one Jira Story per portion.
+- **Accept suggested groupings** — confirm one or more lettered groupings.
+- **Split more** — name the portion to split; revise `04-portion-plan.md`, then regenerate the table.
+- **Parent-only** — track all portions under the master ticket with no new Stories.
 
 Wait for the user to decide before proceeding.
 
 #### After the user chooses
 
-- **If A (no new tickets):** Record the decision in `05-jira-plan.md` with strategy `none`. Skip Jira child creation. Proceed to portion envelopes, referencing only the parent ticket.
-- **If B or C:** Present the proposed Jira organization for approval. For each proposed ticket, include the acceptance criteria as a markdown checklist exactly as they will appear in the Jira ticket:
+- **If Parent-only:** Record the decision in `05-jira-plan.md` with strategy `none`. Skip Jira child creation, but complete and obtain content approval for a **trivial** `06-integration-plan.md` before materializing portion envelopes. The trivial plan records the direct branch/PR path, validation, rollout/rollback, and parent-ticket traceability; it must not be omitted.
+- **If Use portions or Accept suggested groupings:** update the saved table to the chosen mapping, then present the proposed Jira organization for approval. For each proposed ticket, include the acceptance criteria as a markdown checklist exactly as they will appear in the Jira ticket:
 
 | Portion | Proposed Jira | Type | Parent | Rationale |
 |---------|--------------|------|--------|-----------|
@@ -194,11 +200,14 @@ Wait for the user to decide before proceeding.
 
 Present every ticket's acceptance criteria in this checklist format so the user can review them in context before any Jira writes. These same checklists are written verbatim into `05-jira-plan.md` and into the Jira acceptance criteria field when tickets are created.
 
+**Standalone Jira-preview requirement:** When a Jira preview refers to a DAC decision, include the decision ID, a brief plain-language summary of what was decided, and its implementation effect in that preview. Do not rely on a reader having access to `03-decisions.md` or conversation history. Example: `DEC-003 — Use additive schema migration; deploy the schema before API changes.`
+
 **Jira child issue requirements (when creating):**
 - **Always create child issues as Stories** (never subtasks) for better tracking
-- **Copy parent labels** to all child issues
-- **Copy parent team field** to all child issues
-- Link children to parent with "Created By" relationship
+- Treat the issue being split as the **split-from issue**.
+- Copy the split-from issue's native **Parent** field to every new Story. This usually places the new Stories under the same upstream Epic; never set the split-from issue itself as their native parent.
+- Copy the split-from issue's **labels** and **team** fields to every new Story.
+- Link each new Story back to the split-from issue with the **Created By** relationship.
 
 **Additional questions to resolve:**
 - Should we reuse existing issues or create new ones?
@@ -209,22 +218,27 @@ After Jira allocation strategy and specific actions are approved, produce:
 
 - `05-jira-plan.md` for the proposed parent, child issues, links, ownership, exact remote actions, and acceptance criteria field discovery.
 - `06-integration-plan.md` for branches or worktrees, PR bases, merge order, compatibility states, rollout, and rollback.
-**Branching strategy — parallel by default:**
-Every portion branches independently from the target branch (usually `main`). Dependencies govern **merge order**, not branch parentage. Never stack a portion branch on a sibling's PR branch unless there is a verified compile-time dependency between them (one portion's code imports or references the other's new symbols and will not build without them).
-- **Test the assumption:** before stacking, confirm the downstream portion actually fails to build on `main` alone. SQL stored procedures, configuration, and runtime contracts are deployment-order dependencies, not code dependencies — they do not justify stacking.
-- **Merge gates, not branch gates:** record which portions must merge first in the integration plan table. The PR can be opened and reviewed in parallel; only the merge is sequenced.
-- **Worktrees are optional:** use them for editing convenience when working on multiple portions simultaneously, not for code isolation. Since all branches are independent, `git stash` / `git checkout` is sufficient for single-directory workflows.
-- **Always commit before switching:** never leave portion work as uncommitted changes in a worktree. Uncommitted work is lost if the worktree branch is switched or the worktree is removed.
+**Branching strategy — master integration branch when child Stories are created:**
+When DAC splits a master Jira issue into child Stories, create the master integration branch from `main`. Create every child portion branch from that master branch; open each child PR back to the master branch; then open one master PR from the master branch to `main` after the intended child PRs have merged. Record the exact branch names and PR bases in `06-integration-plan.md` before implementation.
+
+```text
+main -> master integration branch -> child portion branches
+main <- master PR                 <- child PRs
+```
+
+- Never branch a child portion from a sibling portion branch. Dependencies govern child-PR merge order within the master branch.
+- Merge the updated master branch into an active child branch when it needs the newly integrated child work; do not rebase published child branches.
+- For work with no child Stories, use one branch from `main` and one PR back to `main`.
+- **Worktrees are optional:** use them for editing convenience when working on multiple portions simultaneously, not for code isolation. For a single checkout, use the tracked DAC switch workflow rather than direct `git stash` / `git checkout`.
+- **Never switch away from uncommitted work directly:** commit it, or use `/dac switch` after C3 approval so DAC creates and records a named stash. Never remove a worktree with uncommitted work.
 
 Content approval does not authorize Jira or GitHub writes. Require R4 approval, execute only the approved payload, then read back and record the actual result.
 
 **When creating Jira issues:**
 - Always create child issues as **Story** type (never subtasks)
-- Copy **labels** from parent to all children
-- Copy **team field** from parent to all children
-- Link children to parent with "is part of" relationship type
+- Copy the split-from issue's native **Parent**, **labels**, and **team** fields to every Story.
+- Link each Story to the split-from issue with the **Created By** relationship. Do not use an `is part of` link and do not make the split-from issue the Story's native parent.
 - Include acceptance criteria in the dedicated custom field (NOT in description)
-- Copy the **parent** from the parent issue to the child issues
 - See [references/jira-integration.md](references/jira-integration.md) for field discovery, ADF format, and common mistakes
 
 ### 4. Materialize portion envelopes
@@ -233,7 +247,7 @@ Create a portion only after the partition is approved:
 
 ```bash
 python <skill-dir>/scripts/dac.py portion create \
-  --workspace .dac/ABC-123 \
+  --workspace .dac/PD-123456 \
   --id P-001 \
   --title "Add compatibility contract" \
   --executor speckit \
@@ -243,7 +257,7 @@ python <skill-dir>/scripts/dac.py portion create \
 Use `--depends-on P-001,P-002` when needed. Approve the completed envelope as content before routing it. A portion becomes planning-ready only when its envelope is approved and every dependency is `integrated` or `complete`:
 
 ```bash
-python <skill-dir>/scripts/dac.py ready --workspace .dac/ABC-123
+python <skill-dir>/scripts/dac.py ready --workspace .dac/PD-123456
 ```
 
 Read [references/executor-routing.md](references/executor-routing.md) before dispatching a portion.
@@ -270,7 +284,7 @@ For another skill, treat the envelope as the prompt contract. Let the target ski
 
 Every executor must return the same minimum result:
 
-- outcome: completed, blocked, failed, or superseded
+- outcome: completed, blocked, or superseded. Record a failed execution attempt as `blocked`, with its cause, retry condition, and required escalation.
 - artifact, branch, commit, and PR references when applicable
 - files or systems changed
 - acceptance criteria and test evidence
@@ -300,10 +314,10 @@ Pause the affected portion when:
 Classify the discovery as local, parent-level, contract-changing, or new scope. Handle local discoveries inside the child. Route all others to the parent decision register, mark affected portions stale or blocked, and reapprove their envelopes before continuing.
 
 ## Branch sync
-Use the `sync` subcommand to check whether portion branches are up to date with the parent integration branch. This is useful after merging PRs into the parent, after rebasing, or when resuming work after time away.
+Use the `sync` subcommand to check whether child portion branches are up to date with the master integration branch. This is useful after merging child PRs into the master, after updating the master from `main`, or when resuming work after time away.
 ```bash
-python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123
-python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123 --parent-branch main
+python <skill-dir>/scripts/dac.py sync --workspace .dac/PD-123456
+python <skill-dir>/scripts/dac.py sync --workspace .dac/PD-123456 --parent-branch <master-integration-branch>
 ```
 The sync report shows each portion's branch status:
 - **Behind** — commits on the parent not yet in the portion branch (needs merge)
@@ -312,18 +326,41 @@ The sync report shows each portion's branch status:
 - **Action** — `MERGE PARENT` if the portion branch is behind, `PUSH` if unpushed
 Branch discovery is automatic: the helper matches portion Jira ticket numbers to local branch names. You can also add a `branch` field to portion frontmatter for explicit mapping.
 Sync is read-only (R0). To act on suggestions, ask `/dac` to merge the parent into portion branches (requires C3 approval) and push (requires R4 approval).
-## Helper boundaries
 
-The bundled helper manages Markdown under one `.dac` workspace. It can initialize, validate, record approvals and decisions, create portions and results, derive readiness, record permitted state transitions, and report git sync status of portion branches. Except for the `sync` subcommand (which invokes `git` read-only), it never invokes Jira, Spec Kit, another skill, Git, tests, builds, deployment, or network tools.
+## Tracked branch switching
+
+`/dac switch` provides a safe context switch in a single checkout. The coordinator must obtain C3 approval before any switch that changes the active branch or creates/restores a stash. Running it without a target is R0 and lists choices; an asterisk marks a target with DAC-recorded stashed work.
+
+Before first use, record the branch names approved in `06-integration-plan.md` and configure the helper under W1:
 
 ```bash
-python <skill-dir>/scripts/dac.py status --workspace .dac/ABC-123
-python <skill-dir>/scripts/dac.py validate --workspace .dac/ABC-123
-python <skill-dir>/scripts/dac.py approve --workspace .dac/ABC-123 --artifact 01-mission.md --by "Name" --scope "Mission and success criteria"
-python <skill-dir>/scripts/dac.py decision --workspace .dac/ABC-123 --id DEC-001 --question "Question" --outcome "Decision" --by "Name"
-python <skill-dir>/scripts/dac.py transition --workspace .dac/ABC-123 --portion P-001 --to executing
-python <skill-dir>/scripts/dac.py result create --workspace .dac/ABC-123 --portion P-001
-python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 configure \
+  --master-branch <master-integration-branch> --target-branch main
+```
+
+After C3 approval, use:
+
+```bash
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456       # list A, B, C..., and main
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 A     # first listed target
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 B     # second listed target
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 main  # main
+```
+
+If the current checkout is dirty, the helper creates an include-untracked named stash, records its marker in `00-control.md`, then switches. When returning to a target with DAC-recorded WIP, it applies and drops that exact named stash. If restoration conflicts, it retains the stash, records `restore_conflict`, and stops without resolving the conflict. Do not use direct Git stash/switch commands for DAC-managed context switching.
+## Helper boundaries
+
+The bundled helper manages Markdown under one `.dac` workspace. It can initialize, validate, record approvals and decisions, create portions and results, derive readiness, record permitted state transitions, and report git sync status of portion branches. Except for `sync` (Git read-only) and `switch` (a C3-gated tracked branch/stash operation), it never invokes Jira, Spec Kit, another skill, Git, tests, builds, deployment, or network tools.
+
+```bash
+python <skill-dir>/scripts/dac.py status --workspace .dac/PD-123456
+python <skill-dir>/scripts/dac.py validate --workspace .dac/PD-123456
+python <skill-dir>/scripts/dac.py approve --workspace .dac/PD-123456 --artifact 01-mission.md --by "Name" --scope "Mission and success criteria"
+python <skill-dir>/scripts/dac.py decision --workspace .dac/PD-123456 --id DEC-001 --question "Question" --outcome "Decision" --by "Name"
+python <skill-dir>/scripts/dac.py transition --workspace .dac/PD-123456 --portion P-001 --to executing
+python <skill-dir>/scripts/dac.py result create --workspace .dac/PD-123456 --portion P-001
+python <skill-dir>/scripts/dac.py sync --workspace .dac/PD-123456
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456
 ```
 
 ## Completion response
@@ -339,7 +376,7 @@ Use the shared evidence link conventions from `artifact-contract.md` for Jira ti
 
 ## Solo Ticket Management
 
-DAC can manage individual tickets that aren't part of a larger parent-child coordination structure. Solo tickets live alongside portions in the `.dac/<workstream>/` workspace and benefit from DAC's acceptance criteria discipline, branch management, and progress tracking.
+DAC can manage individual tickets that are outside the current workstream's Jira scope. Solo tickets live alongside portions in the `.dac/<workstream>/` workspace and use local IDs `S-001`, `S-002`, etc.; their real Jira key, Jira parent, team, labels, and base branch remain independent of the master workstream.
 
 ### When to use solo tickets
 
@@ -354,10 +391,10 @@ DAC can manage individual tickets that aren't part of a larger parent-child coor
 ```
 .dac/<workstream>/
   solo/
-    ABC-456.md          # Solo ticket envelope
-    ABC-789.md
+    S-001.md             # Solo ticket envelope; stores its separate Jira key
+    S-002.md
   results/
-    ABC-456-result.md   # Solo ticket results
+    S-001-result.md     # Solo ticket results
 ```
 
 ### Solo commands
@@ -366,17 +403,17 @@ DAC can manage individual tickets that aren't part of a larger parent-child coor
 
 ```bash
 python <skill-dir>/scripts/dac.py solo adopt \
-  --workspace .dac/ABC-123 \
-  --ticket-id ABC-456 \
+  --workspace .dac/PD-123456 \
+  --ticket-id PD-123457 \
   --title "Fix authentication bug" \
   --outcome "Users can log in reliably" \
   --ac "- [ ] Login succeeds for valid credentials\n- [ ] Error message for invalid credentials" \
   --executor direct \
-  --jira-url "https://jira.example.com/browse/ABC-456" \
-  --branch "feature/ABC-456-auth-fix"
+  --jira-url "https://jira.example.com/browse/PD-123457" \
+  --branch "feature/PD-123457-auth-fix"
 ```
 
-This creates a solo envelope at `.dac/ABC-123/solo/ABC-456.md` with:
+This creates a solo envelope such as `.dac/PD-123456/solo/S-001.md` with:
 - Work scope and acceptance criteria
 - Branch tracking
 - Status: `adopted`
@@ -386,8 +423,8 @@ This creates a solo envelope at `.dac/ABC-123/solo/ABC-456.md` with:
 
 ```bash
 python <skill-dir>/scripts/dac.py solo create \
-  --workspace .dac/ABC-123 \
-  --ticket-id ABC-789 \
+  --workspace .dac/PD-123456 \
+  --ticket-id PD-123458 \
   --title "Add request logging" \
   --outcome "All API requests are logged" \
   --executor direct \
@@ -399,17 +436,17 @@ python <skill-dir>/scripts/dac.py solo create \
 #### Check solo ticket status
 
 ```bash
-python <skill-dir>/scripts/dac.py solo status --workspace .dac/ABC-123
+python <skill-dir>/scripts/dac.py solo status --workspace .dac/PD-123456
 ```
 
 Shows all solo tickets with their status, branch, executor, and last update.
 
-#### Transition solo ticket state
+#### Transition and record a solo ticket
 
 ```bash
 python <skill-dir>/scripts/dac.py solo transition \
-  --workspace .dac/ABC-123 \
-  --ticket-id ABC-456 \
+  --workspace .dac/PD-123456 \
+  --solo S-001 \
   --to executing \
   --by "Developer Name" \
   --reason "Starting implementation"
@@ -423,15 +460,21 @@ Valid transitions:
 - `pr_open` → `blocked`, `integrated`, `superseded`
 - `integrated` → `complete`
 
+Create its normalized result with:
+
+```bash
+python <skill-dir>/scripts/dac.py solo result --workspace .dac/PD-123456 --solo S-001
+```
+
 #### Branch sync for solo tickets
 
 The `sync` command includes solo tickets:
 
 ```bash
-python <skill-dir>/scripts/dac.py sync --workspace .dac/ABC-123
+python <skill-dir>/scripts/dac.py sync --workspace .dac/PD-123456
 ```
 
-Output shows both portions (P:) and solo tickets (S:):
+Output shows both portions (P:) and solo tickets (S:). Solo rows compare to the solo ticket's own base branch, not the master integration branch:
 ```
 Legend: P:portion S:solo
 
@@ -442,12 +485,12 @@ S:ABC-456    executing   feature/ABC-456-auth  2       1      in sync     MERGE 
 
 ### Solo ticket workflow
 
-1. **Adopt or create** - Bring ticket under DAC management
+1. **Adopt or create** - Bring the external ticket into DAC as the next `S-###`; retain its independent Jira parent, team, labels, and base branch
 2. **Review envelope** - Ensure acceptance criteria, scope, test obligations clear
 3. **Create branch** - Follow branch naming from envelope
 4. **Execute** - Implement with authority model (W1, C3, V2, R4)
 5. **Track progress** - Use `transition` to update status
-6. **Sync branch** - Keep up to date with parent branch
+6. **Sync branch** - Keep up to date with that solo ticket's configured base branch
 7. **Record result** - Create result artifact on completion
 
 ### Promoting solo tickets to portions

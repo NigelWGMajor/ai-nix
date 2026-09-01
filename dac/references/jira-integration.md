@@ -46,10 +46,15 @@ Use the description field for:
 - Feature works this way
 - Handles edge cases like this
 
+**Decisions applied:**
+- DEC-003 — Brief decision summary and implementation effect
+
 **Depends on:** ABC-123 (dependency description)
 
 **See:** `.dac/PROJECT-123/portions/P-001.md` for full envelope
 ```
+
+When previewing or creating a Jira issue that is governed by DAC decisions, include a `**Decisions applied:**` section. Each item must name the decision ID, summarize it in plain language, and state its effect on the ticket. The Jira description must remain understandable without access to private `.dac/` files or conversation history.
 
 ### Acceptance Criteria Field
 
@@ -141,13 +146,27 @@ The acceptance criteria field uses ADF (Atlassian Document Format) with task lis
 
 ## Workflow Integration
 
+### Child Story inheritance and traceability
+
+For a DAC portion created by splitting an existing Jira issue, call that existing issue the **split-from issue**. Create the portion as a Story and:
+
+1. Copy the split-from issue's native **Parent** field to the new Story. The inherited parent is normally an upstream Epic.
+2. Copy the split-from issue's **team** and **labels** fields.
+3. Add a **Created By** relationship from the new Story to the split-from issue.
+
+Do not set the split-from issue as the new Story's native parent, and do not substitute an `is part of` link for the required `Created By` traceability link.
+
 ### Jira Allocation Decision (before creating portion envelopes)
 
-After the portion plan is approved, **always pause** to let the user decide the Jira allocation strategy. Present enough context (portion count, scope, dependencies, existing children) for the user to choose:
+After the portion plan is approved, **always pause** to let the user decide the Jira allocation strategy. Preview may persist a non-binding allocation review in `05-jira-plan.md` for asynchronous review; it must be shown again on resumption before confirmation. Regenerate it only when the user requests a new split/grouping or material evidence changes a boundary.
 
-- **No new tickets** — work tracked under the parent only
-- **One ticket per partition** — a child Story per portion
-- **Custom mapping** — user-specified grouping or reuse of existing tickets
+Start with one Story per portion. Keep SQL, FE, and BE portions separate because their review pipelines differ. Split large portions at natural outcome, contract, or independently testable change boundaries before proposing a grouping. Use this exact table:
+
+| Portion | Proposed Jira Issue | Type | Master | Dependencies | Status | Description | Suggested Grouping |
+|---------|---------------------|------|--------|--------------|--------|-------------|--------------------|
+| P-001 | New Story | Story | PD-123456 | - | proposed | Brief standalone boundary | A — optional same-discipline grouping |
+
+The same letter in `Suggested Grouping` denotes one optional, same-discipline Jira Story. The reviewer can use portions, accept named grouping letters, request further splits, or choose parent-only tracking.
 
 **Never create Jira issues without explicit user permission.** The coordinator must present the allocation options, wait for the user's decision, and then get approval for the specific actions before any R4 mutation.
 

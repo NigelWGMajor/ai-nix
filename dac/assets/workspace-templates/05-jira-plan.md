@@ -10,22 +10,25 @@ inputs: 01-mission.md,03-decisions.md,04-portion-plan.md
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# Jira Visibility Plan
+# {{WORKSTREAM_ID}} — Jira Visibility Plan
 
 ## Allocation strategy
 
-<!-- Record the user's chosen strategy: none | per-partition | custom -->
+<!-- Preview may record a non-binding review. Final strategy: none | per-portion | suggested-grouping | custom -->
 **Strategy:** To determine
 **Rationale:** To determine
 
-<!-- If strategy is "none", the hierarchy table below may contain only the parent.
-     If "per-partition" or "custom", list each portion's Jira mapping. -->
+**Review state:** not_started / proposed / awaiting_confirmation / confirmed
+
+<!-- In preview, persist the proposed table and reuse it on resumption. Regenerate only after a
+     user-requested repartition/grouping change or material evidence drift. SQL, FE, and BE must
+     remain separate; lettered Suggested Grouping values may join only same-discipline portions. -->
 
 ## 🔗 Hierarchy
 
-| Portion | Proposed issue | Type | Parent | Owner | Dependencies | Status |
-|---|---|---|---|---|---|---|
-| P-001 | To determine | Story/Task/Spike | {{WORKSTREAM_ID}} | - | - | proposed |
+| Portion | Proposed Jira Issue | Type | Master | Dependencies | Status | Description | Suggested Grouping |
+|---|---|---|---|---|---|---|---|
+| P-001 | New Story | Story | {{WORKSTREAM_ID}} | - | proposed | To determine | — |
 
 ## 🎬 Proposed remote actions
 

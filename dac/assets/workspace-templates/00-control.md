@@ -1,6 +1,8 @@
 ---
 artifact: control
 workstream: {{WORKSTREAM_ID}}
+master_branch: -
+target_branch: main
 stage: control
 status: drafting
 last_updated: {{NOW}}
@@ -70,3 +72,9 @@ See `03-decisions.md`.
 | Timestamp | Change | Evidence |
 |---|---|---|
 | {{NOW}} | Workspace initialized | DAC helper |
+
+## Branch switch registry
+
+| Timestamp | Source | Target | Stash marker | State | Notes |
+|---|---|---|---|---|---|
+<!-- SWITCH_LOG -->

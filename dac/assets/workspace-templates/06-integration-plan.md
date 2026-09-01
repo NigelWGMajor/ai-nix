@@ -10,14 +10,18 @@ inputs: 03-decisions.md,04-portion-plan.md,05-jira-plan.md
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# PR and Integration Plan
+# {{WORKSTREAM_ID}} — PR and Integration Plan
 
 ## 💭 Strategy
 
+- Plan classification: full / trivial
 - Target branch:
 - Contract-first ordering:
 - Worktree or branch isolation:
 - Compatibility window:
+
+<!-- For a parent-only Jira strategy, use a trivial plan: one branch from main, one PR to main,
+     parent-ticket traceability, required validation, and rollout/rollback. Do not omit this artifact. -->
 
 ## 🔗 Portion integration
 

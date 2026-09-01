@@ -145,6 +145,22 @@ This reports behind/ahead counts, remote push status, and suggests merge or push
 - Resuming work after time away
 The report is read-only. To act on its suggestions, ask `/dac` to merge and push (C3/R4 approval required).
 
+### Safe DAC Branch Switching
+
+Use `/dac switch` when you need to change between the master branch, portions, DAC-managed solo tickets, or `main` while preserving in-progress work. First run `/dac switch` with no target to list the available choices. The leading `A`, `B`, `C` selector is the unambiguous switch key; an asterisk means DAC has recorded stashed work for that target.
+
+DAC must have C3 approval before it performs a switch. If the current branch has uncommitted work, DAC creates an include-untracked named stash, records it in `00-control.md`, switches, and restores the target branch's recorded stash when safe. A restore conflict leaves the stash intact and stops for user resolution. Do not use raw `git stash` or `git switch` for DAC-managed context switches.
+
+Before the first switch, DAC records the approved master and target branches from `06-integration-plan.md`:
+
+```bash
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 configure \
+  --master-branch <master-integration-branch> --target-branch main
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 A
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 main
+```
+
 ### Preview Mode
 
 Run `/dac preview ABC-123` to plan without side effects. Preview mode:

@@ -55,6 +55,10 @@ Allowed statuses are `not_started`, `drafting`, `proposed`, `approved`, `executi
 
 Never recycle a portion or decision ID. Use `P-001`, `P-002`, and `DEC-001`. If scope changes materially, supersede the old item and create a new one. Allocate Jira keys, Spec Kit directories, branch names, and PR identifiers centrally before concurrent execution.
 
+## Title-line identity
+
+Every generated DAC artifact must start its first Markdown title line with the parent Jira ticket, for example `# PD-123456 — Evidence and Current Behavior`. This includes parent artifacts, portion envelopes, results, solo-ticket envelopes and results, and integration reviews. The parent key is the workspace workstream value; never substitute a child Jira ticket for it.
+
 ## Sources of truth
 
 | Concern | Authority |

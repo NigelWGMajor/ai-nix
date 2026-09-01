@@ -79,6 +79,7 @@ PORTION_TRANSITIONS = {
 EXECUTOR_PATTERN = re.compile(
     r"(?:speckit|direct|discovery|human|skill:[a-z0-9][a-z0-9-]{0,62})"
 )
+PD_WORKSTREAM_PATTERN = re.compile(r"PD-\d{6}", re.IGNORECASE)
 
 
 def now_iso() -> str:
@@ -97,6 +98,16 @@ def validate_identifier(value: str, label: str) -> str:
             f"underscores, or hyphens; received {value!r}."
         )
     return normalized
+
+
+def validate_workstream(value: str, allow_non_pd: bool) -> str:
+    workstream = validate_identifier(value, "Workstream")
+    if not allow_non_pd and not PD_WORKSTREAM_PATTERN.fullmatch(workstream):
+        raise ValueError(
+            "Workstream must use the normal parent-ticket form PD-######. "
+            "Use --allow-non-pd only when the user explicitly supplied another key."
+        )
+    return workstream
 
 
 def validate_executor(value: str) -> str:
@@ -153,6 +164,15 @@ def append_before_marker(text: str, marker: str, row: str) -> str:
     if marker not in text:
         raise ValueError(f"Required marker {marker!r} was not found.")
     return text.replace(marker, f"{row}\n{marker}", 1)
+
+
+def title_line(text: str) -> str:
+    """Return the first Markdown H1 outside YAML frontmatter."""
+    _, end = frontmatter_bounds(text)
+    for line in text.splitlines()[end + 1 :]:
+        if line.startswith("# "):
+            return line
+    return ""
 
 
 def ensure_workspace(path: Path) -> Path:
@@ -238,7 +258,7 @@ def portion_records(workspace: Path) -> Dict[str, Tuple[Path, Dict[str, str]]]:
 
 
 def solo_records(workspace: Path) -> Dict[str, Tuple[Path, Dict[str, str]]]:
-    """Return solo ticket records keyed by ticket_id."""
+    """Return solo records keyed by local S-### identity."""
     records: Dict[str, Tuple[Path, Dict[str, str]]] = {}
     solo_dir = workspace / "solo"
     if not solo_dir.exists():
@@ -247,10 +267,30 @@ def solo_records(workspace: Path) -> Dict[str, Tuple[Path, Dict[str, str]]]:
         if path.name.endswith("-template.md"):
             continue
         data = parse_frontmatter(path.read_text(encoding="utf-8"))
-        ticket_id = data.get("ticket_id", "")
-        if ticket_id:
-            records[ticket_id] = (path, data)
+        solo_id = data.get("solo_id", "") or path.stem
+        if solo_id:
+            records[solo_id] = (path, data)
     return records
+
+
+def next_solo_id(workspace: Path) -> str:
+    numbers = []
+    for solo_id in solo_records(workspace):
+        match = re.fullmatch(r"S-(\d+)", solo_id, re.IGNORECASE)
+        if match:
+            numbers.append(int(match.group(1)))
+    return f"S-{max(numbers, default=0) + 1:03d}"
+
+
+def resolve_solo(workspace: Path, reference: str) -> Tuple[str, Path, Dict[str, str]]:
+    records = solo_records(workspace)
+    if reference in records:
+        path, data = records[reference]
+        return reference, path, data
+    for solo_id, (path, data) in records.items():
+        if data.get("ticket_id") == reference:
+            return solo_id, path, data
+    raise ValueError(f"No solo ticket matches {reference!r}.")
 
 
 def readiness(
@@ -318,7 +358,7 @@ def artifact_rows(workspace: Path) -> Iterable[Tuple[str, str, str, str]]:
 
 
 def command_init(args: argparse.Namespace) -> int:
-    workstream = validate_identifier(args.workstream, "Workstream")
+    workstream = validate_workstream(args.workstream, args.allow_non_pd)
     repo_root = Path(args.repo_root).expanduser().resolve()
     if not repo_root.is_dir():
         raise ValueError(f"Repository root is not a directory: {repo_root}")
@@ -397,7 +437,15 @@ def command_validate(args: argparse.Namespace) -> int:
         for key in ("artifact", "workstream", "stage", "status", "last_updated", "inputs"):
             if not data.get(key):
                 errors.append(f"Missing frontmatter key {key!r} in {relative}")
-        if data.get("status") not in ALLOWED_STATUSES:
+        artifact = data.get("artifact")
+        permitted_statuses = (
+            SOLO_STATUSES
+            if artifact == "solo"
+            else {"recorded"}
+            if artifact == "solo-result"
+            else ALLOWED_STATUSES
+        )
+        if data.get("status") not in permitted_statuses:
             errors.append(f"Invalid status {data.get('status')!r} in {relative}")
         if relative == "00-control.md":
             expected_workstream = data.get("workstream", "")
@@ -406,6 +454,18 @@ def command_validate(args: argparse.Namespace) -> int:
                 f"Workstream mismatch in {relative}: {data.get('workstream')!r} "
                 f"!= {expected_workstream!r}"
             )
+
+    if expected_workstream:
+        for path in sorted(workspace.rglob("*.md")):
+            if path.name.endswith("-template.md"):
+                continue
+            relative = path.relative_to(workspace)
+            heading = title_line(path.read_text(encoding="utf-8"))
+            if not heading.startswith(f"# {expected_workstream}"):
+                errors.append(
+                    f"Title line in {relative} must start with parent Jira ticket "
+                    f"{expected_workstream!r}."
+                )
 
     for directory in (workspace / "portions", workspace / "results", workspace / "reviews"):
         if not directory.is_dir():
@@ -444,6 +504,11 @@ def command_validate(args: argparse.Namespace) -> int:
         try:
             data = parse_frontmatter(path.read_text(encoding="utf-8"))
         except ValueError:
+            continue
+        if data.get("artifact") == "solo-result":
+            solo_id = data.get("solo_id", "")
+            if solo_id not in solo_records(workspace):
+                errors.append(f"Result {path.name} refers to missing solo {solo_id!r}")
             continue
         portion_id = data.get("portion_id", "")
         if portion_id not in records:
@@ -656,35 +721,254 @@ def command_result_create(args: argparse.Namespace) -> int:
     update_control_timestamp(workspace, values["NOW"])
     print(destination)
     return 0
-def _git(*cmd: str) -> Tuple[int, str]:
+
+
+def command_solo_result_create(args: argparse.Namespace) -> int:
+    workspace = ensure_workspace(Path(args.workspace))
+    solo_id, _, solo_data = resolve_solo(workspace, args.solo)
+    destination = safe_member(workspace, f"results/{solo_id}-result.md", must_exist=False)
+    if destination.exists():
+        raise ValueError(f"Result already exists: {destination}")
+    template = Path(__file__).resolve().parent.parent / "assets" / "workspace-templates" / "results" / "solo-result-template.md"
+    if not template.is_file():
+        raise ValueError(f"Solo result template is missing: {template}")
+    control_data = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
+    values = {
+        "WORKSTREAM_ID": control_data.get("workstream", ""),
+        "SOLO_ID": solo_id,
+        "TICKET_ID": solo_data.get("ticket_id", ""),
+        "EXECUTOR": solo_data.get("executor", "unknown"),
+        "NOW": now_iso(),
+    }
+    content = template.read_text(encoding="utf-8")
+    for token, value in values.items():
+        content = content.replace("{{" + token + "}}", value)
+    destination.write_text(content, encoding="utf-8")
+    update_control_timestamp(workspace, values["NOW"])
+    print(destination)
+    return 0
+def _git(*cmd: str, cwd: Path | None = None) -> Tuple[int, str]:
     result = subprocess.run(
-        ["git"] + list(cmd), capture_output=True, text=True
+        ["git"] + list(cmd), capture_output=True, text=True,
+        cwd=str(cwd) if cwd else None,
     )
-    return result.returncode, result.stdout.strip()
-def _discover_branch(jira: str) -> str:
+    return result.returncode, (result.stdout or result.stderr).strip()
+
+
+def _discover_branch(jira: str, cwd: Path | None = None) -> str:
     if not jira:
         return ""
     ticket_match = re.search(r"[A-Za-z]+-(\d+)", jira)
     if not ticket_match:
         return ""
     ticket_num = ticket_match.group(1)
-    rc, out = _git("branch", "--list", f"*{ticket_num}*")
+    rc, out = _git("branch", "--list", f"*{ticket_num}*", cwd=cwd)
     if rc != 0 or not out:
         return ""
     candidates = [b.strip().lstrip("* +") for b in out.splitlines() if b.strip()]
     if len(candidates) == 1:
         return candidates[0]
     return ""
+
+
+def workspace_repo_root(workspace: Path) -> Path:
+    candidate = workspace.parent.parent
+    rc, root = _git("rev-parse", "--show-toplevel", cwd=candidate)
+    if rc != 0:
+        raise ValueError(f"DAC workspace is not under a Git repository: {workspace}")
+    return Path(root).resolve()
+
+
+def ensure_switch_log(text: str) -> str:
+    marker = "<!-- SWITCH_LOG -->"
+    if marker in text:
+        return text
+    suffix = "" if text.endswith("\n") else "\n"
+    return (
+        text
+        + suffix
+        + "\n## Branch switch registry\n\n"
+        + "| Timestamp | Source | Target | Stash marker | State | Notes |\n"
+        + "|---|---|---|---|---|---|\n"
+        + marker
+        + "\n"
+    )
+
+
+def log_switch(
+    workspace: Path,
+    timestamp: str,
+    source: str,
+    target: str,
+    marker: str,
+    state: str,
+    notes: str,
+) -> None:
+    path = workspace / "00-control.md"
+    text = ensure_switch_log(path.read_text(encoding="utf-8"))
+    row = "| {timestamp} | {source} | {target} | {marker} | {state} | {notes} |".format(
+        timestamp=escape_cell(timestamp),
+        source=escape_cell(source),
+        target=escape_cell(target),
+        marker=escape_cell(marker or "-"),
+        state=escape_cell(state),
+        notes=escape_cell(notes or "-"),
+    )
+    text = update_frontmatter(text, {"last_updated": timestamp})
+    path.write_text(append_before_marker(text, "<!-- SWITCH_LOG -->", row), encoding="utf-8")
+
+
+def latest_stash_markers(control_text: str) -> Dict[str, Tuple[str, str]]:
+    """Return the latest recorded stash marker and state for each source branch."""
+    states: Dict[str, Tuple[str, str]] = {}
+    for line in control_text.splitlines():
+        if not line.startswith("|") or "---" in line:
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 6 or not cells[3].startswith("dac:"):
+            continue
+        states[cells[1]] = (cells[3], cells[4])
+    return states
+
+
+def named_stash_ref(marker: str, repo_root: Path) -> str:
+    rc, output = _git("stash", "list", "--format=%gd%x09%s", cwd=repo_root)
+    if rc != 0:
+        return ""
+    for line in output.splitlines():
+        ref, separator, subject = line.partition("\t")
+        if separator and marker in subject:
+            return ref
+    return ""
+
+
+def branch_switch_options(workspace: Path, repo_root: Path) -> Tuple[Dict[str, str], Dict[str, str]]:
+    control = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
+    master = control.get("master_branch", "").strip()
+    target_branch = control.get("target_branch", "main").strip() or "main"
+    entries: List[Tuple[str, str]] = []
+    if master and master != "-":
+        entries.append(("master", master))
+    for portion_id, (_, data) in sorted(portion_records(workspace).items()):
+        branch = data.get("branch", "").strip()
+        if not branch or branch == "-":
+            branch = _discover_branch(data.get("jira", ""), cwd=repo_root)
+        if branch:
+            entries.append((portion_id, branch))
+    for solo_id, (_, data) in sorted(solo_records(workspace).items()):
+        branch = data.get("branch", "").strip()
+        if branch and branch != "-":
+            entries.append((f"{solo_id} ({data.get('ticket_id', '-')})", branch))
+    entries.append(("main", target_branch))
+    options: Dict[str, str] = {}
+    labels: Dict[str, str] = {}
+    for index, (label, branch) in enumerate(entries):
+        selector = chr(ord("A") + index)
+        options[selector] = branch
+        labels[selector] = label
+    options["main"] = target_branch
+    return options, labels
+
+
+def command_switch(args: argparse.Namespace) -> int:
+    workspace = ensure_workspace(Path(args.workspace))
+    repo_root = workspace_repo_root(workspace)
+    control_path = workspace / "00-control.md"
+    control_text = control_path.read_text(encoding="utf-8")
+
+    if args.target == "configure":
+        if not args.master_branch:
+            raise ValueError("Switch configuration requires --master-branch.")
+        rc, _ = _git("rev-parse", "--verify", args.master_branch, cwd=repo_root)
+        if rc != 0:
+            raise ValueError(f"Master branch not found: {args.master_branch}")
+        target_branch = args.target_branch or "main"
+        rc, _ = _git("rev-parse", "--verify", target_branch, cwd=repo_root)
+        if rc != 0:
+            raise ValueError(f"Target branch not found: {target_branch}")
+        timestamp = now_iso()
+        updated = update_frontmatter(
+            control_text,
+            {"master_branch": args.master_branch, "target_branch": target_branch, "last_updated": timestamp},
+        )
+        control_path.write_text(updated, encoding="utf-8")
+        print(f"Configured master branch {args.master_branch} and target branch {target_branch}.")
+        return 0
+
+    options, labels = branch_switch_options(workspace, repo_root)
+    stash_states = latest_stash_markers(control_text)
+    if not args.target:
+        rc, current = _git("branch", "--show-current", cwd=repo_root)
+        if rc != 0:
+            raise ValueError("Could not determine current branch.")
+        print(f"Current branch: {current}")
+        print("Available DAC switches:")
+        print("  Key  Item                         Branch")
+        for key in sorted(labels):
+            branch = options[key]
+            marker, state = stash_states.get(branch, ("", ""))
+            wip = " * stashed WIP" if marker and state == "stashed" else ""
+            print(f"  {key:<4} {labels[key]:<28} {branch}{wip}")
+        print("Use a letter selector (for example `switch B`) or `switch main`.")
+        return 0
+
+    selector = "main" if args.target.lower() == "main" else args.target.upper()
+    if selector not in options:
+        raise ValueError(f"Unknown switch target {args.target!r}. Run switch with no target to list options.")
+    target_branch = options[selector]
+    rc, current_branch = _git("branch", "--show-current", cwd=repo_root)
+    if rc != 0 or not current_branch:
+        raise ValueError("Could not determine current branch.")
+    if current_branch == target_branch:
+        print(f"Already on {target_branch}.")
+        return 0
+
+    rc, status = _git("status", "--porcelain", "--untracked-files=all", cwd=repo_root)
+    if rc != 0:
+        raise ValueError("Could not inspect working-tree status.")
+    timestamp = now_iso()
+    if status:
+        workstream = parse_frontmatter(control_text).get("workstream", "dac")
+        marker = f"dac:{workstream}:{current_branch}:{timestamp}"
+        rc, output = _git("stash", "push", "--include-untracked", "-m", marker, cwd=repo_root)
+        if rc != 0:
+            raise ValueError(f"Could not stash work before switching: {output}")
+        if not named_stash_ref(marker, repo_root):
+            raise ValueError("Git reported a stash operation, but its named stash could not be found.")
+        log_switch(workspace, timestamp, current_branch, target_branch, marker, "stashed", "Automatic DAC switch stash")
+
+    rc, output = _git("switch", target_branch, cwd=repo_root)
+    if rc != 0:
+        raise ValueError(f"Could not switch to {target_branch}: {output}")
+
+    target_marker, target_state = stash_states.get(target_branch, ("", ""))
+    if target_marker and target_state == "stashed":
+        stash_ref = named_stash_ref(target_marker, repo_root)
+        if stash_ref:
+            rc, output = _git("stash", "apply", stash_ref, cwd=repo_root)
+            if rc != 0:
+                log_switch(workspace, now_iso(), target_branch, target_branch, target_marker, "restore_conflict", output)
+                raise ValueError(
+                    f"Switched to {target_branch}, but restoring its DAC stash conflicted. "
+                    f"The stash was retained as {stash_ref}."
+                )
+            rc, output = _git("stash", "drop", stash_ref, cwd=repo_root)
+            state = "restored" if rc == 0 else "applied_not_dropped"
+            log_switch(workspace, now_iso(), target_branch, target_branch, target_marker, state, output or "Automatic DAC switch restore")
+    print(f"Switched from {current_branch} to {target_branch}.")
+    if status:
+        print("Source WIP was stashed and recorded in 00-control.md.")
 def command_solo_adopt(args: argparse.Namespace) -> int:
     """Adopt an existing Jira ticket into solo management."""
     workspace = ensure_workspace(Path(args.workspace))
     ticket_id = validate_identifier(args.ticket_id, "Ticket ID")
+    solo_id = next_solo_id(workspace)
 
     # Ensure solo directory exists
     solo_dir = workspace / "solo"
     solo_dir.mkdir(exist_ok=True)
 
-    destination = safe_member(workspace, f"solo/{ticket_id}.md", must_exist=False)
+    destination = safe_member(workspace, f"solo/{solo_id}.md", must_exist=False)
     if destination.exists():
         raise ValueError(f"Solo ticket already exists: {ticket_id}")
 
@@ -704,6 +988,7 @@ def command_solo_adopt(args: argparse.Namespace) -> int:
 
     values = {
         "WORKSTREAM_ID": workstream,
+        "SOLO_ID": solo_id,
         "TICKET_ID": ticket_id,
         "TITLE": args.title.strip() or ticket_id,
         "OUTCOME": args.outcome.strip() if args.outcome else "To be defined",
@@ -724,7 +1009,7 @@ def command_solo_adopt(args: argparse.Namespace) -> int:
     update_control_timestamp(workspace, timestamp)
 
     print(destination)
-    print(f"Adopted solo ticket {ticket_id}")
+    print(f"Adopted solo ticket {ticket_id} as {solo_id}")
     print("Next steps:")
     print(f"1. Review and refine {destination.relative_to(workspace)}")
     print(f"2. Ensure Jira ticket has proper acceptance criteria")
@@ -743,12 +1028,13 @@ def command_solo_create(args: argparse.Namespace) -> int:
         return 1
 
     ticket_id = validate_identifier(ticket_id, "Ticket ID")
+    solo_id = next_solo_id(workspace)
 
     # Ensure solo directory exists
     solo_dir = workspace / "solo"
     solo_dir.mkdir(exist_ok=True)
 
-    destination = safe_member(workspace, f"solo/{ticket_id}.md", must_exist=False)
+    destination = safe_member(workspace, f"solo/{solo_id}.md", must_exist=False)
     if destination.exists():
         raise ValueError(f"Solo ticket already exists: {ticket_id}")
 
@@ -768,6 +1054,7 @@ def command_solo_create(args: argparse.Namespace) -> int:
 
     values = {
         "WORKSTREAM_ID": workstream,
+        "SOLO_ID": solo_id,
         "TICKET_ID": ticket_id,
         "TITLE": args.title.strip() or ticket_id,
         "OUTCOME": args.outcome.strip() if args.outcome else "To be defined",
@@ -788,7 +1075,7 @@ def command_solo_create(args: argparse.Namespace) -> int:
     update_control_timestamp(workspace, timestamp)
 
     print(destination)
-    print(f"Created solo ticket envelope for {ticket_id}")
+    print(f"Created solo ticket envelope for {ticket_id} as {solo_id}")
     print("Next steps:")
     print(f"1. Review and complete {destination.relative_to(workspace)}")
     print(f"2. Create branch: git checkout -b {branch_name}")
@@ -807,15 +1094,17 @@ def command_solo_status(args: argparse.Namespace) -> int:
     print(f"Solo tickets in {workspace.name}:")
     print()
 
-    headers = ("Ticket", "Status", "Branch", "Executor", "Last Updated")
+    headers = ("Solo", "Jira", "Status", "Base", "Branch", "Executor", "Last Updated")
     widths = [len(h) for h in headers]
 
     rows = []
-    for ticket_id in sorted(records):
-        _, data = records[ticket_id]
+    for solo_id in sorted(records):
+        _, data = records[solo_id]
         row = (
-            ticket_id,
+            solo_id,
+            data.get("ticket_id", "-"),
             data.get("status", "?"),
+            data.get("base_branch", "main"),
             data.get("branch", "-"),
             data.get("executor", "?"),
             data.get("last_updated", "?"),
@@ -835,8 +1124,7 @@ def command_solo_status(args: argparse.Namespace) -> int:
 def command_solo_transition(args: argparse.Namespace) -> int:
     """Record a state transition for a solo ticket."""
     workspace = ensure_workspace(Path(args.workspace))
-    ticket_id = validate_identifier(args.ticket_id, "Ticket ID")
-    path = safe_member(workspace, f"solo/{ticket_id}.md")
+    solo_id, path, _ = resolve_solo(workspace, args.solo)
     text = path.read_text(encoding="utf-8")
     data = parse_frontmatter(text)
     current = data.get("status", "")
@@ -859,7 +1147,7 @@ def command_solo_transition(args: argparse.Namespace) -> int:
     path.write_text(text, encoding="utf-8")
     update_control_timestamp(workspace, timestamp)
 
-    print(f"Transitioned {ticket_id}: {current} -> {target}")
+    print(f"Transitioned {solo_id}: {current} -> {target}")
     return 0
 
 
@@ -934,21 +1222,26 @@ def command_sync(args: argparse.Namespace) -> int:
         ))
 
     # Process solo tickets
-    for ticket_id in sorted(solo_recs):
-        _, data = solo_recs[ticket_id]
+    for solo_id in sorted(solo_recs):
+        _, data = solo_recs[solo_id]
         status = data.get("status", "?")
-        branch = data.get("branch", "") or _discover_branch(ticket_id)
+        branch = data.get("branch", "") or _discover_branch(data.get("ticket_id", ""))
+        solo_base = data.get("base_branch", "main") or "main"
         type_label = "S"
 
         if not branch:
-            rows.append((f"{type_label}:{ticket_id}", status, "(no branch)", "-", "-", "-", ""))
+            rows.append((f"{type_label}:{solo_id}", status, "(no branch)", "-", "-", "-", ""))
             continue
         rc, _ = _git("rev-parse", "--verify", branch)
         if rc != 0:
-            rows.append((f"{type_label}:{ticket_id}", status, branch, "-", "-", "-", "not found"))
+            rows.append((f"{type_label}:{solo_id}", status, branch, "-", "-", "-", "not found"))
             continue
-        _, behind_s = _git("rev-list", "--count", f"{branch}..{parent_branch}")
-        _, ahead_s = _git("rev-list", "--count", f"{parent_branch}..{branch}")
+        rc, _ = _git("rev-parse", "--verify", solo_base)
+        if rc != 0:
+            rows.append((f"{type_label}:{solo_id}", status, branch, "-", "-", "-", f"base not found: {solo_base}"))
+            continue
+        _, behind_s = _git("rev-list", "--count", f"{branch}..{solo_base}")
+        _, ahead_s = _git("rev-list", "--count", f"{solo_base}..{branch}")
         behind = int(behind_s) if behind_s.isdigit() else -1
         ahead = int(ahead_s) if ahead_s.isdigit() else -1
         _, local_sha = _git("rev-parse", branch)
@@ -972,7 +1265,7 @@ def command_sync(args: argparse.Namespace) -> int:
         note = ""
         if behind > 0 and active:
             merge_cmds.append(
-                f"git checkout {branch} && git merge {parent_branch} --no-edit"
+                f"git checkout {branch} && git merge {solo_base} --no-edit"
             )
             note = "MERGE PARENT"
         elif behind > 0:
@@ -981,7 +1274,7 @@ def command_sync(args: argparse.Namespace) -> int:
             push_branches.append(branch)
             note = f"{note}, PUSH" if note else "PUSH"
         rows.append((
-            f"{type_label}:{ticket_id}", status, branch,
+            f"{type_label}:{solo_id}", status, branch,
             str(behind), str(ahead), remote_status, note,
         ))
 
@@ -1018,6 +1311,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     init_parser = commands.add_parser("init", help="Initialize a .dac workspace")
     init_parser.add_argument("--workstream", required=True)
+    init_parser.add_argument(
+        "--allow-non-pd",
+        action="store_true",
+        help="Allow an explicitly user-supplied non-PD workstream key.",
+    )
     init_parser.add_argument("--repo-root", default=".")
     init_parser.add_argument("--workspace-dir", default=".dac")
     init_parser.add_argument("--title", default="")
@@ -1090,6 +1388,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sync_parser.set_defaults(func=command_sync)
 
+    switch_parser = commands.add_parser(
+        "switch", help="List or perform a tracked DAC branch switch"
+    )
+    switch_parser.add_argument("--workspace", required=True)
+    switch_parser.add_argument(
+        "target",
+        nargs="?",
+        help="letter selector from the switch table, main, or configure",
+    )
+    switch_parser.add_argument("--master-branch", default="")
+    switch_parser.add_argument("--target-branch", default="main")
+    switch_parser.set_defaults(func=command_switch)
+
     result_parser = commands.add_parser("result", help="Manage normalized results")
     result_commands = result_parser.add_subparsers(dest="result_command", required=True)
     result_create = result_commands.add_parser("create", help="Create a result for a portion")
@@ -1131,11 +1442,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     solo_transition = solo_commands.add_parser("transition", help="Transition solo ticket state")
     solo_transition.add_argument("--workspace", required=True)
-    solo_transition.add_argument("--ticket-id", required=True)
+    solo_transition.add_argument("--solo", required=True, help="Local S-### ID or Jira ticket key")
     solo_transition.add_argument("--to", required=True, choices=sorted(SOLO_STATUSES))
     solo_transition.add_argument("--by", default="coordinator")
     solo_transition.add_argument("--reason", default="")
     solo_transition.set_defaults(func=command_solo_transition)
+
+    solo_result = solo_commands.add_parser("result", help="Create a normalized solo result")
+    solo_result.add_argument("--workspace", required=True)
+    solo_result.add_argument("--solo", required=True, help="Local S-### ID or Jira ticket key")
+    solo_result.set_defaults(func=command_solo_result_create)
 
     return parser
 

@@ -33,7 +33,9 @@ Treat missing evidence as unknown, not passed. A successful executor run is not 
 
 ## PR integration
 
-Prefer backward-compatible foundations before consumers. Wait for a predecessor to merge when practical. Use a shallow explicit PR stack only when waiting would materially harm delivery and intermediate checks remain meaningful.
+When DAC creates child Stories, create a master integration branch from `main`, branch every child from that master branch, and target every child PR back to the master branch. Merge the master branch to `main` only through its final master PR. Do not stack a child branch on a sibling branch; use child-PR merge order and merge the updated master into active child branches when needed. For a single unpartitioned work item, branch from and target `main` directly.
+
+When Jira allocation is parent-only, `06-integration-plan.md` is still required and must be approved as content before portion envelopes are created. Mark it `trivial` and record the direct branch/PR path, parent-ticket traceability, required validation, rollout, and rollback; do not bypass the integration record because no child Stories exist.
 
 Before opening a PR, verify the intended base, dependency state, approved C3 surface, current diff, tests, and result artifact. Before merging, verify required reviews, CI, contract compatibility, deployment order, and rollback.
 

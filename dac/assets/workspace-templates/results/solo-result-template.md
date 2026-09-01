@@ -1,19 +1,21 @@
 ---
 artifact: solo-result
 workstream: {{WORKSTREAM_ID}}
+solo_id: {{SOLO_ID}}
 ticket_id: {{TICKET_ID}}
 stage: results
 status: recorded
 last_updated: {{NOW}}
-inputs: solo/{{TICKET_ID}}.md
+inputs: solo/{{SOLO_ID}}.md
 executor: {{EXECUTOR}}
 ---
 
-# Result: {{TICKET_ID}}
+# {{WORKSTREAM_ID}} — Result: {{SOLO_ID}} ({{TICKET_ID}})
 
 ## Outcome
 
-- **Status**: completed | blocked | failed | superseded
+- **Status**: completed | blocked | superseded
+- **Failed attempt**: Record as `blocked`, including cause, retry condition, and required escalation.
 - **Summary**:
 
 ## Artifacts and references

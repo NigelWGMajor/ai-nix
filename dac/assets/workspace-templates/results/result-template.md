@@ -12,11 +12,12 @@ executor: {{EXECUTOR}}
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# Result: {{PORTION_ID}}
+# {{WORKSTREAM_ID}} — Result: {{PORTION_ID}}
 
 ## 💭 Outcome
 
-- Status: completed / blocked / failed / superseded
+- Status: completed / blocked / superseded
+- If an execution attempt failed, record status `blocked` and state the cause, retry condition, and required escalation below.
 - Executor and run:
 - Started and finished:
 - Summary:
