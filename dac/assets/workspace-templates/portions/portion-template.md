@@ -1,6 +1,7 @@
 ---
 artifact: portion
 workstream: {{WORKSTREAM_ID}}
+title: {{PORTION_ID}} - {{PORTION_TITLE}}
 portion_id: {{PORTION_ID}}
 stage: portions
 status: proposed

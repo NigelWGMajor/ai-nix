@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Manage local Markdown state for a DAC delivery workstream.
 
-This helper intentionally operates only inside a selected .dac workspace. It
-does not invoke Jira, Spec Kit, other skills, Git, tests, builds, deployment,
-or network tools.
+The helper writes Markdown only within the selected `.dac/<workstream>/` workspace.
+Its `sync` command performs read-only Git inspection; its `switch` command may change
+the active branch and manage a named stash when separately authorized under C3.
+It does not commit, push, call Jira, GitHub, Spec Kit, tests, builds, deployment, or network services.
 """
 
 from __future__ import annotations

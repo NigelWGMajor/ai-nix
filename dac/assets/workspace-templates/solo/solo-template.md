@@ -1,6 +1,7 @@
 ---
 artifact: solo
 workstream: {{WORKSTREAM_ID}}
+title: {{SOLO_ID}} - {{TITLE}}
 solo_id: {{SOLO_ID}}
 ticket_id: {{TICKET_ID}}
 stage: solo

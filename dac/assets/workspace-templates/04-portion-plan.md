@@ -10,7 +10,7 @@ inputs: 01-mission.md,02-evidence.md,03-decisions.md
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# Portion and Dependency Plan
+# {{WORKSTREAM_ID}} — Portion and Dependency Plan
 
 ## 💭 Partition strategy
 

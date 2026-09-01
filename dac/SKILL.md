@@ -19,7 +19,7 @@ Treat Jira and repository artifacts as evidence that may disagree. Treat approve
 
 - All coordination files: `00-control.md`, `01-mission.md`, `02-evidence.md`, `03-decisions.md`, `04-portion-plan.md`, `05-jira-plan.md`, `06-integration-plan.md`
 - Portion envelopes: `portions/P-001.md`, `portions/P-002.md`, etc.
-- Result records: `results/P-001-result.md`, etc.
+- Result records: `results/P-001.md`, etc.
 - Helper state and logs
 
 **Deliverable artifacts** (e.g., Spec Kit specifications, design documents, generated code) belong in the repository under their normal locations and should be committed:
@@ -64,13 +64,16 @@ Major phases:
 4. **Execute** - Portions routed and executing
 5. **Integrate** - PRs merged, convergence complete
 
+
 ## Start or resume
 
 **Show progress indicator first.**
 
 1. Confirm the repository root, branch, HEAD, and worktree state without changing them.
 2. Identify the parent Jira issue or stable workstream ID. The normal form is `PD-######`; do not guess among plausible parents. Accept another key only when the user explicitly supplies that exact alternative key in the prompt.
-3. Discover available Jira, repository, GitHub, Spec Kit, and skill capabilities. For Jira access, use the Atlassian MCP server tools (prefixed `mcp__atlassian__`). Verify the server is available by attempting a lightweight call. If the server is unreachable or returns a connection error, advise the user:
+3. Discover available Jira, repository, GitHub, Spec Kit, and skill capabilities.
+For Jira access, use the available Atlassian plugin or MCP capability. Verify it with a lightweight read before relying on Jira evidence.
+For repository code discovery, prefer the available Codebase Knowledge Graph MCP; fall back to text search only when graph results are insufficient.
 
    > Could you try restarting the MCP server? You can either:
    > 1. Run `! /mcp` in this prompt to check MCP server status
@@ -478,9 +481,9 @@ Output shows both portions (P:) and solo tickets (S:). Solo rows compare to the 
 ```
 Legend: P:portion S:solo
 
-Item         Status      Branch                Behind  Ahead  Remote      Action
-P:P-001      executing   feature/P-001-api     0       3      unpushed    PUSH
-S:ABC-456    executing   feature/ABC-456-auth  2       1      in sync     MERGE PARENT
+Item         Status      Branch                  Behind  Ahead  Remote      Action
+P-001      executing     feature/P-001-api       0       3      unpushed    PUSH
+S-001      executing     feature/PD-123456-auth  2       1      in sync     MERGE PARENT
 ```
 
 ### Solo ticket workflow

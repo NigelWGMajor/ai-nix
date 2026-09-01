@@ -10,7 +10,7 @@ inputs: 01-mission.md,03-decisions.md,04-portion-plan.md,06-integration-plan.md,
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# Parent Integration Review
+# {{WORKSTREAM_ID}} — Parent Integration Review
 
 ## 💭 Integrated scope
 

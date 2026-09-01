@@ -1,6 +1,6 @@
 # Solo Tickets Quick Start
 
-Solo tickets bring DAC's structured management to individual work items without requiring artificial parent coordination. They live in `.dac/<workstream>/solo/` alongside portions and use the same authority model and branch tracking.
+Solo tickets bring DAC's structured management to individual work items without requiring artificial parent coordination. They live in `.dac/<workstream>/solo/` alongside portions and use the same authority model and branch tracking. Each envelope has a stable local ID (`S-001`, `S-002`, and so on) as well as its Jira ticket key; helper commands that address an existing solo ticket accept either identity.
 
 ## Use Cases
 
@@ -46,9 +46,9 @@ Output:
 ```
 Solo tickets in ABC-123:
 
-Ticket   Status     Branch                    Executor  Last Updated
-ABC-456  adopted    feature/ABC-456-auth-fix  direct    2026-08-28T14:30:00
-ABC-789  executing  feature/ABC-789-logging   direct    2026-08-28T15:00:00
+Solo   Jira     Status     Base  Branch                    Executor  Last Updated
+S-001  ABC-456  adopted    main  feature/ABC-456-auth-fix  direct    2026-08-28T14:30:00
+S-002  ABC-789  executing  main  feature/ABC-789-logging   direct    2026-08-28T15:00:00
 ```
 
 ### Transition state
@@ -56,7 +56,7 @@ ABC-789  executing  feature/ABC-789-logging   direct    2026-08-28T15:00:00
 ```bash
 python scripts/dac.py solo transition \
   --workspace .dac/ABC-123 \
-  --ticket-id ABC-456 \
+  --solo ABC-456 \
   --to executing \
   --by "Developer Name"
 ```
@@ -81,7 +81,7 @@ Legend: P:portion S:solo
 
 Item         Status      Branch                Behind  Ahead  Remote      Action
 P:P-001      executing   feature/P-001-api     0       3      unpushed    PUSH
-S:ABC-456    executing   feature/ABC-456-auth  2       1      in sync     MERGE PARENT
+S:S-001      executing   feature/ABC-456-auth  2       1      in sync     MERGE PARENT
 ```
 
 ## Folder Structure
@@ -92,30 +92,35 @@ S:ABC-456    executing   feature/ABC-456-auth  2       1      in sync     MERGE 
   portions/               # Coordinated portions
     P-001.md
   solo/                   # Standalone tickets (NEW)
-    ABC-456.md
-    ABC-789.md
+    S-001.md              # Jira ticket ABC-456
+    S-002.md              # Jira ticket ABC-789
   results/
     P-001.md              # Portion results
-    ABC-456-result.md     # Solo results (NEW)
+    S-001-result.md       # Solo results (NEW)
 ```
 
 ## Solo Envelope Structure
 
-Each solo ticket has an envelope at `solo/<ticket-id>.md`:
+Each solo ticket has an envelope at `solo/<local-id>.md`, for example `solo/S-001.md`:
 
 ```yaml
 ---
 artifact: solo
 workstream: ABC-123
+solo_id: S-001
 ticket_id: ABC-456
 stage: solo
 status: adopted
+last_updated: 2026-08-28T14:30:00-05:00
+inputs: -
 executor: direct
+jira: ABC-456
 jira_url: https://jira.example.com/browse/ABC-456
+base_branch: main
 branch: feature/ABC-456-auth-fix
 ---
 
-# Solo Ticket: Fix authentication bug
+# ABC-123 - S-001: Fix authentication bug (ABC-456)
 
 ## Outcome and boundaries
 - Outcome: Users can log in reliably
@@ -213,7 +218,7 @@ python scripts/dac.py solo adopt \
 # Transition to executing
 python scripts/dac.py solo transition \
   --workspace .dac/PROJ-100 \
-  --ticket-id PROJ-456 \
+  --solo PROJ-456 \
   --to executing
 
 # Later: check sync
@@ -235,10 +240,10 @@ python scripts/dac.py solo create \
 # ... implement ...
 
 # Transition through states
-python scripts/dac.py solo transition --workspace .dac/PROJ-100 --ticket-id PROJ-789 --to executing
-python scripts/dac.py solo transition --workspace .dac/PROJ-100 --ticket-id PROJ-789 --to pr_open
-python scripts/dac.py solo transition --workspace .dac/PROJ-100 --ticket-id PROJ-789 --to integrated
-python scripts/dac.py solo transition --workspace .dac/PROJ-100 --ticket-id PROJ-789 --to complete
+python scripts/dac.py solo transition --workspace .dac/PROJ-100 --solo PROJ-789 --to executing
+python scripts/dac.py solo transition --workspace .dac/PROJ-100 --solo PROJ-789 --to pr_open
+python scripts/dac.py solo transition --workspace .dac/PROJ-100 --solo PROJ-789 --to integrated
+python scripts/dac.py solo transition --workspace .dac/PROJ-100 --solo PROJ-789 --to complete
 ```
 
 ## FAQ
