@@ -101,7 +101,15 @@ When the user invokes DAC with `preview` on the prompt line (e.g. `/dac preview 
 
 **Request blanket W1 approval once at the start** and then proceed through Align and Partition without pausing for per-artifact write permission. The user should only need to confirm once ("approve W1 for `.dac/<workstream>/`") and then see results, not a series of permission prompts.
 
-Run the full Align and Partition phases, then write a non-binding, asynchronous allocation review to `05-jira-plan.md` and display the same table. The review must separate SQL, frontend (FE), and backend (BE) work; split large portions further at natural outcome or contract boundaries; and show optional same-discipline groupings. It is a planning artifact only: do not construct a final Jira creation payload, request R4 approval, or create tickets. Then **stop**.
+**Preview MUST write workspace artifacts.** Always initialize the `.dac/<workstream>/` workspace and write the full set of artifacts (00-control through 06-integration-plan). Never substitute inline display for file creation — the artifacts are the deliverable of a preview, not a summary in chat. If the workspace was previously cleaned up or does not exist, initialize it fresh.
+Run the full Align and Partition phases, then write a non-binding, asynchronous allocation review to `05-jira-plan.md` and display the same table. The review must separate SQL, frontend (FE), and backend (BE) work; split large portions further at natural outcome or contract boundaries; and show optional same-discipline groupings.
+### Recursive hierarchy visibility
+When preview starts from an Epic, inspect its reachable Jira hierarchy and the local `.dac/` workspaces for every discovered ticket key. A Story that already has `.dac/<story-key>/00-control.md` is a master Story with a nested DAC workspace: recursively include its portions and any Jira children or linked split work that the available evidence establishes. Continue until no further nested workspace or Jira child is found.
+`05-jira-plan.md` must begin its planning content with both navigators, before the allocation table:
+1. **DAC portion hierarchy** — an indented tree covering the complete nested portion/workspace structure.
+2. **Jira ticket hierarchy** — an indented tree covering the corresponding Epic → Story → descendant-ticket structure.
+Each navigator node must include its Jira key or DAC portion ID and a concise status. Every master Story node in both trees must be a relative Markdown link to that Story's detail block later in the same plan (for example, `[PD-123457 — Search foundation](#pd-123457-search-foundation)`). Give each detail block that exact explicit HTML anchor immediately before its heading, so the tree links remain stable. Follow the two trees with a **Master Story details** section containing one detail block for every discovered master Story, in hierarchy order. Each block must state its parent, local workspace path, portion IDs/statuses, known Jira descendants, dependencies, and any unknown or conflicting evidence. The summary shown to the user must include the same two trees and the master-Story links.
+Keep the traversal read-only: do not infer unobserved relationships from folder names alone, do not follow a node more than once, and mark cycles, duplicate references, inaccessible workspaces, and unknown Jira relationships explicitly. This is a planning artifact only: do not construct a final Jira creation payload, request R4 approval, or create tickets. Then **stop**.
 
 ```
 DAC Preview complete: [✓] Align → [✓] Partition → [●] Jira (proposed) → [ ] Execute → [ ] Integrate
@@ -183,6 +191,7 @@ The user may then:
 - **Parent-only** — track all portions under the master ticket with no new Stories.
 
 Wait for the user to decide before proceeding.
+**Respect the user's selection exactly.** When the user chooses an allocation option, implement exactly what they chose. Do not substitute your recommendation after they have made their selection. If you believe the choice has issues, raise them explicitly before proceeding — never silently override a stated preference.
 
 #### After the user chooses
 

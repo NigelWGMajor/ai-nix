@@ -13,6 +13,7 @@ Symbols support scanning and semantic consistency. They are never decoration or 
 - Use the shared output-spine symbols for equivalent sections across all three skills.
 - Use the NIX stage symbols only for NIX's six-stage method.
 - Never use a verification symbol for a claim, inference, proposal, or unexecuted check.
+- In a hierarchy, prefix each displayed state with its configured state symbol where that state aids scanning; retain the state name as text.
 - Keep symbol density restrained and use consistently within one document to aid readability.
 
 ## Highlighting
@@ -55,13 +56,31 @@ Symbols support scanning and semantic consistency. They are never decoration or 
 | Observed        | 🔎     | Directly inspected evidence                 | Pair with a precise source location when practical. |
 | Verified        | ✔️     | Corroborated result                         | State the validation or corroboration.              |
 | Inference       | 🟰     | Derived conclusion                          | State the evidence and reasoning boundary.          |
+| Will not do     | ✖️     | Omitted, deprecated, invalid                |                                                     |
 | Unknown         | ❓     | Missing, ambiguous, or conflicting evidence | State impact and what could resolve it.             |
 | Conflict        | 💥     | Material disagreement                       | Identify the competing evidence or interpretations. |
 | Risk or warning | ⚠️     | Consequential uncertainty or caveat         | Use sparingly and state the consequence.            |
 | Decision        | ⚖️     | Choice or decision gate                     | State criteria, owner, or current status.           |
 | Current         | 🟢     | Apparently current source or state          | State the basis for currency.                       |
+| Pending         | 🟡     | Ready or proposed                           |                                                     |
+| Needed          | 🔴     | Missing, Needed, Queued                     |                                                     |
+| Deferred        | ⏸️     | deferred, awaiting resources                |                                                     |
+| Blocked         | ⛔     | Blocked, No access                          |                                                     |
 | Aging           | 🔵     | Possibly outdated source or state           | State why staleness is plausible.                   |
 | Superseded      | ⚫     | Replaced or deprecated source or state      | Identify the replacement when known.                |
+
+## Hierarchy state palette
+
+| State       | Symbol | Meaning                                  | Usage rule                                                        |
+| ----------- | ------ | ---------------------------------------- | ----------------------------------------------------------------- |
+| Done        | ✔️     | Completed and verified work or outcome   | Use only when completion has been validated.                      |
+| In progress | 🚧     | Work is actively underway                | Pair with the current owner, activity, or next checkpoint.       |
+| Planned     | 📌     | Accepted future work                     | Use for committed work that has not started; state the next step. |
+| Blocked     | ⛔     | Work cannot proceed                      | State the blocker and what would unblock it.                      |
+| Deferred    | ⏸️     | Intentionally paused or postponed work   | State the reason and the condition for resumption.                |
+| Not started | ⚪     | Identified work with no active commitment | Use sparingly; distinguish it from planned work.                  |
+
+For example: `✔️ Done`, `🚧 In progress`, `⛔ Blocked`. Use these symbols in hierarchy labels, tree nodes, and status summaries when they improve state scanning; do not use them as decoration or without the state text.
 
 ## Mermaid diagrams
 

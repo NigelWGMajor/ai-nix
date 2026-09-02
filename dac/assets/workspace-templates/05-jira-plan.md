@@ -12,6 +12,33 @@ inputs: 01-mission.md,03-decisions.md,04-portion-plan.md
 
 # {{WORKSTREAM_ID}} — Jira Visibility Plan
 
+<!-- In an Epic-rooted preview, replace these placeholders with the complete observed recursive
+     hierarchy before the allocation strategy. Every nested master Story with a local
+     .dac/<ticket-key>/00-control.md workspace must appear in both trees and link to its detail
+     heading below. Preserve unknowns, inaccessible workspaces, repeated references, and cycles
+     explicitly; do not infer Jira relationships from a folder name alone. -->
+## DAC portion hierarchy
+```text
+{{WORKSTREAM_ID}} — parent outcome
+└── To determine from observed Jira and DAC workspace evidence
+```
+## Jira ticket hierarchy
+```text
+{{WORKSTREAM_ID}} — parent outcome
+└── To determine from observed Jira evidence
+```
+## Master Story details
+<!-- One block per discovered nested master Story, in hierarchy order. Use an explicit anchor
+     immediately before the H3 heading as the target of both tree links, e.g.:
+     <a id="pd-123457-search-foundation"></a>
+     ### PD-123457 — Search foundation
+     - Parent: PD-123456
+     - Local workspace: `.dac/PD-123457/`
+     - Portions: P-001 (complete), P-002 (planned)
+     - Jira descendants: PD-123458
+     - Dependencies: …
+     - Evidence gaps or conflicts: … -->
+No nested master Story discovered yet.
 ## Allocation strategy
 
 <!-- Preview may record a non-binding review. Final strategy: none | per-portion | suggested-grouping | custom -->

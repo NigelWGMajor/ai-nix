@@ -16,7 +16,9 @@ Acceptance criteria, deliverables, and key behavior must be visible in Jira for:
 
 ## Atlassian MCP Server
 
-All Jira and Confluence access MUST use the Atlassian MCP server tools (prefixed `mcp__atlassian__`). Before the first Atlassian access in a session, verify the server is available by attempting a lightweight call. If the server is unreachable or returns a connection error, do not proceed with Atlassian-dependent operations. Instead, advise the user:
+All Jira and Confluence access MUST use the **plugin** Atlassian MCP tools (prefixed `mcp__plugin_jira-integration_atlassian__*`). Do NOT use the base `mcp__atlassian__jira_*` tools — they don't work for this instance.
+The environment variable JIRA_URL contains the Jira url.
+Before the first Atlassian access in a session, verify the server is available by attempting a lightweight call. If the server is unreachable or returns a connection error, do not proceed with Atlassian-dependent operations. Instead, advise the user:
 
 > Could you try restarting the MCP server? You can either:
 > 1. Run `! /mcp` in this prompt to check MCP server status
@@ -153,6 +155,9 @@ For a DAC portion created by splitting an existing Jira issue, call that existin
 1. Copy the split-from issue's native **Parent** field to the new Story. The inherited parent is normally an upstream Epic.
 2. Copy the split-from issue's **team** and **labels** fields.
 3. Add a **Created By** relationship from the new Story to the split-from issue.
+   - The Jira link type that provides "created by" display text is **"Defect"** (id `10401`). Despite its name, this is the correct type — it renders as "created by" (inward) / "created" (outward) in the Jira UI.
+   - Direction: `inwardIssue` = the new child Story, `outwardIssue` = the split-from issue. This makes the child show "created by SPLIT-FROM" and the split-from show "created CHILD".
+   - Do **not** use "Work item split" or "Relates" — only the "Defect" link type produces the required "created by" display text.
 
 Do not set the split-from issue as the new Story's native parent, and do not substitute an `is part of` link for the required `Created By` traceability link.
 
@@ -160,6 +165,32 @@ Do not set the split-from issue as the new Story's native parent, and do not sub
 
 After the portion plan is approved, **always pause** to let the user decide the Jira allocation strategy. Preview may persist a non-binding allocation review in `05-jira-plan.md` for asynchronous review; it must be shown again on resumption before confirmation. Regenerate it only when the user requests a new split/grouping or material evidence changes a boundary.
 
+### Recursive workspace and Jira hierarchy in preview
+If preview begins at an Epic, the Jira Visibility Plan must first show the complete recursive view, rather than a flat list of the immediate portions. Traverse the observed Jira hierarchy and, for each discovered ticket key, check whether `.dac/<ticket-key>/00-control.md` exists. Treat an existing control file as evidence of a nested DAC master workspace; then include its recorded portions and recursively discovered Jira descendants.
+Present these sections before `## Allocation strategy` and the allocation table:
+```markdown
+## DAC portion hierarchy
+Epic: PD-123456 — Parent outcome
+├── [PD-123457 — Search foundation](#pd-123457-search-foundation) — workspace active
+│   ├── P-001 — complete
+│   └── P-002 — planned
+└── P-003 — proposed
+## Jira ticket hierarchy
+Epic: PD-123456 — Parent outcome
+├── [PD-123457 — Search foundation](#pd-123457-search-foundation) — Story / In Progress
+│   └── PD-123458 — Story / To Do
+└── PD-123459 — Story / Proposed
+## Master Story details
+<a id="pd-123457-search-foundation"></a>
+### PD-123457 — Search foundation
+- Parent: PD-123456
+- Local workspace: `.dac/PD-123457/`
+- Portions: P-001 (complete), P-002 (planned)
+- Jira descendants: PD-123458
+- Dependencies: …
+- Evidence gaps or conflicts: …
+```
+Each tree link must target an explicit HTML anchor immediately before the matching detail heading. Include every discovered master Story in hierarchy order. Nodes must identify key/portion ID and status; mark unknown relationships, inaccessible workspaces, repeated references, and cycles rather than guessing. Do not revisit a node already traversed. A folder name alone establishes only the existence of a local workspace candidate, not its Jira relationship.
 Start with one Story per portion. Keep SQL, FE, and BE portions separate because their review pipelines differ. Split large portions at natural outcome, contract, or independently testable change boundaries before proposing a grouping. Use this exact table:
 
 | Portion | Proposed Jira Issue | Type | Master | Dependencies | Status | Description | Suggested Grouping |
