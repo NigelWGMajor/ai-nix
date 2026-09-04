@@ -258,6 +258,7 @@ After Jira allocation strategy and specific actions are approved, produce:
 **Branching strategy — master integration branch when child Stories are created:**
 When DAC splits a master Jira issue into child Stories, create the master integration branch from `main`. Create every child portion branch from that master branch; open each child PR back to the master branch; then open one master PR from the master branch to `main` after the intended child PRs have merged. Record the exact branch names and PR bases in `06-integration-plan.md` before implementation.
 
+Treat that topology as a planned contract, not evidence that it happened. Before reporting, accepting, or completing integration, read the **PR topology verification** section in [references/quality-and-integration.md](references/quality-and-integration.md). Resolve the repository, the child PR's actual head and base, and the remote PR state independently. Do not infer any of those facts from a ticket, branch name, workspace folder, or the expected DAC topology.
 ```text
 main -> master integration branch -> child portion branches
 main <- master PR                 <- child PRs
@@ -332,7 +333,7 @@ Create a result artifact and have the coordinator update shared state. Child exe
 
 ### 7. Integrate and converge
 
-Before accepting a portion result, verify its envelope, approvals, actual diff or output, tests, compatibility, and escalation disclosures. Mark a portion `integrated` only after its required PR or deliverable is accepted. Recalculate the ready set and update Jira only with R4 approval.
+Before accepting a portion result, verify its envelope, approvals, actual diff or output, tests, compatibility, and escalation disclosures. For a portion with a PR requirement, mark it `integrated` only after [PR topology verification](references/quality-and-integration.md#pr-topology-verification) establishes that the actual child PR was merged into its intended base. Local branch ancestry can support a narrowly labelled containment observation, but never proves a remote PR merge. Recalculate the ready set and update Jira only with R4 approval.
 
 After all required portions are integrated or explicitly deferred, perform parent convergence. Check mission coverage, decision compliance, cross-portion behavior, integration tests, Jira and PR traceability, deployment order, monitoring, rollback, and remaining ownership. Add residual portions instead of weakening acceptance criteria.
 
