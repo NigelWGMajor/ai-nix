@@ -47,8 +47,8 @@ Output:
 Solo tickets in ABC-123:
 
 Solo   Jira     Status     Base  Branch                    Executor  Last Updated
-S-001  ABC-456  adopted    main  feature/ABC-456-auth-fix  direct    2026-08-28T14:30:00
-S-002  ABC-789  executing  main  feature/ABC-789-logging   direct    2026-08-28T15:00:00
+S-001  ABC-456  adopted    <configured-base>  feature/ABC-456-auth-fix  direct    2026-08-28T14:30:00
+S-002  ABC-789  executing  <configured-base>  feature/ABC-789-logging   direct    2026-08-28T15:00:00
 ```
 
 ### Transition state
@@ -116,7 +116,7 @@ inputs: -
 executor: direct
 jira: ABC-456
 jira_url: https://jira.example.com/browse/ABC-456
-base_branch: main
+base_branch: <approved-base-branch>
 branch: feature/ABC-456-auth-fix
 ---
 

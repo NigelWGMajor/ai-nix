@@ -33,7 +33,9 @@ Treat missing evidence as unknown, not passed. A successful executor run is not 
 
 ## PR integration
 
-When DAC creates child Stories, create a master integration branch from `main`, branch every child from that master branch, and target every child PR back to the master branch. Merge the master branch to `main` only through its final master PR. Do not stack a child branch on a sibling branch; use child-PR merge order and merge the updated master into active child branches when needed. For a single unpartitioned work item, branch from and target `main` directly.
+Before DAC plans or creates branches, record the integration target in `06-integration-plan.md`; it is the branch the final parent PR (or a direct unpartitioned PR) targets. Never assume that target is `main`, and never substitute a repository default branch for the recorded target.
+
+When DAC creates child Stories, create a parent integration branch from the recorded target, branch every child from that parent branch, and target every child PR back to the parent branch. Merge the parent branch to the recorded target only through its final parent PR. Do not stack a child branch on a sibling branch; use child-PR merge order and merge the updated parent into active child branches when needed. For a single unpartitioned work item, branch from and target the recorded target directly.
 ## PR topology verification
 The planned DAC hierarchy and the observed Git/PR hierarchy are separate evidence. Re-resolve all volatile facts immediately before a status report, portion acceptance, or parent convergence. Record the observation time and source when these facts matter.
 For each relevant PR, establish all of the following:
@@ -45,11 +47,11 @@ Status language must preserve the hierarchy:
 
 | Observed evidence | Permitted statement | Not permitted |
 |---|---|---|
-| Child PR is remotely merged into the master branch; master has no verified merge into `main` | `P-001 is integrated into <master-branch>; the master PR to main is not verified as merged.` | `P-001 is merged into main.` |
-| Child commit is contained in a local parent branch but not in local `main`; remote PR state is unavailable | `Local ancestry shows <parent-branch> contains P-001; local main does not. Remote child-PR state is unknown.` | `P-001 is merged`, `P-001 is direct-to-main`, or `P-001 has no parent branch.` |
+| Child PR is remotely merged into the parent branch; parent has no verified merge into its recorded target | `P-001 is integrated into <parent-branch>; the parent PR to <target-branch> is not verified as merged.` | `P-001 is merged into <target-branch>.` |
+| Child commit is contained in a local parent branch but not in the recorded target; remote PR state is unavailable | `Local ancestry shows <parent-branch> contains P-001; local <target-branch> does not. Remote child-PR state is unknown.` | `P-001 is merged`, `P-001 is direct-to-<target-branch>`, or `P-001 has no parent branch.` |
 | PR is remotely merged into its declared base | `<PR> is merged into <base-repository>:<base-branch>.` | Claiming it reached a different ancestor branch without separately verifying that branch's PR/merge. |
 | PR is open, closed-unmerged, missing, inaccessible, or has conflicting base evidence | State the exact observed state and block the corresponding integration conclusion. | Inferring completion from Jira status, commit containment, or a branch name. |
-If planned topology conflicts with observed topology, record the discrepancy in the result/integration evidence and use the observed facts in status language. Pause parent convergence when the intended child or master merge cannot be verified; ask for access or direction instead of simplifying the hierarchy. A parent workstream reaches `main` only when its final master PR (or the explicitly recorded direct PR for an unpartitioned work item) is remotely verified merged into its resolved target repository and branch.
+If planned topology conflicts with observed topology, record the discrepancy in the result/integration evidence and use the observed facts in status language. Pause parent convergence when the intended child or parent merge cannot be verified; ask for access or direction instead of simplifying the hierarchy. A parent workstream reaches its recorded target only when its final parent PR (or the explicitly recorded direct PR for an unpartitioned work item) is remotely verified merged into that resolved target repository and branch.
 When Jira allocation is parent-only, `06-integration-plan.md` is still required and must be approved as content before portion envelopes are created. Mark it `trivial` and record the direct branch/PR path, parent-ticket traceability, required validation, rollout, and rollback; do not bypass the integration record because no child Stories exist.
 
 Before opening a PR, verify the intended base, dependency state, approved C3 surface, current diff, tests, and result artifact. Before accepting a merge result, complete PR topology verification as well as verifying required reviews, CI, contract compatibility, deployment order, and rollback.

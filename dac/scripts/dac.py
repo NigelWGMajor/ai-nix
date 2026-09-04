@@ -846,7 +846,7 @@ def named_stash_ref(marker: str, repo_root: Path) -> str:
 def branch_switch_options(workspace: Path, repo_root: Path) -> Tuple[Dict[str, str], Dict[str, str]]:
     control = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
     master = control.get("master_branch", "").strip()
-    target_branch = control.get("target_branch", "main").strip() or "main"
+    target_branch = control.get("target_branch", "").strip()
     entries: List[Tuple[str, str]] = []
     if master and master != "-":
         entries.append(("master", master))
@@ -860,14 +860,16 @@ def branch_switch_options(workspace: Path, repo_root: Path) -> Tuple[Dict[str, s
         branch = data.get("branch", "").strip()
         if branch and branch != "-":
             entries.append((f"{solo_id} ({data.get('ticket_id', '-')})", branch))
-    entries.append(("main", target_branch))
+    if target_branch and target_branch != "-":
+        entries.append(("target", target_branch))
     options: Dict[str, str] = {}
     labels: Dict[str, str] = {}
     for index, (label, branch) in enumerate(entries):
         selector = chr(ord("A") + index)
         options[selector] = branch
         labels[selector] = label
-    options["main"] = target_branch
+    if target_branch and target_branch != "-":
+        options["target"] = target_branch
     return options, labels
 
 
@@ -878,22 +880,24 @@ def command_switch(args: argparse.Namespace) -> int:
     control_text = control_path.read_text(encoding="utf-8")
 
     if args.target == "configure":
-        if not args.master_branch:
-            raise ValueError("Switch configuration requires --master-branch.")
-        rc, _ = _git("rev-parse", "--verify", args.master_branch, cwd=repo_root)
-        if rc != 0:
-            raise ValueError(f"Master branch not found: {args.master_branch}")
-        target_branch = args.target_branch or "main"
+        target_branch = args.target_branch.strip()
+        if not target_branch:
+            raise ValueError("Switch configuration requires --target-branch.")
+        master_branch = args.master_branch.strip()
+        if master_branch:
+            rc, _ = _git("rev-parse", "--verify", master_branch, cwd=repo_root)
+            if rc != 0:
+                raise ValueError(f"Parent integration branch not found: {master_branch}")
         rc, _ = _git("rev-parse", "--verify", target_branch, cwd=repo_root)
         if rc != 0:
             raise ValueError(f"Target branch not found: {target_branch}")
         timestamp = now_iso()
         updated = update_frontmatter(
             control_text,
-            {"master_branch": args.master_branch, "target_branch": target_branch, "last_updated": timestamp},
+            {"master_branch": master_branch or "-", "target_branch": target_branch, "last_updated": timestamp},
         )
         control_path.write_text(updated, encoding="utf-8")
-        print(f"Configured master branch {args.master_branch} and target branch {target_branch}.")
+        print(f"Configured parent integration branch {master_branch or '-'} and target branch {target_branch}.")
         return 0
 
     options, labels = branch_switch_options(workspace, repo_root)
@@ -910,10 +914,15 @@ def command_switch(args: argparse.Namespace) -> int:
             marker, state = stash_states.get(branch, ("", ""))
             wip = " * stashed WIP" if marker and state == "stashed" else ""
             print(f"  {key:<4} {labels[key]:<28} {branch}{wip}")
-        print("Use a letter selector (for example `switch B`) or `switch main`.")
+        print("Use a letter selector (for example `switch B`), `switch target`, or the recorded target branch name.")
         return 0
 
-    selector = "main" if args.target.lower() == "main" else args.target.upper()
+    target_branch = options.get("target", "")
+    selector = (
+        "target"
+        if args.target.casefold() == "target" or (target_branch and args.target.casefold() == target_branch.casefold())
+        else args.target.upper()
+    )
     if selector not in options:
         raise ValueError(f"Unknown switch target {args.target!r}. Run switch with no target to list options.")
     target_branch = options[selector]
@@ -998,7 +1007,7 @@ def command_solo_adopt(args: argparse.Namespace) -> int:
         "EXECUTOR": args.executor or "direct",
         "JIRA_URL": args.jira_url.strip() if args.jira_url else f"https://jira.example.com/browse/{ticket_id}",
         "BRANCH": branch_name,
-        "BASE_BRANCH": args.base_branch or "main",
+        "BASE_BRANCH": args.base_branch,
         "NOW": timestamp,
         "SOURCE": "adopted from existing Jira ticket",
     }
@@ -1064,7 +1073,7 @@ def command_solo_create(args: argparse.Namespace) -> int:
         "EXECUTOR": args.executor or "direct",
         "JIRA_URL": args.jira_url.strip() if args.jira_url else f"https://jira.example.com/browse/{ticket_id}",
         "BRANCH": branch_name,
-        "BASE_BRANCH": args.base_branch or "main",
+        "BASE_BRANCH": args.base_branch,
         "NOW": timestamp,
         "SOURCE": "created as new solo ticket",
     }
@@ -1105,7 +1114,7 @@ def command_solo_status(args: argparse.Namespace) -> int:
             solo_id,
             data.get("ticket_id", "-"),
             data.get("status", "?"),
-            data.get("base_branch", "main"),
+            data.get("base_branch", "-"),
             data.get("branch", "-"),
             data.get("executor", "?"),
             data.get("last_updated", "?"),
@@ -1227,7 +1236,7 @@ def command_sync(args: argparse.Namespace) -> int:
         _, data = solo_recs[solo_id]
         status = data.get("status", "?")
         branch = data.get("branch", "") or _discover_branch(data.get("ticket_id", ""))
-        solo_base = data.get("base_branch", "main") or "main"
+        solo_base = data.get("base_branch", "").strip()
         type_label = "S"
 
         if not branch:
@@ -1236,6 +1245,9 @@ def command_sync(args: argparse.Namespace) -> int:
         rc, _ = _git("rev-parse", "--verify", branch)
         if rc != 0:
             rows.append((f"{type_label}:{solo_id}", status, branch, "-", "-", "-", "not found"))
+            continue
+        if not solo_base or solo_base == "-":
+            rows.append((f"{type_label}:{solo_id}", status, branch, "-", "-", "-", "base branch missing"))
             continue
         rc, _ = _git("rev-parse", "--verify", solo_base)
         if rc != 0:
@@ -1396,10 +1408,10 @@ def build_parser() -> argparse.ArgumentParser:
     switch_parser.add_argument(
         "target",
         nargs="?",
-        help="letter selector from the switch table, main, or configure",
+        help="letter selector from the switch table, target, the recorded target branch name, or configure",
     )
     switch_parser.add_argument("--master-branch", default="")
-    switch_parser.add_argument("--target-branch", default="main")
+    switch_parser.add_argument("--target-branch", default="")
     switch_parser.set_defaults(func=command_switch)
 
     result_parser = commands.add_parser("result", help="Manage normalized results")
@@ -1422,7 +1434,7 @@ def build_parser() -> argparse.ArgumentParser:
     solo_adopt.add_argument("--executor", default="direct")
     solo_adopt.add_argument("--jira-url", default="")
     solo_adopt.add_argument("--branch", default="")
-    solo_adopt.add_argument("--base-branch", default="main")
+    solo_adopt.add_argument("--base-branch", required=True)
     solo_adopt.set_defaults(func=command_solo_adopt)
 
     solo_create = solo_commands.add_parser("create", help="Create a new solo ticket envelope")
@@ -1434,7 +1446,7 @@ def build_parser() -> argparse.ArgumentParser:
     solo_create.add_argument("--executor", default="direct")
     solo_create.add_argument("--jira-url", default="")
     solo_create.add_argument("--branch", default="")
-    solo_create.add_argument("--base-branch", default="main")
+    solo_create.add_argument("--base-branch", required=True)
     solo_create.set_defaults(func=command_solo_create)
 
     solo_status = solo_commands.add_parser("status", help="Show solo ticket status")

@@ -2,7 +2,7 @@
 artifact: control
 workstream: {{WORKSTREAM_ID}}
 master_branch: -
-target_branch: main
+target_branch: -
 stage: control
 status: drafting
 last_updated: {{NOW}}

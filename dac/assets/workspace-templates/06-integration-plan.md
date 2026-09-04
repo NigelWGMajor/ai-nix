@@ -20,7 +20,7 @@ inputs: 03-decisions.md,04-portion-plan.md,05-jira-plan.md
 - Worktree or branch isolation:
 - Compatibility window:
 
-<!-- For a parent-only Jira strategy, use a trivial plan: one branch from main, one PR to main,
+<!-- Record the target branch and every PR base explicitly; never assume `main`. For a parent-only Jira strategy, use a trivial plan: one branch from the recorded target, one PR to that target,
      parent-ticket traceability, required validation, and rollout/rollback. Do not omit this artifact. -->
 
 ## 🔗 Portion integration

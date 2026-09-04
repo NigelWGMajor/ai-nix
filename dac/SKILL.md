@@ -255,18 +255,20 @@ After Jira allocation strategy and specific actions are approved, produce:
 
 - `05-jira-plan.md` for the proposed parent, child issues, links, ownership, exact remote actions, and acceptance criteria field discovery.
 - `06-integration-plan.md` for branches or worktrees, PR bases, merge order, compatibility states, rollout, and rollback.
-**Branching strategy — master integration branch when child Stories are created:**
-When DAC splits a master Jira issue into child Stories, create the master integration branch from `main`. Create every child portion branch from that master branch; open each child PR back to the master branch; then open one master PR from the master branch to `main` after the intended child PRs have merged. Record the exact branch names and PR bases in `06-integration-plan.md` before implementation.
+**Branching strategy — explicitly recorded integration topology:**
+Before implementation, record the target branch, parent integration branch (when child Stories exist), every child branch and PR base, and any direct-PR path in `06-integration-plan.md`. Never default or infer a PR base as `main`: the approved target may be a release branch, an existing parent branch, or another integration branch.
+
+When DAC splits a master Jira issue into child Stories, create the parent integration branch from the recorded target branch. Create every child portion branch from that parent branch; open each child PR back to the parent branch; then open one parent PR from the parent branch to the recorded target branch after the intended child PRs have merged. Record the exact branch names and PR bases in `06-integration-plan.md` before implementation.
 
 Treat that topology as a planned contract, not evidence that it happened. Before reporting, accepting, or completing integration, read the **PR topology verification** section in [references/quality-and-integration.md](references/quality-and-integration.md). Resolve the repository, the child PR's actual head and base, and the remote PR state independently. Do not infer any of those facts from a ticket, branch name, workspace folder, or the expected DAC topology.
 ```text
-main -> master integration branch -> child portion branches
-main <- master PR                 <- child PRs
+<recorded target branch> -> parent integration branch -> child portion branches
+<recorded target branch> <- parent PR                 <- child PRs
 ```
 
-- Never branch a child portion from a sibling portion branch. Dependencies govern child-PR merge order within the master branch.
-- Merge the updated master branch into an active child branch when it needs the newly integrated child work; do not rebase published child branches.
-- For work with no child Stories, use one branch from `main` and one PR back to `main`.
+- Never branch a child portion from a sibling portion branch. Dependencies govern child-PR merge order within the parent integration branch.
+- Merge the updated parent integration branch into an active child branch when it needs the newly integrated child work; do not rebase published child branches.
+- For work with no child Stories, use one branch from and one PR back to the recorded target branch.
 - **Worktrees are optional:** use them for editing convenience when working on multiple portions simultaneously, not for code isolation. For a single checkout, use the tracked DAC switch workflow rather than direct `git stash` / `git checkout`.
 - **Never switch away from uncommitted work directly:** commit it, or use `/dac switch` after C3 approval so DAC creates and records a named stash. Never remove a worktree with uncommitted work.
 
@@ -352,10 +354,10 @@ Pause the affected portion when:
 Classify the discovery as local, parent-level, contract-changing, or new scope. Handle local discoveries inside the child. Route all others to the parent decision register, mark affected portions stale or blocked, and reapprove their envelopes before continuing.
 
 ## Branch sync
-Use the `sync` subcommand to check whether child portion branches are up to date with the master integration branch. This is useful after merging child PRs into the master, after updating the master from `main`, or when resuming work after time away.
+Use the `sync` subcommand to check whether child portion branches are up to date with the parent integration branch. This is useful after merging child PRs into the parent, after updating the parent from its recorded target branch, or when resuming work after time away.
 ```bash
 python <skill-dir>/scripts/dac.py sync --workspace .dac/PD-123456
-python <skill-dir>/scripts/dac.py sync --workspace .dac/PD-123456 --parent-branch <master-integration-branch>
+python <skill-dir>/scripts/dac.py sync --workspace .dac/PD-123456 --parent-branch <parent-integration-branch>
 ```
 The sync report shows each portion's branch status:
 - **Behind** — commits on the parent not yet in the portion branch (needs merge)
@@ -373,16 +375,16 @@ Before first use, record the branch names approved in `06-integration-plan.md` a
 
 ```bash
 python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 configure \
-  --master-branch <master-integration-branch> --target-branch main
+  --master-branch <parent-integration-branch> --target-branch <recorded-target-branch>
 ```
 
 After C3 approval, use:
 
 ```bash
-python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456       # list A, B, C..., and main
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456       # list A, B, C..., and the recorded target
 python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 A     # first listed target
 python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 B     # second listed target
-python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 main  # main
+python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 <recorded-target-branch>
 ```
 
 If the current checkout is dirty, the helper creates an include-untracked named stash, records its marker in `00-control.md`, then switches. When returning to a target with DAC-recorded WIP, it applies and drops that exact named stash. If restoration conflicts, it retains the stash, records `restore_conflict`, and stops without resolving the conflict. Do not use direct Git stash/switch commands for DAC-managed context switching.
@@ -466,7 +468,7 @@ python <skill-dir>/scripts/dac.py solo create \
   --title "Add request logging" \
   --outcome "All API requests are logged" \
   --executor direct \
-  --base-branch main
+  --base-branch <approved-base-branch>
 ```
 
 **Note:** Jira ticket creation happens outside this script (via Atlassian MCP tools). This command creates the DAC envelope after the ticket exists.
