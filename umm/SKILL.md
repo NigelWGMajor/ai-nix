@@ -6,6 +6,13 @@ description: Show available skills and suggest which one to use. Use when unsure
 # UMM Skill Navigator
 
 > **Quick help:** If invoked with `?` as the only parameter, read [guidance.md](guidance.md) and display its contents to the user.
+## `new` fresh-run override
+
+When `new` is a standalone invocation keyword (for example, `/nix new <topic>`), start a fresh run. The ordinary word `new` within a topic or other prose does not enable this mode. This reset applies only to prior skill-run artifacts: continue to inspect the existing codebase, user-supplied material, and authoritative systems normally.
+
+Do not inspect, resume, or reuse a prior `.data/` or `.dac/` run. After resolving the exact workspace folder this run would otherwise write into or update, if that folder already exists, first rename it in the same parent using the first unused alphabetic suffix: `<name>-a`, `<name>-b`, ..., `<name>-z`, then `<name>-aa`, and so on. Never overwrite, merge, or archive unrelated folders or folders used solely as read-only inputs. If the fresh run creates a distinct new destination or is read-only, do not rename anything.
+
+The archive move needs the same local-write approval as writing the destination. Report the old and archive paths, then continue as though that run never existed. `new` does not authorize source changes, Git mutations, tests, deployment, Jira, or other remote actions.
 
 When invoked, read every `guidance.md` file from sibling skill directories and display a compact navigator. If the user included context in their prompt, suggest which skill(s) to use. When skill output exists in the workspace, surface what needs attention.
 
@@ -48,7 +55,7 @@ Available skills:
 
 =  read-only   +  adds to existing files   *  creates working files (.data/)
 
-Tip: add ? to any skill for its capability card (e.g. /nix ?)
+Tip: add `?` to any skill for its capability card (for example, `/nix ?`). Add standalone `new` after a skill name for a fresh run; an existing `.data/` or `.dac/` destination is archived with the next alphabetic suffix before that skill writes.
 ```
 
 3. Display the applicability table:
@@ -73,7 +80,9 @@ Communication   (any) -> 🎬 act
 Note search     🎗️ mem
 ```
 
-4. Check for recent skill output. Scan `.data/` for instance directories modified today (by file timestamp on `Findings.md` or `00-control.md`). Also check `.dac/` for active workstreams. If any are found, show a "Recent work" section after the applicability table:
+4. With `new`, do not scan `.data/`, `.dac/`, or `./md`, and do not read a control, Findings, or Actions file. Show the catalog and any intent-based routing only; state that prior workspace state was intentionally skipped, then stop before steps 5 and 6.
+
+5. Otherwise, check for recent skill output. Scan `.data/` for instance directories modified today (by file timestamp on `Findings.md` or `00-control.md`). Also check `.dac/` for active workstreams. If any are found, show a "Recent work" section after the applicability table:
 
 ```
 Recent work (today):
@@ -90,7 +99,7 @@ Recent work (today):
 
    Derive the skill icon from the instance prefix. Read the instance's `00-control.md` to get the subject and status. Show only the natural next skills for each instance based on the applicability flows. Keep it to 3-4 suggestions maximum.
 
-5. **Deep scan for needs-attention items.** When completed instances exist in `.data/` (any date, not just today), read the most recent `Findings.md` (and `Actions.md` if present) for the workspace and surface a "Needs attention" section. Scan for:
+6. **Deep scan for needs-attention items.** When completed instances exist in `.data/` (any date, not just today), read the most recent `Findings.md` (and `Actions.md` if present) for the workspace and surface a "Needs attention" section. Scan for:
 
    **Open questions and unresolved decisions:**
    - Headings or table rows containing "open question", "unresolved", "TBD", "to be determined", "to be confirmed", or "policy decision"

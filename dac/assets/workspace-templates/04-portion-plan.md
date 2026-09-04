@@ -25,6 +25,14 @@ inputs: 01-mission.md,02-evidence.md,03-decisions.md
 |---|---|---|---|---|---|---|
 | P-001 | To determine | M-001 | - | speckit/direct/skill/discovery/human | To determine | proposed |
 
+## 🧭 Portion necessity, reuse, and security review
+
+Complete this review for every active proposed portion before approving this plan. Read the DAC skill's `references/portion-sanity-review.md`.
+
+| Portion | Mission criterion | Existing capability or extension point inspected | Intended action | Established methodology or pattern | Authorization/security approach | Evidence | Necessity rationale | Gate status |
+|---|---|---|---|---|---|---|---|---|
+| P-001 | M-001 | To determine | reuse/extend/new/discovery/remove-defer | To determine | To determine | To determine | To determine | revise |
+
 ## Dependency graph
 
 ```text

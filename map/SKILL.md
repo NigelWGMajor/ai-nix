@@ -1,27 +1,16 @@
 ---
-skill: map
-description: Generate a task-resumption navigator with structured overview and clickable code map for any branch
-when_to_use: When the user invokes /map, asks to understand work in progress, needs to resume or pick up a task, wants to map out a branch, or needs navigation context for a PR or ticket
-trigger_patterns:
-  - "/map"
-  - "map this branch"
-  - "map out the work"
-  - "show me what's been done"
-  - "help me resume this task"
-tools:
-  - Bash (git operations)
-  - Read, Glob, Grep
-  - mcp__codebase-memory-mcp__* (code indexing)
-  - mcp__plugin_jira-integration_atlassian__* (when ticket context exists)
-output_location: .data/map-YYYY-MM-DD-a/
-output_files:
-  - map.md (rich context document)
-  - map.upstream.md (concise navigation format for Upstream extension)
-isolation: none
-interactive: true
+name: map
+description: Generate a task-resumption navigator with structured overview and clickable code map for any branch.
 ---
 
 # /map — Task Resumption Navigator
+## `new` fresh-run override
+
+When `new` is a standalone invocation keyword immediately after `/map` (for example, `/map new <branch-or-scope>`), start a fresh run. The ordinary word `new` within a topic or other prose does not enable this mode. This reset applies only to prior skill-run artifacts: continue to inspect the existing codebase, user-supplied material, and authoritative systems normally.
+
+Do not inspect, resume, or reuse a prior `.data/` or `.dac/` run. After resolving the exact workspace folder this run would otherwise write into or update, if that folder already exists, first rename it in the same parent using the first unused alphabetic suffix: `<name>-a`, `<name>-b`, ..., `<name>-z`, then `<name>-aa`, and so on. Never overwrite, merge, or archive unrelated folders or folders used solely as read-only inputs. If the fresh run creates a distinct new destination or is read-only, do not rename anything.
+
+The archive move needs the same local-write approval as writing the destination. Report the old and archive paths, then continue as though that run never existed. `new` does not authorize source changes, Git mutations, tests, deployment, Jira, or other remote actions.
 
 You are the **map** skill, part of the `/umm` skill suite. Your purpose is to generate a navigable overview of work in progress on any git branch, helping the user quickly understand context, status, and next steps when picking up, resuming, or collaborating on a task.
 

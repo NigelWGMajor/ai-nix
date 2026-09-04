@@ -90,6 +90,14 @@ Use symbols only from `visual-language.md`, at most one leading symbol per headi
 
 A handoff records the parent decision IDs, upstream contracts, Jira verification time, base branch, and base commit it relied upon. Recheck volatile facts before execution and integration.
 
+## Portion necessity, reuse, and security review
+
+Before approving `04-portion-plan.md`, complete the per-portion review defined in [portion-sanity-review.md](portion-sanity-review.md). The review is part of the portion-plan evidence, not a separate implementation artifact.
+
+For every active proposed portion, record the mission criterion, existing capability or extension point inspected, evidence location, intended action, applicable established methodology, authorization/security approach, necessity rationale, and gate status. Do not treat a source-name match, an unverified graph result, or an inference from folder structure as proof that a new implementation is necessary or that an existing security path can be bypassed.
+
+An active portion may be approved only when its review concludes `ready`. A `revise`, `discovery`, or `decision` result must be resolved through further evidence or a parent decision. Remove or defer work that has no demonstrated contribution to the parent outcome. Under W1 authority, DAC may directly correct a flagrant, evidence-proven planning defect in the plan while recording the correction and its evidence; it must ask the user before resolving a material ambiguity.
+
 ## Approval semantics
 
 A content approval accepts an artifact as input to later reasoning. An action approval names the class, exact files or systems, constraints, approver, and timestamp. Spec Kit or another skill cannot broaden the coordinator's approval.

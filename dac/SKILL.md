@@ -6,6 +6,13 @@ description: Coordinate complex Jira-backed feature or project delivery through 
 # Divide-and-Conquer Delivery
 
 > **Quick help:** If invoked with `?` as the only parameter, read [guidance.md](guidance.md) and display its contents to the user. Do not begin the coordination workflow.
+## `new` fresh-run override
+
+When `new` is a standalone invocation keyword (for example, `/nix new <topic>`), start a fresh run. The ordinary word `new` within a topic or other prose does not enable this mode. This reset applies only to prior skill-run artifacts: continue to inspect the existing codebase, user-supplied material, and authoritative systems normally.
+
+Do not inspect, resume, or reuse a prior `.data/` or `.dac/` run. After resolving the exact workspace folder this run would otherwise write into or update, if that folder already exists, first rename it in the same parent using the first unused alphabetic suffix: `<name>-a`, `<name>-b`, ..., `<name>-z`, then `<name>-aa`, and so on. Never overwrite, merge, or archive unrelated folders or folders used solely as read-only inputs. If the fresh run creates a distinct new destination or is read-only, do not rename anything.
+
+The archive move needs the same local-write approval as writing the destination. Report the old and archive paths, then continue as though that run never existed. `new` does not authorize source changes, Git mutations, tests, deployment, Jira, or other remote actions.
 
 ## Objective
 
@@ -71,6 +78,7 @@ Major phases:
 
 1. Confirm the repository root, branch, HEAD, and worktree state without changing them.
 2. Identify the parent Jira issue or stable workstream ID. The normal form is `PD-######`; do not guess among plausible parents. Accept another key only when the user explicitly supplies that exact alternative key in the prompt.
+   - An explicitly supplied suffixed folder such as `PD-123456-b` is an exact workspace selector. Treat `.dac/PD-123456-b/` as the current workspace and resume its control file; do not normalize it to `PD-123456` or scan sibling suffixes.
 3. Discover available Jira, repository, GitHub, Spec Kit, and skill capabilities.
 For Jira access, use the available Atlassian plugin or MCP capability. Verify it with a lightweight read before relying on Jira evidence.
 For repository code discovery, prefer the available Codebase Knowledge Graph MCP; fall back to text search only when graph results are insufficient.
@@ -79,8 +87,10 @@ For repository code discovery, prefer the available Codebase Knowledge Graph MCP
    > 1. Run `! /mcp` in this prompt to check MCP server status
    > 2. Use `curl` with your MCP credentials to access the Atlassian API directly
 4. Look for `.dac/<workstream>/00-control.md`.
+   - With `new`, do not read the existing control file. Once W1 is approved, archive that exact `.dac/<workstream>/` folder under the fresh-run rule before initialization, then start at Align as though it had not existed.
    - For automatic discovery, only consider directories whose name exactly matches the parent-ticket form `PD-######` (case-insensitive). Ignore every other folder under `.dac/`, including legacy, scratch, and similarly named directories.
    - If the user explicitly supplied a non-PD key, do not scan non-PD folders; check only the exact `.dac/<explicit-key>/00-control.md` path.
+   - If that exact suffixed folder exists, resume it even when its internal `workstream` value remains the unsuffixed Jira key. Initialize a suffixed key only when the user actually intends a distinct new workstream.
    - If it exists, read it first and resume its recorded next action.
    - If it does not, align on the intended outcome in conversation and request W1 approval.
 5. After W1 approval, initialize the workspace:
@@ -88,6 +98,8 @@ For repository code discovery, prefer the available Codebase Knowledge Graph MCP
 ```bash
 python <skill-dir>/scripts/dac.py init --workstream PD-123456 --repo-root . --title "Outcome"
 ```
+
+For a genuinely new explicitly supplied non-PD workstream, add `--allow-non-pd` to `dac.py init`. Do not initialize an existing archived suffix; resume that exact folder instead.
 
 Read [references/artifact-contract.md](references/artifact-contract.md) before initializing, approving, resuming, or validating a workspace.
 
@@ -150,6 +162,19 @@ Each portion must have:
 **Split by expertise domain by default.** When work spans distinct expertise boundaries — SQL/database, Elasticsearch/search, backend/API, frontend/UI — create separate portions for each domain even if the changes are small. This ensures each portion can be routed to an appropriate executor and reviewed by domain experts. Only combine cross-domain work into a single portion when the changes are so tightly coupled that splitting would create circular dependencies.
 
 Prefer vertical slices within a domain. Create a foundation portion only for a genuinely shared contract, additive schema, compatibility adapter, migration, or reusable capability. Reject cycles, hidden blockers, unsafe parallel file overlap, and partitions that merely mirror architecture layers.
+
+### 2a. Mandatory per-portion necessity, reuse, and security review
+
+Before requesting approval for `04-portion-plan.md` or moving to Jira allocation, read [references/portion-sanity-review.md](references/portion-sanity-review.md) and complete its review for **every active proposed portion**.
+
+Use repository instructions, code, tests, and the Codebase Knowledge Graph to establish the existing capability, extension point, established methodology, and authorization/security path relevant to each portion. Record the result in the **Portion necessity, reuse, and security review** section of `04-portion-plan.md`, including the requirement covered, evidence links, intended action (`reuse`, `extend`, `new`, `discovery`, or `remove/defer`), security approach, and gate status.
+
+- Do not propose a new service, class, abstraction, contract, schema, pipeline, or authorization mechanism merely because it makes the portion description convenient. First establish that no suitable existing capability or approved extension point can meet the need.
+- Treat a missing, inaccessible, or ambiguous source of truth as `discovery` or `revise`, not as justification for net-new implementation or a security bypass.
+- A `new` action needs a concise necessity case: the existing capabilities inspected, why reuse or extension is insufficient, the owner and boundary of the new capability, the established pattern it follows, and its authorization/security obligations.
+- A portion may proceed to content approval only when its review status is `ready`, or it has been explicitly removed or deferred. Resolve `revise`, `discovery`, and `decision` outcomes through evidence or a parent decision before allocating Jira work or creating an implementation envelope.
+- With W1 authority, automatically correct a flagrant planning defect only when direct evidence establishes the correction and it preserves the approved mission: revise a `new` action to `reuse` or `extend`, remove a redundant portion, or name the established authorization/security path. Record the evidence and correction in the portion plan and control change log.
+- When reasonable alternatives remain, such as competing extension points, unclear ownership, compatibility consequences, or ambiguous authorization behavior, do not choose silently. Record the alternatives and ask the user one consequential question before proceeding.
 
 ### 3. Jira allocation decision (MANDATORY)
 

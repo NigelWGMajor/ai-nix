@@ -1,3 +1,8 @@
+---
+name: dora
+description: Discover and maintain a persistent graph of codebase observations and relationships through dora-mcp. Use for query-driven system discovery, tracing, debugging, and onboarding.
+---
+
 # DORA - Discovery Observation-Relationship Architecture
 
 **Phase:** 1 - Core Scaffolding  

@@ -6,6 +6,13 @@ description: Get guidance on DAC (Divide-and-Conquer) workflow. Use when stuck, 
 # DAC Help
 
 > **Quick help:** If invoked with `?` as the only parameter, read [guidance.md](guidance.md) and display its contents to the user. Do not begin the help workflow.
+## `new` fresh-run override
+
+When `new` is a standalone invocation keyword (for example, `/nix new <topic>`), start a fresh run. The ordinary word `new` within a topic or other prose does not enable this mode. This reset applies only to prior skill-run artifacts: continue to inspect the existing codebase, user-supplied material, and authoritative systems normally.
+
+Do not inspect, resume, or reuse a prior `.data/` or `.dac/` run. After resolving the exact workspace folder this run would otherwise write into or update, if that folder already exists, first rename it in the same parent using the first unused alphabetic suffix: `<name>-a`, `<name>-b`, ..., `<name>-z`, then `<name>-aa`, and so on. Never overwrite, merge, or archive unrelated folders or folders used solely as read-only inputs. If the fresh run creates a distinct new destination or is read-only, do not rename anything.
+
+The archive move needs the same local-write approval as writing the destination. Report the old and archive paths, then continue as though that run never existed. `new` does not authorize source changes, Git mutations, tests, deployment, Jira, or other remote actions.
 
 ## Objective
 
@@ -23,10 +30,11 @@ Provide contextual guidance for users working with the DAC (Divide-and-Conquer) 
 
 ## Approach
 
-1. **Check for active DAC workspace** in current directory (`.dac/<workstream>/`)
-2. If found, **read `00-control.md`** to understand current phase and state
-3. If a `references/visual-language.md` exists in the DAC skill directory, read it and use its symbol palette when formatting help output. Do not hardcode symbols.
-4. **Provide contextual help** based on:
+1. With `new`, do not scan `.dac/` or read any `00-control.md`. Give only fresh-start guidance: explain that `/dac new <workstream>` archives the exact target when necessary and begins at Align after W1 approval.
+2. **Otherwise, check for an active DAC workspace** in current directory (`.dac/<workstream>/`)
+3. If found, **read `00-control.md`** to understand current phase and state
+4. If a `references/visual-language.md` exists in the DAC skill directory, read it and use its symbol palette when formatting help output. Do not hardcode symbols.
+5. **Provide contextual help** based on:
    - Current phase (Align, Partition, Jira, Execute, Integrate)
    - User's specific question
    - Common patterns and anti-patterns
@@ -278,7 +286,7 @@ Is work too big for one PR?
 
 Always:
 1. Acknowledge the user's current situation
-2. Show the progress indicator if in active DAC workspace
+2. Show the progress indicator if in active DAC workspace, unless `new` is active
 3. Provide specific, actionable guidance
 4. Reference relevant documentation sections
 5. Offer to help with next step
