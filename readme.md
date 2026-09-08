@@ -2,10 +2,19 @@
 
 **this file is maintained by the author**
 
-Need to assist with reviewing information.
-- reduce cognitive load by organizing and layering info
-- link sources for audit and provenance
-- summarize and visualize
+
+## Intent
+
+These tools provide similar skills, but differentiated and tuned for different purposes.
+
+
+
+## Output formats
+
+The tools here typically use intermediary files and output files to allow idempotent use, and also to have allow findings of one step to be used in the next.,
+
+An environment variable TOOLING_OUTPUT_PATH shuld be set to where you want the output to go:
+for example, if your global git exclusion files excludes any .data folder, you might specify ".data" which is the default, based on thne current working directory. Becauase the outgputs are organized in folders with he tool name and the date, iyou may bprefer to just keep all in one folder, in which case specify an absolute path (e.g. c:\output\).
 
 ## Typical tasks:
   - 💭 orientation - intent, overview
@@ -33,19 +42,11 @@ Need to assist with reviewing information.
 
 ### 🪄 WIZ Deep work-in-progress review
   - Review Jira ticket, PR, or branch work with traceable finding chains (F-01 -> I-01 -> A-01)
-  - Use `/wiz` to follow up a nix discovery with deeply analyzed, calibrated findings.
-
-### 📚 LIT Layered Information Technique
-  - Turn dense source documents into layered, traceable, evidence-linked guides
-  - Use `/lit` to synthesize technical documents into a professional guide with progressive disclosure.
+  - Use `/wiz` for deeply analyzed, calibrated findings.
 
 ### 📃 KIT Speckit Analysis
   - Review and reconstruct SpecKit project status with evidence-backed traceability
   - Use `/kit` to reorient and sanity-check a speckit-based branch.
-
-### 🖼️ PIX Slideshow generator
-  - Present documented information as a Marp-compatible visual slideshow
-  - Use `/pix` to transform a document through Survey, Storyboard, Compose, Polish, and Deliver.
 
 ### 🧩 DAC Divide and conquer
   - Coordinate complex Jira-backed delivery through dependency-aware portions
@@ -63,6 +64,18 @@ Need to assist with reviewing information.
   - Test strategies, test data generation, and coverage assessment
   - Use `/val` to design validation, generate test cases, and assess whether a solution works.
 
+### 📚 LIT Layered Information Technique
+  - Turn dense source documents into layered, traceable, evidence-linked guides
+  - Use `/lit` to synthesize technical documents into a professional guide with progressive disclosure.
+
+### 🖼️ PIX Slideshow generator
+  - Present documented information as a Marp-compatible visual slideshow
+  - Use `/pix` to transform a document through Survey, Storyboard, Compose, Polish, and Deliver.
+
+###  Tutorial 
+  - Format documentation or analysis as a tutorial
+  - Use `/tut` to produce targeted tutorial from findings or research
+     
 ### 🎬 ACT Action extraction
   - Turn analysis into tickets, summaries, task lists, and handoff notes
   - Use `/act` to extract a concise actionable artifact from any analysis output.
@@ -76,15 +89,15 @@ Need to assist with reviewing information.
 | Context        | Typical flow                                          |
 | -------------- | ----------------------------------------------------- |
 | Documentation  | 📚 lit -> 🖼️ pix                                     |
-| Research       | 🦄 nix -> 📚 lit -> 🖼️ pix                           |
+| Research       | 🦄 nix -> 📚 lit -> 🖼️ pix or                        |
 | Design         | 🦄 nix -> 📚 lit -> 🖼️ pix                           |
-| Issue triage   | 🦄 nix -> 🪄 wiz -> 📚 lit -> 🖼️ pix                 |
-| Epics          | 🦄 nix -> 🪄 wiz, then 🧩 dac to coordinate          |
-| Stories        | 🦄 nix -> 🪄 wiz, then 🧩 dac to coordinate          |
-| WIP            | 🦄 nix -> 🪄 wiz -> 👮 cop -> 🌡️ val                 |
+| Issue triage   | 🪄 wiz -> 📚 lit -> 🖼️ pix                           |
+| Epics          | 🪄 wiz, then 🧩 dac to coordinate                    |
+| Stories        | 🪄 wiz, then 🧩 dac to coordinate                    |
+| WIP            | 🦄 nix or 🪄 wiz or 🛠️ fix -> 👮 cop -> 🌡️ val       |
 | Speckit        | 📃 kit                                                |
-| PRs            | 🦄 nix -> 🪄 wiz -> 👮 cop                            |
-| Bugs/Incidents | 🛠️ fix -> 🎬 act (ticket) or 🛠️ fix -> 👮 cop         |
+| PRs            | 🦄 nix | 🪄 wiz or 🛠️ fix -> 👮 cop                  |
+| Bugs/Incidents | 🛠️ fix -> 🎬 act (ticket) or 🛠️ fix -> 👮 cop        |
 | Test planning  | 🌡️ val                                                |
 | Communication  | (any skill) -> 🎬 act                                 |
 
@@ -103,6 +116,7 @@ npm install
 ```
 
 **Configure in `~/.claude/config.json`:**
+(use your appopriate paths)
 ```json
 {
   "mcpServers": {
@@ -123,30 +137,11 @@ Run `00-propagate-skills-to-claude-agent-codex.cmd` to deploy all skills from th
 - `%USERPROFILE%\.codex\skills\`
 - `%USERPROFILE%\.agents\skills\`
 
-**Important:** Always edit skills in this repo (B:\ai\ai-nix), not in the deployed locations. Deployed copies are overwritten on each propagation.
+**Important:** Always edit skills in this repo, not in the deployed locations. Deployed copies are overwritten on each propagation.
 
-🚧 🚧 🚧 🚧 🚧 🚧 🚧 🚧 tasks
+The master visual-language.md file and other standards are typically copied form the nix folders: check the deployment ps1 files to be sure! At the time of writing, the critical fles that propagate to other tools are:
+- /nix/references/visual-language.md
+- /nix/references/docuemntation-standard.md
 
-✔️ make the graphics consistent through the skill series
-
-✔️ make lit capable of exporting confluence/jira to a md capture (all skills now have ./md capture)
-
-✔️ update the skill descriptions
-
-✔️ review the wiz skill compared with the nix
-
-  - nix is quicker, more concise (Compact/Standard/Deep)
-  - wiz is deeper with traceable finding chains (Quick/Standard/Deep)
-  - both use the shared visual language
-
-✔️ review the dac skill
-
-  - uses shared visuals in all workspace templates
-
-✔️ review cop
-
-  - reads prefactoring development guidance
-  - AI-specific vulnerabilities extracted to references/ai-vulnerabilities.md
-  - uses shared visual language
-
-✔️ review the yaml for consistency
+Specific to our work environment, there is a yaml file that defines the ids of Jira fields:
+- jira-fields.local.yaml

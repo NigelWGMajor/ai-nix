@@ -10,6 +10,7 @@ It does not commit, push, call Jira, GitHub, Spec Kit, tests, builds, deployment
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -118,6 +119,19 @@ def validate_executor(value: str) -> str:
             "Executor must be speckit, direct, discovery, human, or skill:<name>."
         )
     return normalized
+
+
+def resolve_output_base(repo_root: Path) -> Path:
+    """Resolve TOOLING_OUTPUT_PATH, defaulting to the .data output base."""
+    configured = os.environ.get("TOOLING_OUTPUT_PATH", ".data").strip() or ".data"
+    if configured == ".data":
+        return (repo_root / ".data").resolve()
+    candidate = Path(configured).expanduser()
+    if candidate.is_absolute():
+        return candidate.resolve()
+    if configured.startswith(("./", ".\\")):
+        return (repo_root / candidate).resolve()
+    raise ValueError("TOOLING_OUTPUT_PATH must be absolute or start with './' or '.\\'")
 
 
 def frontmatter_bounds(text: str) -> Tuple[int, int]:
@@ -363,7 +377,12 @@ def command_init(args: argparse.Namespace) -> int:
     repo_root = Path(args.repo_root).expanduser().resolve()
     if not repo_root.is_dir():
         raise ValueError(f"Repository root is not a directory: {repo_root}")
-    workspace = repo_root / args.workspace_dir / workstream
+    if args.workspace_dir:
+        candidate = Path(args.workspace_dir).expanduser()
+        workspace_dir = candidate.resolve() if candidate.is_absolute() else (repo_root / candidate).resolve()
+    else:
+        workspace_dir = resolve_output_base(repo_root) / ".dac"
+    workspace = workspace_dir / workstream
     if workspace.exists():
         raise ValueError(f"Workspace already exists: {workspace}. Resume it instead.")
 
@@ -1330,7 +1349,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Allow an explicitly user-supplied non-PD workstream key.",
     )
     init_parser.add_argument("--repo-root", default=".")
-    init_parser.add_argument("--workspace-dir", default=".dac")
+    init_parser.add_argument("--workspace-dir", help="Explicit DAC parent; overrides TOOLING_OUTPUT_PATH.")
     init_parser.add_argument("--title", default="")
     init_parser.add_argument("--jira-url", default="")
     init_parser.set_defaults(func=command_init)

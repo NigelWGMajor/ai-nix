@@ -14,6 +14,10 @@ Do not inspect, resume, or reuse a prior `.data/` or `.dac/` run. After resolvin
 
 The archive move needs the same local-write approval as writing the destination. Report the old and archive paths, then continue as though that run never existed. `new` does not authorize source changes, Git mutations, tests, deployment, Jira, or other remote actions.
 
+## Output location
+
+Resolve `TOOLING_OUTPUT_PATH` before locating or creating a DAC workspace. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the repository root; reject other relative forms. All `.dac/` paths below mean `<output-base>/.dac/`; when unset, retain the repository-root default. An explicit `--workspace-dir` remains an override.
+
 ## Objective
 
 Coordinate a large outcome without requiring any participant to hold the whole implementation in context. Keep shared intent, decisions, dependencies, Jira visibility, and integration at the parent level. Give each executor a bounded portion envelope and require a normalized result.

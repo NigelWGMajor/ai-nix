@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import os
 import re
 import shutil
 import sys
@@ -44,6 +45,19 @@ def find_workspace(start: Path) -> Path:
 
     # 3. Fallback to OS-specific data directory
     return get_fallback_path()
+
+
+def resolve_output_base(workspace: Path) -> Path:
+    """Resolve TOOLING_OUTPUT_PATH, defaulting to the legacy .data directory."""
+    configured = os.environ.get("TOOLING_OUTPUT_PATH", ".data").strip() or ".data"
+    if configured == ".data":
+        return (workspace / ".data").resolve()
+    candidate = Path(configured).expanduser()
+    if candidate.is_absolute():
+        return candidate.resolve()
+    if configured.startswith(("./", ".\\")):
+        return (workspace / candidate).resolve()
+    raise ValueError("TOOLING_OUTPUT_PATH must be absolute or start with './' or '.\\'")
 
 
 def alphabetic_suffix(index: int) -> str:
@@ -168,7 +182,7 @@ def create_instance(
     if not template.is_file():
         raise FileNotFoundError(f"findings template not found: {template}")
 
-    instance = allocate_instance(workspace / ".data", date_value)
+    instance = allocate_instance(resolve_output_base(workspace) / ".data", date_value)
     created = dt.datetime.now(tz=dt.timezone.utc).isoformat()
     try:
         write_text(

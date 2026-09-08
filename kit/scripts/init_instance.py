@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import os
 import hashlib
 import re
 import shutil
@@ -65,6 +66,19 @@ def resolve_repo(start: Path) -> Path:
 
     # 3. Fallback to OS-specific data directory
     return get_fallback_path()
+
+
+def resolve_output_base(workspace: Path) -> Path:
+    """Resolve TOOLING_OUTPUT_PATH, defaulting to the legacy .data directory."""
+    configured = os.environ.get("TOOLING_OUTPUT_PATH", ".data").strip() or ".data"
+    if configured == ".data":
+        return (workspace / ".data").resolve()
+    candidate = Path(configured).expanduser()
+    if candidate.is_absolute():
+        return candidate.resolve()
+    if configured.startswith(("./", ".\\")):
+        return (workspace / candidate).resolve()
+    raise ValueError("TOOLING_OUTPUT_PATH must be absolute or start with './' or '.\\'")
 
 
 def alphabetic_suffix(index: int) -> str:
@@ -540,7 +554,7 @@ def main() -> int:
         output_root = (
             args.output_root.expanduser().resolve()
             if args.output_root
-            else (workspace / ".data").resolve()
+            else (resolve_output_base(workspace) / ".data").resolve()
         )
         ensure_ignored_output(repo, output_root)
         instance = create_instance(

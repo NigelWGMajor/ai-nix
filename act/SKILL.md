@@ -14,6 +14,10 @@ Do not inspect, resume, or reuse a prior `.data/` or `.dac/` run. After resolvin
 
 The archive move needs the same local-write approval as writing the destination. Report the old and archive paths, then continue as though that run never existed. `new` does not authorize source changes, Git mutations, tests, deployment, Jira, or other remote actions.
 
+## Output location
+
+Act does not create a separate output instance. When its source is a writable output-instance folder from another tool, write `Actions.md` alongside that source regardless of `TOOLING_OUTPUT_PATH`; otherwise return the action only in conversation.
+
 Transform analysis, findings, or raw information into a concise artifact shaped for a specific action:
 
 `Intake -> Distill -> Shape -> Deliver`

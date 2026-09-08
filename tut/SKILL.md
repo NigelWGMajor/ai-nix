@@ -14,6 +14,10 @@ Do not inspect, resume, or reuse a prior `.data/` or `.dac/` run. After resolvin
 
 The archive move needs the same local-write approval as writing the destination. Report the old and archive paths, then continue as though that run never existed. `new` does not authorize source changes, Git mutations, tests, deployment, Jira, or other remote actions.
 
+## Output location
+
+Resolve `TOOLING_OUTPUT_PATH` before locating or creating durable output. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the resolved repository root (or current folder when no repository is available); reject other relative forms. All `.data/` paths below mean `<output-base>/.data/`; when unset, retain the workspace-root default.
+
 Generate a professional, self-contained tutorial document that guides any reader through a task from start to finish using a two-pass method:
 
 `Scope -> Research -> Outline -> Draft -> Verify -> Deliver`
