@@ -16,7 +16,7 @@ The archive move needs the same local-write approval as writing the destination.
 
 ## Output location
 
-Resolve `TOOLING_OUTPUT_PATH` before locating a DAC workspace. When set, all `.dac/` paths below mean `<output-base>/.dac/`, where an absolute value is the base and `./` or `.\\` is relative to the repository root. When unset, retain the repository-root default.
+Resolve `TOOLING_OUTPUT_PATH` before locating a DAC workspace. All `.dac/` paths below mean `<output-base>/.dac/`, where an absolute value is the base and `./` or `.\\` is relative to the repository root. When unset, the output base is `<repository-root>/.data`.
 
 ## Objective
 

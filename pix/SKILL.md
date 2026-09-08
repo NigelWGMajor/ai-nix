@@ -31,7 +31,7 @@ Produce a presentation that communicates the source's key messages through progr
 
 ## Begin or resume
 
-Determine whether the request identifies an existing PIX instance. If a `.data/pix-*` directory exists under the workspace root:
+Determine whether the request identifies an existing PIX instance. If an `<output-base>/pix-*` directory exists:
 
 1. Read its `00-control.md` first.
 2. Ask the user whether to **resume** the prior slideshow or **start a new instance**.
@@ -43,7 +43,7 @@ Determine whether the request identifies an existing PIX instance. If a `.data/p
 Apply this precedence:
 
 1. Use an explicit document path or pasted content as the source.
-2. When pointed at a `.data/<skill>-*` instance directory, use its `Findings.md` as the source.
+2. When pointed at a tool output-instance directory, use its `Findings.md` as the source.
 3. When pointed at a directory containing a single prominent markdown document, use it.
 4. With no clear source, ask one concise question. Do not guess.
 
@@ -160,7 +160,7 @@ For Standard or Extended work, initialize a durable instance before substantial 
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --source "<source-path>" --title "<title>" --audience "<audience>" --depth <short|standard|extended>
 ```
 
-The initializer creates the next collision-safe `.data/pix-YY-MM-DD-<suffix>` directory under the resolved workspace root. It creates `.data` when needed, never overwrites an existing instance, and copies the slideshow template to `Findings.md`. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker.
+The initializer creates the next collision-safe `<output-base>/pix-YY-MM-DD-<suffix>` directory. It creates the output base when needed, never overwrites an existing instance, and copies the slideshow template to `Findings.md`. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker.
 
 Maintain:
 

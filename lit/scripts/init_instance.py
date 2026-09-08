@@ -182,7 +182,7 @@ def create_instance(
     if not template.is_file():
         raise FileNotFoundError(f"findings template not found: {template}")
 
-    data_dir = resolve_output_base(workspace) / ".data"
+    data_dir = resolve_output_base(workspace)
     data_dir.mkdir(parents=True, exist_ok=True)
 
     instance_dir = None
@@ -209,7 +209,7 @@ def create_instance(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create the next .data/lit-YY-MM-DD-<suffix> analysis instance."
+        description="Create the next <output-base>/lit-YY-MM-DD-<suffix> analysis instance."
     )
     parser.add_argument(
         "--workspace",

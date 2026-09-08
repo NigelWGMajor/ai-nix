@@ -16,7 +16,7 @@ The archive move needs the same local-write approval as writing the destination.
 
 ## Output location
 
-When searching for skill output, resolve `TOOLING_OUTPUT_PATH` first: absolute values are the output base and `./` or `.\\` is relative to the repository root or current folder. Search its `.data/` and `.dac/` children; when unset, retain workspace-root behavior.
+When searching for skill output, resolve `TOOLING_OUTPUT_PATH` first: absolute values are the output base and `./` or `.\\` is relative to the repository root or current folder. Search the output base directly for standard skill runs and `<output-base>/.dac/` for DAC workspaces; when unset, the output base is `<workspace-root>/.data`.
 
 When invoked, read every `guidance.md` file from sibling skill directories and display a compact navigator. If the user included context in their prompt, suggest which skill(s) to use. When skill output exists in the workspace, surface what needs attention.
 

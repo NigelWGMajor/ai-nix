@@ -10,7 +10,7 @@ description: Extract concise, focused information from analysis output or raw ma
 
 When `new` is a standalone invocation keyword (for example, `/nix new <topic>`), start a fresh run. The ordinary word `new` within a topic or other prose does not enable this mode. This reset applies only to prior skill-run artifacts: continue to inspect the existing codebase, user-supplied material, and authoritative systems normally.
 
-Do not inspect, resume, or reuse a prior `.data/` or `.dac/` run. After resolving the exact workspace folder this run would otherwise write into or update, if that folder already exists, first rename it in the same parent using the first unused alphabetic suffix: `<name>-a`, `<name>-b`, ..., `<name>-z`, then `<name>-aa`, and so on. Never overwrite, merge, or archive unrelated folders or folders used solely as read-only inputs. If the fresh run creates a distinct new destination or is read-only, do not rename anything.
+Do not inspect, resume, or reuse a prior tool output run. After resolving the exact workspace folder this run would otherwise write into or update, if that folder already exists, first rename it in the same parent using the first unused alphabetic suffix: `<name>-a`, `<name>-b`, ..., `<name>-z`, then `<name>-aa`, and so on. Never overwrite, merge, or archive unrelated folders or folders used solely as read-only inputs. If the fresh run creates a distinct new destination or is read-only, do not rename anything.
 
 The archive move needs the same local-write approval as writing the destination. Report the old and archive paths, then continue as though that run never existed. `new` does not authorize source changes, Git mutations, tests, deployment, Jira, or other remote actions.
 
@@ -29,7 +29,7 @@ Act is the last-mile skill. It takes the output of any other skill (or raw mater
 - Contain the entire method in this package.
 - Never require, invoke, or read RECIPE, LIT, KIT, NIX, WIZ, their phase skills, their caches, or their outputs at runtime.
 - Do not require subagents, mentor agents, special slash commands, or model routing.
-- Always produce output in the conversation. When the source is a `.data/<skill>-*` instance, also write the artifact to `Actions.md` in that same instance directory so it is discoverable by `/umm` and other skills that scan for completed work. With `new`, treat that supplied instance as read-only and return the action only in conversation; Act does not create its own `.data/` instances.
+- Always produce output in the conversation. When the source is a writable tool output-instance directory, also write the artifact to `Actions.md` in that same directory so it is discoverable by `/umm` and other skills that scan for completed work. With `new`, treat that supplied instance as read-only and return the action only in conversation; Act does not create its own output instances.
 - Do not perform the underlying analysis. If the source material is insufficient, recommend the appropriate analysis skill first.
 - Read-only: do not create Jira tickets, send messages, or push content to external systems unless the user separately authorizes that specific action.
 
@@ -47,7 +47,7 @@ Identify two things:
 
 1. **Source material**: what to extract from. One of:
    - Output from another skill (a Findings.md, a wiz review, a fix diagnosis, a nix analysis).
-   - A `.data/<skill>-*` instance directory — use its `Findings.md`.
+   - A tool output-instance directory — use its `Findings.md`.
    - Raw material supplied in the prompt (pasted text, URLs, conversation context).
    - The current workspace state (branch, diff, recent commits).
 
@@ -135,7 +135,7 @@ Format for the target medium:
 Present the artifact:
 
 - Return the shaped artifact in the conversation, ready to copy.
-- When the source is a `.data/<skill>-*` instance's `Findings.md`, also write the artifact to `Actions.md` in that instance directory alongside the source unless `new` is active. With `new`, keep the supplied source instance read-only and return the action only in conversation.
+- When the source is a tool output instance's `Findings.md`, also write the artifact to `Actions.md` in that instance directory alongside the source unless `new` is active. With `new`, keep the supplied source instance read-only and return the action only in conversation.
 - If the target is a Jira ticket, format with clear field labels so it can be pasted into Jira.
 - If multiple artifacts were requested, separate them clearly.
 - State what was omitted and why, so the user can judge completeness.

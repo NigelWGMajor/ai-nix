@@ -13,8 +13,7 @@ These tools provide similar skills, but differentiated and tuned for different p
 
 The tools here typically use intermediary files and output files to allow idempotent use, and also to have allow findings of one step to be used in the next.,
 
-An environment variable TOOLING_OUTPUT_PATH shuld be set to where you want the output to go:
-for example, if your global git exclusion files excludes any .data folder, you might specify ".data" which is the default, based on thne current working directory. Becauase the outgputs are organized in folders with he tool name and the date, iyou may bprefer to just keep all in one folder, in which case specify an absolute path (e.g. c:\output\).
+Set `TOOLING_OUTPUT_PATH` to choose the shared output base. When it is unset, the default is `<workspace-root>/.data`. An absolute value is used directly; a value starting `./` or `.\` is relative to the resolved workspace root. Standard tool runs are created directly beneath that base, organized by tool name and date. DAC workspaces are created beneath `<output-base>/.dac`.
 
 ## Typical tasks:
   - 💭 orientation - intent, overview

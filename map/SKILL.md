@@ -102,7 +102,7 @@ This skill runs **inline and interactive** — time varies with complexity. Paus
    
    **E. Check for other skill artifacts:**
    ```bash
-   ls -d .data/fix-* .data/nix-* .data/wiz-* 2>/dev/null
+   # Inspect <output-base>/fix-*, <output-base>/nix-*, and <output-base>/wiz-* after resolving TOOLING_OUTPUT_PATH.
    ```
 
 3. **Report detection results**
@@ -324,9 +324,9 @@ Determine output location based on project type:
    # Output: specs/<feature>/map/map.md and map.upstream.md
    ```
 
-3. **Default (ticket-driven, utility, main-history)**: Use standard `.data/` location
+3. **Default (ticket-driven, utility, main-history)**: Use the standard output base
    ```bash
-   # Output: .data/map-YY-MM-DD-a/map.md and map.upstream.md
+   # Output: <output-base>/map-YY-MM-DD-a/map.md and map.upstream.md
    ```
 
 #### File 1: map.md (Rich Context)
@@ -580,15 +580,15 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 ### Phase 6: Output Delivery
 
 After generating both files:
-1. Write to `.data/map-YYYY-MM-DD-a/map.md`
-2. Write to `.data/map-YYYY-MM-DD-a/map.upstream.md`
+1. Write to `<output-base>/map-YYYY-MM-DD-a/map.md`
+2. Write to `<output-base>/map-YYYY-MM-DD-a/map.upstream.md`
 3. Report to user:
 
 ```
 Work map generated for branch `[name]`.
 
-📄 Rich context: .data/map-YYYY-MM-DD-a/map.md
-🔗 Quick nav: .data/map-YYYY-MM-DD-a/map.upstream.md
+📄 Rich context: <output-base>/map-YYYY-MM-DD-a/map.md
+🔗 Quick nav: <output-base>/map-YYYY-MM-DD-a/map.upstream.md
 
 **Summary**: [one-line summary of status — e.g., "3 components complete, 2 partial, 1 needed"]
 **Next step**: [most immediate action item]

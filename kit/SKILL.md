@@ -155,7 +155,7 @@ Prefer the supplied initializer after resolving the target:
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --repo <repo> --mode <review|snapshot|resume> --feature-dir <feature-dir> --base <base-ref> [--previous <kit-instance>]
 ```
 
-The initializer captures a read-only local Git snapshot, hashes known Spec Kit artifacts, and creates the next collision-safe `.data/kit-YY-MM-DD-<suffix>` directory under the resolved workspace root. Pass the resolved workspace root explicitly; do not substitute the repository root when the workspace root differs. It refuses to write inside an unignored repository path. Use `--output-root` to select an approved location outside the repository when necessary. Never modify `.gitignore` automatically.
+The initializer captures a read-only local Git snapshot, hashes known Spec Kit artifacts, and creates the next collision-safe `<output-base>/kit-YY-MM-DD-<suffix>` directory. Pass the resolved workspace root explicitly; do not substitute the repository root when the workspace root differs. It refuses to write inside an unignored repository path. Use `--output-root` to select an approved location outside the repository when necessary. Never modify `.gitignore` automatically.
 
 Maintain:
 

@@ -150,9 +150,9 @@ Prefer the supplied initializer because it creates a collision-safe directory an
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --purpose "<purpose>" --audience "<audience>"
 ```
 
-The initializer creates `.data/lit-YY-MM-DD-<suffix>` under the resolved workspace root using the next available lowercase alphabetic suffix. It creates `.data` if needed and never overwrites an existing instance. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker. When the environment cannot execute Python, reproduce the same structure manually without reusing an existing directory.
+The initializer creates `<output-base>/lit-YY-MM-DD-<suffix>` using the next available lowercase alphabetic suffix. It creates the output base if needed and never overwrites an existing instance. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker. When the environment cannot execute Python, reproduce the same structure manually without reusing an existing directory.
 
-Assume `.data` is excluded when the workspace is a Git repository. Never modify `.gitignore`. Never add instance artifacts or the final document to source control.
+When the default `<workspace-root>/.data` output base is used in a Git repository, assume it is excluded. Never modify `.gitignore`. Never add instance artifacts or the final document to source control.
 
 Maintain these files:
 

@@ -193,7 +193,7 @@ def create_instance(
     if not template.is_file():
         raise FileNotFoundError(f"findings template not found: {template}")
 
-    instance = allocate_instance(resolve_output_base(workspace) / ".data", date_value)
+    instance = allocate_instance(resolve_output_base(workspace), date_value)
     created = dt.datetime.now(tz=dt.timezone.utc).isoformat()
     try:
         write_text(
@@ -211,7 +211,7 @@ def create_instance(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create the next .data/wiz-YY-MM-DD-<suffix> review instance."
+        description="Create the next <output-base>/wiz-YY-MM-DD-<suffix> review instance."
     )
     parser.add_argument(
         "--workspace",

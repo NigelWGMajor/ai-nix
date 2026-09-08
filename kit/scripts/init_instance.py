@@ -554,7 +554,7 @@ def main() -> int:
         output_root = (
             args.output_root.expanduser().resolve()
             if args.output_root
-            else (resolve_output_base(workspace) / ".data").resolve()
+            else resolve_output_base(workspace)
         )
         ensure_ignored_output(repo, output_root)
         instance = create_instance(

@@ -7,11 +7,13 @@ Use this baseline for slideshow output produced by PIX. Adapts the shared LIT/KI
 - Treat a slideshow as a durable artifact, not terminal-only output.
 - Use a chat-only response only when the user explicitly requests it or the skill classifies the work as Short and the user permits chat-only output.
 - Resolve the workspace root in this order: an explicit user-supplied workspace root, the configured workspace root that contains the source, the repository root, then the current working directory.
-- **Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
-- Treat `.data` as an output directory, never as a workspace marker. Do not walk upward merely to reuse an existing `.data` directory.
-- Store a new run under `<workspace-root>/.data/pix-YY-MM-DD-<suffix>/`, where the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
+- Resolve one **output base** before locating or creating a run:
+  1. If `TOOLING_OUTPUT_PATH` is set, use its absolute value directly. A value beginning `./` or `.\` is relative to the resolved workspace root (or current folder when no repository is available).
+  2. Otherwise use `<workspace-root>/.data`.
+- The output base already names the output directory. Never append another `.data` segment to it.
+- Store a new run under `<output-base>/pix-YY-MM-DD-<suffix>/`, where the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.
-- Create `.data` when needed. Never modify `.gitignore` automatically and never stage, commit, or publish generated artifacts.
+- Create the output base when needed. Never modify `.gitignore` automatically and never stage, commit, or publish generated artifacts.
 - Keep working notes and control artifacts in the instance, but always name the reader-facing deliverable `Findings.md`.
 - When the user supplies an explicit output path, honor it. Retain an instance in the workspace when the skill requires resumability, and record the relationship between the instance and the requested deliverable.
 
@@ -102,7 +104,7 @@ Do not paste the full slideshow into the conversation unless the user requests i
 ## Shared quality gate
 
 - [ ] The output is a durable Marp-compatible Markdown file when required by this standard.
-- [ ] The instance path uses `<workspace-root>/.data/pix-YY-MM-DD-<suffix>` and did not overwrite existing work.
+- [ ] The instance path uses `<output-base>/pix-YY-MM-DD-<suffix>` and did not overwrite existing work.
 - [ ] The slideshow begins with valid Marp YAML frontmatter.
 - [ ] Slide separators are `---` on their own line, surrounded by blank lines.
 - [ ] The opening orients the audience within the first 3 slides.

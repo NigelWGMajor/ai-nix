@@ -187,7 +187,7 @@ Include only sources that materially informed the tutorial content.
 - [ ] Troubleshooting covers common failure modes (Comprehensive).
 - [ ] Symbols come from the configured palette and remain restrained.
 - [ ] The ending provides a clear next action.
-- [ ] The instance path uses `<workspace-root>/.data/tut-YY-MM-DD-<suffix>` (relative to the repository root, not the shell's CWD) and did not overwrite existing work.
+- [ ] The instance path uses `<output-base>/tut-YY-MM-DD-<suffix>` and did not overwrite existing work.
 - [ ] The reader-facing output file is named `tutorial-<slug>.md` (or `tutorial-<slug>-part-<letter>.md` for multi-part), not a generic name.
 - [ ] Inline symbols (✔️, 🩹, ⚠️, 📌) are used consistently for checkpoints, gotchas, warnings, and key points.
 - [ ] Generated artifacts remain outside source control.

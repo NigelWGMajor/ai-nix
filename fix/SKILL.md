@@ -42,7 +42,7 @@ At the start of every triage:
 
 ## Begin or resume
 
-Determine whether the request identifies an existing FIX instance. If a `.data/fix-*` directory exists under the workspace root:
+Determine whether the request identifies an existing FIX instance. If an `<output-base>/fix-*` directory exists:
 
 1. Read its `00-control.md` first.
 2. Ask the user whether to **resume** the prior triage or **start a new instance**.
@@ -184,9 +184,9 @@ The script resolves workspace root in this order:
 
 The workspace root is the repository root (containing `.git`), NOT the terminal's current working directory.
 
-**Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
+**Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root when resolving the output base regardless of which root the current file or working directory belongs to.
 
-If the Python script is unavailable, manually create the instance as `.data/fix-YY-MM-DD-<suffix>` under the resolved workspace root, using the next available lowercase alphabetic suffix. Create `.data` when needed. Never overwrite an existing instance or modify `.gitignore`.
+If the Python script is unavailable, manually create the instance as `<output-base>/fix-YY-MM-DD-<suffix>`, using the next available lowercase alphabetic suffix. Create the output base when needed. Never overwrite an existing instance or modify `.gitignore`.
 
 Maintain:
 

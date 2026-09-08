@@ -16,7 +16,7 @@ The archive move needs the same local-write approval as writing the destination.
 
 ## Output location
 
-Resolve `TOOLING_OUTPUT_PATH` before locating or creating durable output. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the resolved repository root (or current folder when no repository is available); reject other relative forms. All `.data/` paths below mean `<output-base>/.data/`; when unset, retain the workspace-root default.
+Resolve `TOOLING_OUTPUT_PATH` before locating or creating durable output. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the resolved repository root (or current folder when no repository is available); reject other relative forms. All standard run paths below are relative to `<output-base>`; do not append a further `.data` segment. When unset, the output base is `<workspace-root>/.data`.
 
 Evaluate whether a solution actually does what it should through structured validation design:
 
@@ -46,7 +46,7 @@ At the start of every validation:
 
 ## Begin or resume
 
-Determine whether the request identifies an existing VAL instance. If a `.data/val-*` directory exists under the workspace root:
+Determine whether the request identifies an existing VAL instance. If an `<output-base>/val-*` directory exists:
 
 1. Read its `00-control.md` first.
 2. Ask the user whether to **resume** the prior validation or **start a new instance**.
@@ -190,9 +190,9 @@ The script resolves workspace root in this order:
 
 The workspace root is the repository root (containing `.git`), NOT the terminal's current working directory.
 
-**Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
+**Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root when resolving the output base regardless of which root the current file or working directory belongs to.
 
-If the Python script is unavailable, manually create the instance as `.data/val-YY-MM-DD-<suffix>` under the resolved workspace root, using the next available lowercase alphabetic suffix. Create `.data` when needed. Never overwrite an existing instance or modify `.gitignore`.
+If the Python script is unavailable, manually create the instance as `<output-base>/val-YY-MM-DD-<suffix>`, using the next available lowercase alphabetic suffix. Create the output base when needed. Never overwrite an existing instance or modify `.gitignore`.
 
 Maintain:
 

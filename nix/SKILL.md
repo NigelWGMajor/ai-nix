@@ -32,7 +32,7 @@ Build a usable mental model, not an inventory dump. Keep the analysis lightweigh
 
 ## Begin or resume
 
-Determine whether the request identifies an existing NIX instance. If a `.data/nix-*` directory exists under the workspace root:
+Determine whether the request identifies an existing NIX instance. If an `<output-base>/nix-*` directory exists:
 
 1. Read its `00-control.md` first.
 2. Ask the user whether to **resume** the prior analysis or **start a new instance**.
@@ -169,7 +169,7 @@ For Standard or Deep work, initialize a durable analysis instance before substan
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --subject "<subject>" --question "<question>" --audience "<audience>" --depth <standard|deep>
 ```
 
-The initializer creates the next collision-safe `.data/nix-YY-MM-DD-<suffix>` directory under the resolved workspace root. It creates `.data` when needed, never overwrites an existing instance, and copies the reader-facing template to `Findings.md`. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker.
+The initializer creates the next collision-safe `<output-base>/nix-YY-MM-DD-<suffix>` directory. It creates the output base when needed, never overwrites an existing instance, and copies the reader-facing template to `Findings.md`. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker.
 
 Maintain:
 

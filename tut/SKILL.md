@@ -16,7 +16,7 @@ The archive move needs the same local-write approval as writing the destination.
 
 ## Output location
 
-Resolve `TOOLING_OUTPUT_PATH` before locating or creating durable output. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the resolved repository root (or current folder when no repository is available); reject other relative forms. All `.data/` paths below mean `<output-base>/.data/`; when unset, retain the workspace-root default.
+Resolve `TOOLING_OUTPUT_PATH` before locating or creating durable output. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the resolved repository root (or current folder when no repository is available); reject other relative forms. All standard run paths below are relative to `<output-base>`; do not append a further `.data` segment. When unset, the output base is `<workspace-root>/.data`.
 
 Generate a professional, self-contained tutorial document that guides any reader through a task from start to finish using a two-pass method:
 
@@ -35,7 +35,7 @@ The first pass (Scope) is interactive — ask the user clarifying questions to f
 
 ## Begin or resume
 
-Determine whether the request identifies an existing TUT instance. If a `.data/tut-*` directory exists under the workspace root:
+Determine whether the request identifies an existing TUT instance. If an `<output-base>/tut-*` directory exists:
 
 1. Read its `00-control.md` first.
 2. Ask the user whether to **resume** the prior tutorial or **start a new instance**.
@@ -82,13 +82,13 @@ For Standard or Comprehensive work, initialize a durable instance before substan
 
 ### Resolve the workspace root
 
-The `.data/tut-*` instance directory MUST be created under the workspace root, which is the repository root (the directory containing `.git`), NOT the shell's current working directory. Resolve the workspace root in this order:
+The `<output-base>/tut-*` instance directory MUST be created under the resolved output base. Resolve the workspace root, used for the default base and relative `TOOLING_OUTPUT_PATH`, in this order:
 
 1. An explicit user-supplied workspace path.
 2. The repository root (the nearest ancestor containing `.git`).
 3. Only as a last resort: the current working directory.
 
-**Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
+**Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root when resolving the output base regardless of which root the current file or working directory belongs to.
 
 Always pass `--workspace` explicitly with the resolved root.
 
@@ -103,7 +103,7 @@ Optional arguments:
 - `--slug "<slug>"`: override the auto-generated filename slug (derived from `--topic` when omitted).
 - `--part "<letter>"`: append a `-part-<letter>` suffix for multi-part tutorials.
 
-The initializer creates the next collision-safe `.data/tut-YY-MM-DD-<suffix>` directory under the resolved workspace root. It creates `.data` when needed, never overwrites an existing instance, and copies the reader-facing template with a descriptive name derived from the topic (e.g., `tutorial-local-spicedb-dev-environment.md`).
+The initializer creates the next collision-safe `<output-base>/tut-YY-MM-DD-<suffix>` directory. It creates the output base when needed, never overwrites an existing instance, and copies the reader-facing template with a descriptive name derived from the topic (e.g., `tutorial-local-spicedb-dev-environment.md`).
 
 ### Output file naming
 

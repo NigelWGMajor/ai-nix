@@ -16,7 +16,7 @@ The archive move needs the same local-write approval as writing the destination.
 
 ## Output location
 
-Resolve `TOOLING_OUTPUT_PATH` before locating or creating durable output. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the resolved repository root (or current folder when no repository is available); reject other relative forms. All `.data/` paths below mean `<output-base>/.data/`; when unset, retain the workspace-root default.
+Resolve `TOOLING_OUTPUT_PATH` before locating or creating durable output. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the resolved repository root (or current folder when no repository is available); reject other relative forms. All standard run paths below are relative to `<output-base>`; do not append a further `.data` segment. When unset, the output base is `<workspace-root>/.data`.
 
 Review the change that is actually in progress against the work it is meant to accomplish. Build a traceable, evidence-grounded assessment from intent through realization using six analytical layers:
 
@@ -48,7 +48,7 @@ If guidance conflicts, follow the user's current instructions first, then applic
 
 ## Begin or resume
 
-Determine whether the request identifies an existing WIZ instance. If a `.data/wiz-*` directory exists under the workspace root:
+Determine whether the request identifies an existing WIZ instance. If an `<output-base>/wiz-*` directory exists:
 
 1. Read its `00-control.md` first.
 2. Ask the user whether to **resume** the prior review or **start a new instance**.
@@ -188,11 +188,11 @@ The script resolves workspace root in this order:
 1. Explicit `--workspace` argument (if provided)
 2. VSCode workspace via MCP tool (if available)
 3. Repository root via git: `git rev-parse --show-toplevel`
-4. OS-specific fallback: `C:\.data` (Windows), `~/Library/Application Support/claude-skills` (macOS/Linux)
+4. Current folder (when there is no repository or configured workspace root)
 
 The workspace root is the repository root (containing `.git`), NOT the terminal's current working directory.
 
-If the Python script is unavailable, manually create the instance as `.data/wiz-YY-MM-DD-<suffix>` under the resolved workspace root, using the next available lowercase alphabetic suffix. Create `.data` when needed. Never overwrite an existing instance or modify `.gitignore`.
+If the Python script is unavailable, manually create the instance as `<output-base>/wiz-YY-MM-DD-<suffix>`, using the next available lowercase alphabetic suffix. Create the output base when needed. Never overwrite an existing instance or modify `.gitignore`.
 
 Maintain:
 
