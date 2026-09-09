@@ -18,7 +18,7 @@ base_branch: {{BASE_BRANCH}}
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# {{WORKSTREAM_ID}} — {{SOLO_ID}}: {{TITLE}} ({{TICKET_ID}})
+# {{WORKSTREAM_LABEL}} — {{SOLO_ID}}: {{TITLE}} ({{TICKET_ID}})
 
 ## 💭 Outcome and boundaries
 

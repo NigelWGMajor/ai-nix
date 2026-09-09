@@ -1,6 +1,8 @@
 ---
 artifact: control
 workstream: {{WORKSTREAM_ID}}
+workspace_label: {{WORKSTREAM_LABEL}}
+context_suffix: {{CONTEXT_SUFFIX}}
 master_branch: -
 target_branch: -
 stage: control
@@ -12,7 +14,7 @@ inputs: Jira {{WORKSTREAM_ID}}, repository {{REPO_ROOT}}
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# {{WORKSTREAM_ID}} DAC Control: {{TITLE}}
+# {{WORKSTREAM_LABEL}} DAC Control: {{TITLE}}
 
 ## 💭 Resume here
 

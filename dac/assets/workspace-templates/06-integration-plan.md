@@ -10,7 +10,7 @@ inputs: 03-decisions.md,04-portion-plan.md,05-jira-plan.md
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# {{WORKSTREAM_ID}} — PR and Integration Plan
+# {{WORKSTREAM_LABEL}} — PR and Integration Plan
 
 ## 💭 Strategy
 

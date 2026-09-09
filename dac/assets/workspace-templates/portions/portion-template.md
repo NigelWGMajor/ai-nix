@@ -17,7 +17,7 @@ spec_directory: {{SPEC_DIRECTORY}}
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# {{WORKSTREAM_ID}} — {{PORTION_ID}}: {{PORTION_TITLE}}
+# {{WORKSTREAM_LABEL}} — {{PORTION_ID}}: {{PORTION_TITLE}}
 
 ## 💭 Outcome and boundaries
 

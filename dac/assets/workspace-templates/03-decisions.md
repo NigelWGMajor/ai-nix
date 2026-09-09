@@ -10,7 +10,7 @@ inputs: 01-mission.md,02-evidence.md
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# {{WORKSTREAM_ID}} — Shared Decisions
+# {{WORKSTREAM_LABEL}} — Shared Decisions
 
 ## ⚖️ Decision register
 

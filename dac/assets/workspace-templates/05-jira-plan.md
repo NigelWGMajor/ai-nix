@@ -10,7 +10,7 @@ inputs: 01-mission.md,03-decisions.md,04-portion-plan.md
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# {{WORKSTREAM_ID}} — Jira Visibility Plan
+# {{WORKSTREAM_LABEL}} — Jira Visibility Plan
 
 <!-- In an Epic-rooted preview, replace these placeholders with the complete observed recursive
      hierarchy before the allocation strategy. Every nested master Story with a local

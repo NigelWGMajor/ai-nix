@@ -57,7 +57,7 @@ Never recycle a portion or decision ID. Use `P-001`, `P-002`, and `DEC-001`. If 
 
 ## Title-line identity
 
-Every generated DAC artifact must start its first Markdown title line with the parent Jira ticket, for example `# PD-123456 — Evidence and Current Behavior`. This includes parent artifacts, portion envelopes, results, solo-ticket envelopes and results, and integration reviews. The parent key is the workspace workstream value; never substitute a child Jira ticket for it.
+Every generated DAC artifact must start its first Markdown title line with the workspace label, for example `# PD-123456 — Evidence and Current Behavior` or `# PD-123456-authentication — Evidence and Current Behavior` when an optional folder context suffix was supplied. This includes parent artifacts, portion envelopes, results, solo-ticket envelopes and results, and integration reviews. The parent Jira key remains the workspace `workstream` value; never substitute a child Jira ticket for it.
 
 ## Sources of truth
 

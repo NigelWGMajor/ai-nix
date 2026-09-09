@@ -10,7 +10,7 @@ inputs: 00-control.md,01-mission.md
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# {{WORKSTREAM_ID}} — Evidence and Current Behavior
+# {{WORKSTREAM_LABEL}} — Evidence and Current Behavior
 
 ## 🔎 Jira graph
 

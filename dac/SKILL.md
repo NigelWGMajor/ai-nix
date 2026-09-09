@@ -18,6 +18,12 @@ The archive move needs the same local-write approval as writing the destination.
 
 Resolve `TOOLING_OUTPUT_PATH` before locating or creating a DAC workspace. When set, an absolute value is the output base; a value beginning `./` or `.\\` is relative to the repository root; reject other relative forms. All `.dac/` paths below mean `<output-base>/.dac/`; when unset, the output base is `<repository-root>/.data`. An explicit `--workspace-dir` remains an override.
 
+## Local workspace suffix
+
+Immediately before initializing a new DAC workspace, ask: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` If the user has already supplied a clear suffix, offer it as the default. Normalize a nonblank answer to a lowercase, hyphen-separated filesystem-safe slug.
+
+A blank answer creates `.dac/PD-123456/`. A nonblank suffix creates `.dac/PD-123456-<context-suffix>/`. The workspace keeps `workstream: PD-123456` as the parent Jira key, while `workspace_label: PD-123456-<context-suffix>` identifies that local run. All generated Markdown title lines start with the workspace label, so parallel local runs remain distinguishable without changing Jira identity. Never select a suffix automatically: a supplied suffixed folder is an exact resume target, and a new suffix needs the user's answer plus W1 approval.
+
 ## Objective
 
 Coordinate a large outcome without requiring any participant to hold the whole implementation in context. Keep shared intent, decisions, dependencies, Jira visibility, and integration at the parent level. Give each executor a bounded portion envelope and require a normalized result.
@@ -26,7 +32,7 @@ Treat Jira and repository artifacts as evidence that may disagree. Treat approve
 
 ## Folder Convention
 
-**DAC internal artifacts** live under `.dac/<workstream>/` in the repository root and should be excluded from version control (typically via global gitignore):
+**DAC internal artifacts** live under `.dac/<workspace-label>/` in the repository root and should be excluded from version control (typically via global gitignore). The workspace label is the parent workstream ID with an optional normalized context suffix:
 
 - All coordination files: `00-control.md`, `01-mission.md`, `02-evidence.md`, `03-decisions.md`, `04-portion-plan.md`, `05-jira-plan.md`, `06-integration-plan.md`
 - Portion envelopes: `portions/P-001.md`, `portions/P-002.md`, etc.
@@ -48,7 +54,7 @@ Remain read-only until the user approves a mutation class. Never infer execution
 | Class | Scope | Default |
 |---|---|---|
 | R0 | Read Jira, documentation, repository files, Git metadata, PRs, and indexes | allowed |
-| W1 | Write the named `.dac/<workstream>/` workspace or explicitly allocated specification directories | explicit scoped approval |
+| W1 | Write the named `.dac/<workspace-label>/` workspace or explicitly allocated specification directories | explicit scoped approval |
 | V2 | Run tests, builds, generators, dependency resolution, or commands with ephemeral output | explicit command or validation-scope approval |
 | C3 | Change source, tests, configuration, schemas, fixtures, branches, worktrees, commits, or other Git state | explicit portion-specific approval |
 | R4 | Create or update Jira items, push, open or edit PRs, merge, deploy, or mutate any remote system | separate exact-action approval |
@@ -82,7 +88,7 @@ Major phases:
 
 1. Confirm the repository root, branch, HEAD, and worktree state without changing them.
 2. Identify the parent Jira issue or stable workstream ID. The normal form is `PD-######`; do not guess among plausible parents. Accept another key only when the user explicitly supplies that exact alternative key in the prompt.
-   - An explicitly supplied suffixed folder such as `PD-123456-b` is an exact workspace selector. Treat `.dac/PD-123456-b/` as the current workspace and resume its control file; do not normalize it to `PD-123456` or scan sibling suffixes.
+   - An explicitly supplied suffixed folder such as `PD-123456-authentication` is an exact workspace selector. Treat `.dac/PD-123456-authentication/` as the current workspace and resume its control file; do not normalize it to `PD-123456` or scan sibling suffixes.
 3. Discover available Jira, repository, GitHub, Spec Kit, and skill capabilities.
 For Jira access, use the available Atlassian plugin or MCP capability. Verify it with a lightweight read before relying on Jira evidence.
 For repository code discovery, prefer the available Codebase Knowledge Graph MCP; fall back to text search only when graph results are insufficient.
@@ -90,20 +96,20 @@ For repository code discovery, prefer the available Codebase Knowledge Graph MCP
    > Could you try restarting the MCP server? You can either:
    > 1. Run `! /mcp` in this prompt to check MCP server status
    > 2. Use `curl` with your MCP credentials to access the Atlassian API directly
-4. Look for `.dac/<workstream>/00-control.md`.
+4. Look for `.dac/<workspace-label>/00-control.md`.
    - With `new`, do not read the existing control file. Once W1 is approved, archive that exact `.dac/<workstream>/` folder under the fresh-run rule before initialization, then start at Align as though it had not existed.
    - For automatic discovery, only consider directories whose name exactly matches the parent-ticket form `PD-######` (case-insensitive). Ignore every other folder under `.dac/`, including legacy, scratch, and similarly named directories.
    - If the user explicitly supplied a non-PD key, do not scan non-PD folders; check only the exact `.dac/<explicit-key>/00-control.md` path.
-   - If that exact suffixed folder exists, resume it even when its internal `workstream` value remains the unsuffixed Jira key. Initialize a suffixed key only when the user actually intends a distinct new workstream.
+   - If that exact suffixed folder exists, resume it even when its internal `workstream` value remains the unsuffixed Jira key. For a new local run, ask for the optional folder context suffix immediately before initialization; use it as `--context-suffix` rather than changing the Jira workstream key.
    - If it exists, read it first and resume its recorded next action.
    - If it does not, align on the intended outcome in conversation and request W1 approval.
-5. After W1 approval, initialize the workspace:
+5. Immediately before initialization, ask for the optional folder context suffix unless the user supplied an exact suffixed workspace selector. After W1 approval, initialize the workspace:
 
 ```bash
-python <skill-dir>/scripts/dac.py init --workstream PD-123456 --repo-root . --title "Outcome"
+python <skill-dir>/scripts/dac.py init --workstream PD-123456 --repo-root . --context-suffix "authentication" --title "Outcome"
 ```
 
-For a genuinely new explicitly supplied non-PD workstream, add `--allow-non-pd` to `dac.py init`. Do not initialize an existing archived suffix; resume that exact folder instead.
+Omit `--context-suffix` for the unsuffixed `.dac/PD-123456/` workspace. A provided suffix is normalized for the folder and title prefix; the parent Jira workstream remains `PD-123456`. For a genuinely new explicitly supplied non-PD workstream, add `--allow-non-pd` to `dac.py init`. Do not initialize an existing suffixed workspace; resume that exact folder instead.
 
 Read [references/artifact-contract.md](references/artifact-contract.md) before initializing, approving, resuming, or validating a workspace.
 

@@ -85,20 +85,23 @@ Set `TOOLING_OUTPUT_PATH` to choose the shared output base. When it is unset, th
 
 ## Applicability
 
-| Context        | Typical flow                                          |
-| -------------- | ----------------------------------------------------- |
-| Documentation  | 📚 lit -> 🖼️ pix                                     |
-| Research       | 🦄 nix -> 📚 lit -> 🖼️ pix or                        |
-| Design         | 🦄 nix -> 📚 lit -> 🖼️ pix                           |
-| Issue triage   | 🪄 wiz -> 📚 lit -> 🖼️ pix                           |
-| Epics          | 🪄 wiz, then 🧩 dac to coordinate                    |
-| Stories        | 🪄 wiz, then 🧩 dac to coordinate                    |
-| WIP            | 🦄 nix or 🪄 wiz or 🛠️ fix -> 👮 cop -> 🌡️ val       |
-| Speckit        | 📃 kit                                                |
-| PRs            | 🦄 nix | 🪄 wiz or 🛠️ fix -> 👮 cop                  |
-| Bugs/Incidents | 🛠️ fix -> 🎬 act (ticket) or 🛠️ fix -> 👮 cop        |
-| Test planning  | 🌡️ val                                                |
-| Communication  | (any skill) -> 🎬 act                                 |
+| Context        | Typical flow                              |
+| -------------- | ----------------------------------------- |
+| Documentation  | 📚 lit -> 🖼️ pix                          |
+| Research       | 🎗️ mem -> 🦄 nix -> 📚 lit -> 🖼️ pix      |
+| Design         | 🦄 nix -> 📚 lit -> 🖼️ pix                |
+| Issue triage   | 🦄 nix -> 🪄 wiz -> 📚 lit -> 🖼️ pix      |
+| Epics          | 🦄 nix -> 🪄 wiz -> 🧩 dac                |
+| Stories        | 🦄 nix -> 🪄 wiz -> 🧩 dac                |
+| WIP            | 🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val      |
+| Speckit        | 📃 kit                                    |
+| PRs            | 🗺️ map -> 🪄 wiz -> 👮 cop                |
+| Branch resume  | 🗺️ map                                    |
+| Bugs/Incidents | 🛠️ fix -> 🎬 act or 🛠️ fix -> 👮 cop      |
+| Test planning  | 🌡️ val                                    |
+| Tutorials      | 🦄 nix -> 🎓 tut -> 🖼️ pix                |
+| Communication  | (any) -> 🎬 act                           |
+| Note search    | 🎗️ mem                                    |
 
 All skills capture external references (Atlassian, web) into a `./md` folder as markdown snapshots before analysis. All use a shared visual language from `visual-language.md`.
 

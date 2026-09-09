@@ -82,6 +82,7 @@ EXECUTOR_PATTERN = re.compile(
     r"(?:speckit|direct|discovery|human|skill:[a-z0-9][a-z0-9-]{0,62})"
 )
 PD_WORKSTREAM_PATTERN = re.compile(r"PD-\d{6}", re.IGNORECASE)
+CONTEXT_SUFFIX_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 def now_iso() -> str:
@@ -110,6 +111,19 @@ def validate_workstream(value: str, allow_non_pd: bool) -> str:
             "Use --allow-non-pd only when the user explicitly supplied another key."
         )
     return workstream
+
+
+def normalize_context_suffix(value: str) -> str:
+    """Return a filesystem-safe, human-readable workspace context suffix."""
+    normalized = re.sub(r"[^a-z0-9]+", "-", value.strip().lower()).strip("-")
+    if value.strip() and (not normalized or not CONTEXT_SUFFIX_PATTERN.fullmatch(normalized)):
+        raise ValueError("Context suffix must contain at least one letter or digit.")
+    return normalized
+
+
+def workspace_label(control_data: Dict[str, str]) -> str:
+    """Use the persisted label for titles, falling back for existing workspaces."""
+    return control_data.get("workspace_label") or control_data.get("workstream", "")
 
 
 def validate_executor(value: str) -> str:
@@ -374,6 +388,8 @@ def artifact_rows(workspace: Path) -> Iterable[Tuple[str, str, str, str]]:
 
 def command_init(args: argparse.Namespace) -> int:
     workstream = validate_workstream(args.workstream, args.allow_non_pd)
+    context_suffix = normalize_context_suffix(args.context_suffix)
+    label = f"{workstream}-{context_suffix}" if context_suffix else workstream
     repo_root = Path(args.repo_root).expanduser().resolve()
     if not repo_root.is_dir():
         raise ValueError(f"Repository root is not a directory: {repo_root}")
@@ -382,7 +398,7 @@ def command_init(args: argparse.Namespace) -> int:
         workspace_dir = candidate.resolve() if candidate.is_absolute() else (repo_root / candidate).resolve()
     else:
         workspace_dir = resolve_output_base(repo_root) / ".dac"
-    workspace = workspace_dir / workstream
+    workspace = workspace_dir / label
     if workspace.exists():
         raise ValueError(f"Workspace already exists: {workspace}. Resume it instead.")
 
@@ -398,6 +414,8 @@ def command_init(args: argparse.Namespace) -> int:
     )
     values = {
         "WORKSTREAM_ID": workstream,
+        "WORKSTREAM_LABEL": label,
+        "CONTEXT_SUFFIX": context_suffix or "-",
         "TITLE": args.title.strip() or workstream,
         "NOW": timestamp,
         "REPO_ROOT": str(repo_root),
@@ -476,15 +494,18 @@ def command_validate(args: argparse.Namespace) -> int:
             )
 
     if expected_workstream:
+        expected_label = workspace_label(
+            parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
+        )
         for path in sorted(workspace.rglob("*.md")):
             if path.name.endswith("-template.md"):
                 continue
             relative = path.relative_to(workspace)
             heading = title_line(path.read_text(encoding="utf-8"))
-            if not heading.startswith(f"# {expected_workstream}"):
+            if not heading.startswith(f"# {expected_label}"):
                 errors.append(
-                    f"Title line in {relative} must start with parent Jira ticket "
-                    f"{expected_workstream!r}."
+                    f"Title line in {relative} must start with workspace label "
+                    f"{expected_label!r}."
                 )
 
     for directory in (workspace / "portions", workspace / "results", workspace / "reviews"):
@@ -629,6 +650,7 @@ def command_portion_create(args: argparse.Namespace) -> int:
     control_data = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
     values = {
         "WORKSTREAM_ID": control_data.get("workstream", ""),
+        "WORKSTREAM_LABEL": workspace_label(control_data),
         "PORTION_ID": portion_id,
         "PORTION_TITLE": args.title.strip() or portion_id,
         "DEPENDS_ON": ",".join(dependencies) if dependencies else "-",
@@ -731,6 +753,7 @@ def command_result_create(args: argparse.Namespace) -> int:
     control_data = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
     values = {
         "WORKSTREAM_ID": control_data.get("workstream", ""),
+        "WORKSTREAM_LABEL": workspace_label(control_data),
         "PORTION_ID": portion_id,
         "EXECUTOR": portion_data.get("executor", "unknown"),
         "NOW": now_iso(),
@@ -755,6 +778,7 @@ def command_solo_result_create(args: argparse.Namespace) -> int:
     control_data = parse_frontmatter((workspace / "00-control.md").read_text(encoding="utf-8"))
     values = {
         "WORKSTREAM_ID": control_data.get("workstream", ""),
+        "WORKSTREAM_LABEL": workspace_label(control_data),
         "SOLO_ID": solo_id,
         "TICKET_ID": solo_data.get("ticket_id", ""),
         "EXECUTOR": solo_data.get("executor", "unknown"),
@@ -1017,6 +1041,7 @@ def command_solo_adopt(args: argparse.Namespace) -> int:
 
     values = {
         "WORKSTREAM_ID": workstream,
+        "WORKSTREAM_LABEL": workspace_label(control_data),
         "SOLO_ID": solo_id,
         "TICKET_ID": ticket_id,
         "TITLE": args.title.strip() or ticket_id,
@@ -1083,6 +1108,7 @@ def command_solo_create(args: argparse.Namespace) -> int:
 
     values = {
         "WORKSTREAM_ID": workstream,
+        "WORKSTREAM_LABEL": workspace_label(control_data),
         "SOLO_ID": solo_id,
         "TICKET_ID": ticket_id,
         "TITLE": args.title.strip() or ticket_id,
@@ -1350,6 +1376,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     init_parser.add_argument("--repo-root", default=".")
     init_parser.add_argument("--workspace-dir", help="Explicit DAC parent; overrides TOOLING_OUTPUT_PATH.")
+    init_parser.add_argument(
+        "--context-suffix",
+        default="",
+        help="Optional local workspace suffix; normalized and included in generated title prefixes.",
+    )
     init_parser.add_argument("--title", default="")
     init_parser.add_argument("--jira-url", default="")
     init_parser.set_defaults(func=command_init)

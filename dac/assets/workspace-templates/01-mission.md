@@ -10,7 +10,7 @@ inputs: 00-control.md, Jira {{WORKSTREAM_ID}}
 <!-- Template note: symbols are examples from references/visual-language.md.
      Always read visual-language.md and use its current assignments. -->
 
-# {{WORKSTREAM_ID}} — Parent Mission
+# {{WORKSTREAM_LABEL}} — Parent Mission
 
 ## 💭 Outcome and value
 

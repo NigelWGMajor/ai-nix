@@ -10,7 +10,7 @@ inputs: solo/{{SOLO_ID}}.md
 executor: {{EXECUTOR}}
 ---
 
-# {{WORKSTREAM_ID}} — Result: {{SOLO_ID}} ({{TICKET_ID}})
+# {{WORKSTREAM_LABEL}} — Result: {{SOLO_ID}} ({{TICKET_ID}})
 
 ## Outcome
 
