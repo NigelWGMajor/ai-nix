@@ -22,7 +22,7 @@ if exist ".\jira-fields.local.yaml" (
 
 echo *** Copying all skills to .claude, .codex, and .agent ***
 pause
-for %%S in (nix kit lit pix dac dac-help cop wiz fix val act umm mem map tut) do (
+for %%S in (nix kit lit pix dac dac-help cop wiz fix val act umm mem map tut gap) do (
     robocopy ".\%%S" "%USERPROFILE%\.claude\skills\%%S" /MIR /R:1 /W:1 /XJ
     robocopy ".\%%S" "%USERPROFILE%\.codex\skills\%%S" /MIR /R:1 /W:1 /XJ
     robocopy ".\%%S" "%USERPROFILE%\.agents\skills\%%S" /MIR /R:1 /W:1 /XJ

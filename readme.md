@@ -137,18 +137,33 @@ npm install
 
 See `mcp-servers/vscode-workspace/README.md` for full documentation.
 
-### Deployment
+### Installation and propagation
 
-Run `00-propagate-skills-to-claude-agent-codex.cmd` to deploy all skills from this source repo to:
-- `%USERPROFILE%\.claude\skills\`
-- `%USERPROFILE%\.codex\skills\`
-- `%USERPROFILE%\.agents\skills\`
+Always edit skills in this repository, not in deployed locations. Propagation overwrites deployed copies.
 
-**Important:** Always edit skills in this repo, not in the deployed locations. Deployed copies are overwritten on each propagation.
+#### Windows
 
-The master visual-language.md file and other standards are typically copied form the nix folders: check the deployment ps1 files to be sure! At the time of writing, the critical fles that propagate to other tools are:
-- /nix/references/visual-language.md
-- /nix/references/docuemntation-standard.md
+Run these `.cmd` files from the repository root (or double-click them in Explorer):
 
-Specific to our work environment, there is a yaml file that defines the ids of Jira fields:
-- jira-fields.local.yaml
+- `00-win-open-in-code.cmd` opens the source repository in VS Code.
+- `00-win-edit-common-visual-language.cmd` opens the canonical `nix/references/visual-language.md`.
+- `00-win-propagate-skills-to-claude-agent-codex.cmd` copies skills to `%USERPROFILE%\.claude\skills\`, `%USERPROFILE%\.codex\skills\`, and `%USERPROFILE%\.agents\skills\`.
+
+#### macOS
+
+The macOS equivalents require Bash, `rsync`, and the VS Code `code` shell command. Run them from Terminal with `bash`:
+
+```bash
+bash ./00-mac-open-in-code.sh
+bash ./00-mac-edit-common-visual-language.sh
+bash ./00-mac-propagate-skills-to-claude-agent-codex.sh
+```
+
+The propagation script mirrors the Windows workflow: it refreshes shared references, copies `jira-fields.local.yaml` when present, and synchronizes skills to `~/.claude/skills/`, `~/.codex/skills/`, and `~/.agents/skills/`.
+
+The canonical shared references originate in `nix/references/`:
+
+- `visual-language.md`
+- `documentation-standard.md`
+
+`jira-fields.local.yaml` defines local Jira-field IDs for this work environment and is copied to each agent root when present.
