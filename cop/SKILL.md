@@ -68,6 +68,7 @@ Determine whether the request identifies an existing COP instance. If an `<outpu
 ## Create the review instance
 
 For Standard or Deep work, initialize a durable review instance before substantial investigation.
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ### Resolve the workspace root
 

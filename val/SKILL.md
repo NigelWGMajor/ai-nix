@@ -169,6 +169,7 @@ Never inflate a simple validation into a deep test suite design. Never compress 
 ## Create the validation instance
 
 For Standard or Deep work, initialize a durable validation instance before substantial design.
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ### Resolve the workspace root
 

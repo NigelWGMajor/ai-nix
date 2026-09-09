@@ -145,6 +145,7 @@ Once captures are complete, treat the `./md` snapshots as the working copies for
 ## Create the analysis instance
 
 Prefer the supplied initializer because it creates a collision-safe directory and the standard artifacts:
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ```text
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --purpose "<purpose>" --audience "<audience>"

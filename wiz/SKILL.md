@@ -171,6 +171,7 @@ Never inflate a small fix into a deep audit. Never compress a security-sensitive
 ## Create the review instance
 
 For Standard or Deep work, initialize a durable review instance before substantial exploration.
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ### Resolve the workspace root
 

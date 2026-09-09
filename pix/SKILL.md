@@ -155,6 +155,7 @@ Never inflate a small source into an Extended deck. Never compress a document wi
 ## Create the slideshow instance
 
 For Standard or Extended work, initialize a durable instance before substantial analysis:
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ```text
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --source "<source-path>" --title "<title>" --audience "<audience>" --depth <short|standard|extended>

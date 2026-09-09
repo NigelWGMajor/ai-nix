@@ -79,6 +79,7 @@ Wait for the user's answers before proceeding to Pass 2.
 ## Create the tutorial instance
 
 For Standard or Comprehensive work, initialize a durable instance before substantial research.
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ### Resolve the workspace root
 

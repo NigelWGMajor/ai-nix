@@ -150,6 +150,7 @@ Once captures are complete, treat the `./md` snapshots as the working copies for
 ## Initialize the KIT instance
 
 Prefer the supplied initializer after resolving the target:
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ```text
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --repo <repo> --mode <review|snapshot|resume> --feature-dir <feature-dir> --base <base-ref> [--previous <kit-instance>]

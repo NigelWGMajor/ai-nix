@@ -164,6 +164,7 @@ Never inflate a simple error into a deep investigation. Never compress a cross-s
 ## Create the triage instance
 
 For Standard or Deep work, initialize a durable triage instance before substantial investigation.
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ### Resolve the workspace root
 

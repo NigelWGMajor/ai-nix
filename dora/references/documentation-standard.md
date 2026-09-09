@@ -11,11 +11,14 @@ Use this baseline for reader-facing Markdown produced by LIT, KIT, NIX, WIZ, COP
   2. The repository root via MCP tool `vscode-workspace.get_workspace_root` if available
   3. The repository root via `git rev-parse --show-toplevel` from the current directory
   4. OS-specific fallback: `C:\.data` (Windows), `~/Library/Application Support/claude-skills` (macOS), or `~/.local/share/claude-skills` (Linux)
-- **Trunk workspace preference:** when multiple workspace roots are available (e.g. a multi-root VS Code workspace), check each for a `trunk` folder. If exactly one workspace root contains a `trunk` folder, use that root for `.data` output regardless of which root the current file or working directory belongs to.
-- Treat `.data` as an output directory, never as a workspace marker. Do not walk upward merely to reuse an existing `.data` directory.
-- Store a new run under `<workspace-root>/.data/<skill>-YY-MM-DD-<suffix>/`, where `<skill>` is the skill prefix (`lit`, `kit`, `nix`, `wiz`, `cop`, `fix`, `val`) and the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
+- Resolve one **output base** before locating or creating a run:
+  1. If `TOOLING_OUTPUT_PATH` is set, use its absolute value directly. A value beginning `./` or `.\` is relative to the resolved workspace root (or current folder when no repository is available).
+  2. Otherwise use `<workspace-root>/.data`.
+- The output base already names the output directory. Never append another `.data` segment to it.
+- Immediately before creating a dated run directory (including by running an initializer that creates it), ask: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` If the user has already supplied a clear title, offer it as the default. Normalize a nonblank answer to a lowercase, hyphen-separated filesystem-safe slug and append it after the collision suffix: `<skill>-YY-MM-DD-<a>-<context-slug>`. A blank answer retains `<skill>-YY-MM-DD-<a>`. Allocate the first unused alphabetic collision suffix for the complete candidate path; the optional context suffix never replaces collision safety.
+- Store a new run under `<output-base>/<skill>-YY-MM-DD-<suffix>/`, where `<skill>` is the skill prefix (`lit`, `kit`, `nix`, `wiz`, `cop`, `fix`, `val`) and the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.
-- Create `.data` when needed. Never modify `.gitignore` automatically and never stage, commit, or publish generated artifacts.
+- Create the output base when needed. Never modify `.gitignore` automatically and never stage, commit, or publish generated artifacts.
 - Follow stricter skill-specific safety rules. In particular, honor any requirement to refuse an unignored in-repository output path.
 - Keep working notes and control artifacts in the instance, but always name the reader-facing deliverable `Findings.md`. - EXCEPTION: TUT names its output artifacts tutorial-a.md.
 - When the user supplies an explicit output path, honor it. Retain an instance in the workspace when the skill requires resumability, and record the relationship between the instance and the requested deliverable.
@@ -80,7 +83,7 @@ Do not paste the full durable document into the conversation unless the user req
 ## Shared quality gate
 
 - [ ] The output is a durable Markdown document when required by this standard and the skill-specific contract.
-- [ ] The instance path uses `<workspace-root>/.data/<skill>-YY-MM-DD-<suffix>` and did not overwrite existing work.
+- [ ] The instance path uses `<output-base>/<skill>-YY-MM-DD-<suffix>` and did not overwrite existing work.
 - [ ] Purpose, audience/use, scope, evidence boundary, and material limitations are visible near the beginning.
 - [ ] The opening leads with the central answer or mental model.
 - [ ] Equivalent sections follow the shared output spine and retain the common role in their headings.

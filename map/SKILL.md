@@ -579,7 +579,8 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 
 ### Phase 6: Output Delivery
 
-After generating both files:
+Before creating the map folder and generating the files, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
+
 1. Write to `<output-base>/map-YYYY-MM-DD-a/map.md`
 2. Write to `<output-base>/map-YYYY-MM-DD-a/map.upstream.md`
 3. Report to user:

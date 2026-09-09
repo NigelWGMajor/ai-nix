@@ -15,6 +15,7 @@ Use this baseline for reader-facing Markdown produced by LIT, KIT, NIX, WIZ, COP
   1. If `TOOLING_OUTPUT_PATH` is set, use its absolute value directly. A value beginning `./` or `.\` is relative to the resolved workspace root (or current folder when no repository is available).
   2. Otherwise use `<workspace-root>/.data`.
 - The output base already names the output directory. Never append another `.data` segment to it.
+- Immediately before creating a dated run directory (including by running an initializer that creates it), ask: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` If the user has already supplied a clear title, offer it as the default. Normalize a nonblank answer to a lowercase, hyphen-separated filesystem-safe slug and append it after the collision suffix: `<skill>-YY-MM-DD-<a>-<context-slug>`. A blank answer retains `<skill>-YY-MM-DD-<a>`. Allocate the first unused alphabetic collision suffix for the complete candidate path; the optional context suffix never replaces collision safety.
 - Store a new run under `<output-base>/<skill>-YY-MM-DD-<suffix>/`, where `<skill>` is the skill prefix (`lit`, `kit`, `nix`, `wiz`, `cop`, `fix`, `val`) and the suffix is lowercase alphabetic: `a` through `z`, then `aa`, `ab`, and so on.
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.
 - Create the output base when needed. Never modify `.gitignore` automatically and never stage, commit, or publish generated artifacts.

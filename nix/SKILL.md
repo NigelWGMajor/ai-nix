@@ -164,6 +164,7 @@ Never inflate a small question into a workspace-wide audit. Never compress a con
 ## Create the analysis instance
 
 For Standard or Deep work, initialize a durable analysis instance before substantial exploration:
+Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ```text
 python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --subject "<subject>" --question "<question>" --audience "<audience>" --depth <standard|deep>
