@@ -1,0 +1,4 @@
+interface:
+  display_name: "GAP Hierarchical Review"
+  short_description: "Recursive COP review for related branches"
+  default_prompt: "Use $gap to review this branch or DAC branch hierarchy."

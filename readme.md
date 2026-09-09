@@ -55,6 +55,10 @@ Set `TOOLING_OUTPUT_PATH` to choose the shared output base. When it is unset, th
   - Independent engineering reviewer targeting AI-specific vulnerabilities
   - Use `/cop` to challenge assumptions, detect hallucinations, and prevent overengineering.
 
+### 🔗 GAP Hierarchical review
+  - Apply COP-style skeptical review across an evidence-backed DAC branch hierarchy
+  - Use `/gap` for per-branch verdicts and a cross-branch integration-risk roll-up.
+
 ### 🛠️ FIX Triage and diagnosis
   - Multi-path hypothesis triage for bugs, errors, and unexpected behavior
   - Use `/fix` to diagnose a symptom through competing hypotheses and systematic elimination.
@@ -93,6 +97,7 @@ Set `TOOLING_OUTPUT_PATH` to choose the shared output base. When it is unset, th
 | Issue triage   | 🦄 nix -> 🪄 wiz -> 📚 lit -> 🖼️ pix      |
 | Epics          | 🦄 nix -> 🪄 wiz -> 🧩 dac                |
 | Stories        | 🦄 nix -> 🪄 wiz -> 🧩 dac                |
+| DAC branches   | 🧩 dac -> 🔗 gap                           |
 | WIP            | 🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val      |
 | Speckit        | 📃 kit                                    |
 | PRs            | 🗺️ map -> 🪄 wiz -> 👮 cop                |

@@ -49,6 +49,7 @@ Available skills:
 🖼️ /pix *  — Slideshows: turn a document into a visual presentation
 🧩 /dac *  — Divide & conquer: coordinate Jira-backed delivery
 👮 /cop *  — Sanity review: challenge AI-generated code
+🔗 /gap *  — Hierarchical review: apply COP across related branches
 🛠️ /fix *  — Triage: diagnose bugs through multi-path hypotheses
 🌡️ /val *  — Validation: design tests, generate test data, coverage
 🎬 /act +  — Action extract: distill analysis into actionable info
@@ -73,6 +74,7 @@ Design          🦄 nix -> 📚 lit -> 🖼️ pix
 Issue triage    🦄 nix -> 🪄 wiz -> 📚 lit -> 🖼️ pix
 Epics           🦄 nix -> 🪄 wiz -> 🧩 dac
 Stories         🦄 nix -> 🪄 wiz -> 🧩 dac
+DAC branches    🧩 dac -> 🔗 gap
 WIP             🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val
 Speckit         📃 kit
 PRs             🗺️ map -> 🪄 wiz -> 👮 cop
@@ -174,6 +176,9 @@ Needs attention:
 
 **User:** `/umm I need to write a ticket for this bug`
 → Show the catalog, then: `Suggestion: /fix -> /act — diagnose the bug, then extract a ticket description`
+
+**User:** `/umm review the parent integration branch and all DAC portions`
+→ Show the catalog, then: `Suggestion: /gap — apply a COP-style review to the recorded branch hierarchy and summarize integration risks`
 
 **User:** `/umm where did we discuss caching strategy?`
 → Show the catalog, then: `Suggestion: /mem — search your markdown notes for passages about caching strategy`
