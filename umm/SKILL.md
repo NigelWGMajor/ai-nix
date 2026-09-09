@@ -29,6 +29,7 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
    - `kit/guidance.md`
    - `pix/guidance.md`
    - `dac/guidance.md`
+   - `pro/guidance.md`
    - `cop/guidance.md`
    - `fix/guidance.md`
    - `val/guidance.md`
@@ -42,14 +43,15 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
 ```
 Available skills:
 
-🦄 /nix *  — Quick discovery: explore a workspace, branch or topic
+🦄 /nix *  — Quick discovery: explore a workspace, branch, or topic
 🪄 /wiz *  — Deep review: analyze a ticket, PR, or branch in depth
 📚 /lit *  — Document synthesis: turn dense sources into layered guides
 📃 /kit =  — Speckit analysis: review speckit-based project status
-🖼️ /pix *  — Slideshows: turn a document into a visual presentation
-🧩 /dac *  — Divide & conquer: coordinate Jira-backed delivery
+🖼️ /pix *  — Slideshows: turn a document into a paged visual presentation
+🧩 /dac *  — Divide & conquer: coordinate portioned Jira-backed delivery !!
+🪜 /pro *  — Pull requests open: rebuild a broad PR with multiple focused child PRs !!
 👮 /cop *  — Sanity review: challenge AI-generated code
-🔗 /gap *  — Hierarchical review: apply COP across related branches
+🔗 /gap *  — Hierarchical review: apply COP across multiple related branches !!
 🛠️ /fix *  — Triage: diagnose bugs through multi-path hypotheses
 🌡️ /val *  — Validation: design tests, generate test data, coverage
 🎬 /act +  — Action extract: distill analysis into actionable info
@@ -58,7 +60,7 @@ Available skills:
 🎓 /tut *  — Tutorial: generate step-by-step how-to guides with diagrams
 🔮 /umm =  — This navigator
 
-=  read-only   +  adds to existing files   *  creates working files (.data/)
+=  read-only   +  adds to existing files   *  creates working files (.data/) !! multi-branch
 
 Tip: add `?` to any skill for its capability card (for example, `/nix ?`). Add standalone `new` after a skill name for a fresh run; an existing `.data/` or `.dac/` destination is archived with the next alphabetic suffix before that skill writes.
 ```
@@ -75,6 +77,7 @@ Issue triage    🦄 nix -> 🪄 wiz -> 📚 lit -> 🖼️ pix
 Epics           🦄 nix -> 🪄 wiz -> 🧩 dac
 Stories         🦄 nix -> 🪄 wiz -> 🧩 dac
 DAC branches    🧩 dac -> 🔗 gap
+Broad PR split  🪜 pro -> 🔗 gap or 🧩 dac
 WIP             🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val
 Speckit         📃 kit
 PRs             🗺️ map -> 🪄 wiz -> 👮 cop
