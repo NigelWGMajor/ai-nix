@@ -37,7 +37,11 @@ At the start of every review:
 7. Also read repository-local instructions such as `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, ownership rules, and more specific guidance in the affected directories.
 
 If guidance conflicts, follow the user's current instructions first, then applicable repository or organizational requirements, then this skill's bundled guidance. Call out a material conflict instead of silently choosing.
-For code review, read [references/codebase-scope.md](references/codebase-scope.md) before treating the reviewed checkout as the complete implementation boundary.
+
+For code review:
+
+- Read [references/codebase-scope.md](references/codebase-scope.md) before treating the reviewed checkout as the complete implementation boundary.
+- **Detect multi-repository workspace**: If codebase-memory-mcp is available, call `mcp__codebase-memory-mcp__list_projects` to discover all indexed projects. For feature reviews (UI surfaces, APIs, product features), automatically search across ALL related projects (e.g., both backend and frontend repos) without requiring explicit instruction. Document each project searched in evidence.
 
 
 ## Core review philosophy
@@ -124,6 +128,8 @@ Score: **Aligned**, **Minor drift**, or **Significant drift**.
 
 ### Pass 2: Assumption audit
 
+**Multi-project discovery**: When multiple indexed projects are detected (via list_projects), search each relevant project systematically. For product features, this typically means both backend (APIs, database) and frontend (UI components, routes) projects. Use graph search, code search, glob, and grep across all projects to ensure comprehensive coverage.
+
 List every assumption that appears to exist — database columns, API fields, request formats, environment variables, filesystem paths, authentication details, infrastructure behavior.
 
 For each assumption, classify as:
@@ -133,7 +139,7 @@ For each assumption, classify as:
 - **Unsupported**: no evidence.
 - **Contradicted**: evidence suggests it is wrong.
 
-Highlight all Unsupported and Contradicted assumptions. Apply the full checklist from [references/ai-vulnerabilities.md](references/ai-vulnerabilities.md).
+Highlight all Unsupported and Contradicted assumptions. Apply the full checklist from [references/ai-vulnerabilities.md](references/ai-vulnerabilities.md). When searching multiple projects, document evidence from each project separately.
 
 ### Pass 3: Schema and contract verification
 

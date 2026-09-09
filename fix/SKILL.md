@@ -59,7 +59,11 @@ Apply this precedence:
 4. With no clear symptom, ask one concise question. Do not guess at what is broken.
 
 Record the resolved symptom and its provenance in `00-control.md`.
-For code investigation, read [references/codebase-scope.md](references/codebase-scope.md) before assuming the active checkout contains the complete diagnostic surface.
+
+For code investigation:
+
+- Read [references/codebase-scope.md](references/codebase-scope.md) before assuming the active checkout contains the complete diagnostic surface.
+- **Detect multi-repository workspace**: If codebase-memory-mcp is available, call `mcp__codebase-memory-mcp__list_projects` to discover all indexed projects. For feature diagnostics (UI surfaces, APIs, product features), automatically search across ALL related projects (e.g., both backend and frontend repos) without requiring explicit instruction. Document each project searched in evidence.
 
 
 ## Capture external references
@@ -242,14 +246,15 @@ Do not commit to a single hypothesis. The value of fix is maintaining multiple p
 
 Gather evidence for and against each hypothesis:
 
-- Trace the execution path from entry point to the point of failure.
+- **Multi-project discovery**: When multiple indexed projects are detected (via list_projects), search each relevant project systematically. For product features, this typically means both backend (APIs, database) and frontend (UI components, routes) projects. Use graph search, code search, glob, and grep across all projects to ensure comprehensive coverage.
+- Trace the execution path from entry point to the point of failure across all relevant projects.
 - Inspect the code at the failure site and its immediate dependencies.
-- Check recent changes (git log, diff) to the affected area.
+- Check recent changes (git log, diff) to the affected area across all projects.
 - Inspect relevant tests — do they cover this path? Do they pass?
 - Check configuration, environment, data state, and external dependencies.
 - Look for related issues, known bugs, or similar past failures.
 
-Record each piece of evidence with its hypothesis link (supports H-01, contradicts H-02, neutral).
+Record each piece of evidence with its hypothesis link (supports H-01, contradicts H-02, neutral). When searching multiple projects, document evidence from each project separately.
 
 ### 4. Narrow
 

@@ -53,7 +53,11 @@ Before trusting any prior context, re-resolve:
 Do not assume `main`, infer a feature directory from a loose name similarity, or reuse a target from an earlier conversation after the branch or HEAD changes. An exact branch-leaf-to-feature-directory match is acceptable evidence; otherwise present candidates and ask if the choice materially affects the audit.
 
 Stop and explain the mismatch when a prior KIT instance names a different repository, feature, or branch and no explicit relationship makes the transition safe.
-When reconstructing implementation status, read [references/codebase-scope.md](references/codebase-scope.md) before treating the target repository as the complete feature surface.
+
+When reconstructing implementation status:
+
+- Read [references/codebase-scope.md](references/codebase-scope.md) before treating the target repository as the complete feature surface.
+- **Detect multi-repository workspace**: If codebase-memory-mcp is available, call `mcp__codebase-memory-mcp__list_projects` to discover all indexed projects. For feature reconstruction (UI surfaces, APIs, product features), automatically search across ALL related projects (e.g., both backend and frontend repos) without requiring explicit instruction. Document each project searched in evidence.
 
 
 ## Capture external references
@@ -193,11 +197,13 @@ Record missing, contradictory, stale, or customized artifacts. Absence is not au
 
 ## Determine actual implementation status
 
+**Multi-project discovery**: When multiple indexed projects are detected (via list_projects), search each relevant project systematically. For product features, this typically means both backend (APIs, database) and frontend (UI components, routes) projects. Use graph search, code search, glob, and grep across all projects to ensure comprehensive coverage.
+
 Do not equate a checked task with completed work or an unchecked task with absent work. For each in-scope requirement, story, phase, or material task, compare:
 
 1. The source claim in `tasks.md` or other tracking artifact.
 2. Relevant commits and current worktree changes against the resolved base.
-3. Concrete code, configuration, schema, migration, contract, or documentation evidence.
+3. Concrete code, configuration, schema, migration, contract, or documentation evidence across all relevant projects.
 4. Tests, quickstart results, build output, or other acceptance evidence.
 5. Integration state such as commits, upstream, or pull-request evidence when available.
 

@@ -21,7 +21,11 @@ Generate two artifacts that map the current branch's work:
 2. **map.upstream.md** — Concise navigation file following the Upstream document format (see References)
 
 The output must be **100% navigable**: every code component, file change, ticket, and branch mentioned should be a clickable link (file:line, Jira URL, git reference).
-For code mapping, read [references/codebase-scope.md](references/codebase-scope.md) before treating the active branch's repository as the complete implementation boundary.
+
+For code mapping:
+
+- Read [references/codebase-scope.md](references/codebase-scope.md) before treating the active branch's repository as the complete implementation boundary.
+- **Detect multi-repository workspace**: If codebase-memory-mcp is available, call `mcp__codebase-memory-mcp__list_projects` to discover all indexed projects. For feature mapping (UI surfaces, APIs, product features), automatically search across ALL related projects (e.g., both backend and frontend repos) without requiring explicit instruction. Document each project searched in the map.
 
 
 ## Entry Point Detection

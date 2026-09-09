@@ -66,7 +66,11 @@ Use this precedence:
 Prefer an explicit user target over inferred context. When both a ticket and PR are available, use the ticket as intent evidence and the PR/diff as implementation evidence.
 
 If no unique target or comparison base can be established, stop and ask for the Jira key, PR, or intended base branch. State what was checked. Do not manufacture a scope from nearby repository activity.
-For implementation review, read [references/codebase-scope.md](references/codebase-scope.md) before treating the reviewed repository as the complete change surface.
+
+For implementation review:
+
+- Read [references/codebase-scope.md](references/codebase-scope.md) before treating the reviewed repository as the complete change surface.
+- **Detect multi-repository workspace**: If codebase-memory-mcp is available, call `mcp__codebase-memory-mcp__list_projects` to discover all indexed projects. For feature reviews (UI surfaces, APIs, product features), automatically search across ALL related projects (e.g., both backend and frontend repos) without requiring explicit instruction. Document each project searched in evidence.
 
 
 ## Capture external references
@@ -255,11 +259,12 @@ Establish the scope and contract for the review:
 
 Gather and classify all material observations:
 
+- **Multi-project discovery**: When multiple indexed projects are detected (via list_projects), search each relevant project systematically. For product features, this typically means both backend (APIs, database) and frontend (UI components, routes) projects. Use graph search, code search, glob, and grep across all projects to ensure comprehensive coverage.
 - **Strengths** (G-XX): good decisions with specific evidence.
 - **Concerns** (F-XX): each with seriousness, confidence, evidence class, citations, and impact on the stated intent.
 - **Evidence gaps**: missing or inaccessible evidence and why it matters.
 
-Trace the smallest useful path from entry point to observable outcome. Inspect relevant tests and contracts. Compare intended names, inputs, outputs, invariants, errors, side effects, transaction behavior, idempotency, compatibility, and validation with the implementation.
+Trace the smallest useful path from entry point to observable outcome across all relevant projects. Inspect relevant tests and contracts. Compare intended names, inputs, outputs, invariants, errors, side effects, transaction behavior, idempotency, compatibility, and validation with the implementation. When searching multiple projects, document evidence from each project separately in the evidence map.
 
 ### 3. Discovered relationships
 

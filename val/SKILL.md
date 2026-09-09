@@ -64,7 +64,11 @@ Apply this precedence:
 5. With no clear target, ask one concise question. Do not guess at what needs validation.
 
 Record the resolved target and its provenance in `00-control.md`.
-For implementation validation, read [references/codebase-scope.md](references/codebase-scope.md) before treating the active checkout as the complete validation surface.
+
+For implementation validation:
+
+- Read [references/codebase-scope.md](references/codebase-scope.md) before treating the active checkout as the complete validation surface.
+- **Detect multi-repository workspace**: If codebase-memory-mcp is available, call `mcp__codebase-memory-mcp__list_projects` to discover all indexed projects. For feature validation (UI surfaces, APIs, product features), automatically search across ALL related projects (e.g., both backend and frontend repos) without requiring explicit instruction. Document each project searched in evidence.
 
 
 ## Capture external references
@@ -234,9 +238,10 @@ Define what needs validation:
 
 Create the test strategy:
 
+- **Multi-project discovery**: When multiple indexed projects are detected (via list_projects), search each relevant project systematically. For product features, this typically means both backend (APIs, database) and frontend (UI components, routes) projects. Use graph search, code search, glob, and grep across all projects to ensure comprehensive test coverage design.
 - Use test case IDs: T-01, T-02, T-03, etc.
 - Choose the right test level for each scenario: unit, contract, integration, end-to-end, manual.
-- Map acceptance criteria to test cases in a coverage matrix.
+- Map acceptance criteria to test cases in a coverage matrix across all relevant projects.
 - Apply boundary analysis: what are the edge values, limits, and transitions?
 - Apply decision tables for complex conditional logic.
 - Design negative tests: what should be rejected, fail gracefully, or remain unchanged?

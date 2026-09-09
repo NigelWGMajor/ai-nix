@@ -52,6 +52,7 @@ Do not require a Git repository. When Git exists, record branch, HEAD, and dirty
 For a broad workspace request:
 
 - Read applicable agent or repository guidance first.
+- **Detect multi-repository workspace**: If codebase-memory-mcp is available, call `mcp__codebase-memory-mcp__list_projects` to discover all indexed projects. For feature analysis (UI surfaces, APIs, product features), automatically search across ALL related projects (e.g., both backend and frontend repos) without requiring explicit instruction. Document each project searched in evidence.
 - Identify the workspace boundary before exploring deeply.
 - Prefer the repository's configured structural discovery facilities; fall back to ordinary file and text discovery when necessary.
 - Include source, documentation, configuration, tests, build/deploy definitions, data contracts, and history only in proportion to the question.
@@ -212,12 +213,13 @@ Do not block on minor omissions. Use a bounded assumption and label it unless a 
 
 Build the evidence landscape:
 
-- Locate authoritative sources and likely entry points.
+- **Multi-project discovery**: When multiple indexed projects are detected (via list_projects), search each relevant project systematically. For product features, this typically means both backend (APIs, database) and frontend (UI components, routes) projects. Use graph search, code search, glob, and grep across all projects to ensure comprehensive coverage.
+- Locate authoritative sources and likely entry points across all projects.
 - Inspect existing concepts, components, conventions, tests, interfaces, tools, and history relevant to the subject.
 - Distinguish sources of truth from derived, generated, stale, or narrative material.
 - Note contradictions, missing evidence, and areas where exploration is yielding diminishing returns.
 
-Prefer targeted retrieval over broad dumping. Retain stable evidence locations and compact findings rather than filling the final response with raw source content.
+Prefer targeted retrieval over broad dumping. Retain stable evidence locations and compact findings rather than filling the final response with raw source content. When searching multiple projects, document evidence from each project separately in the evidence map.
 
 ### 3. Connect
 

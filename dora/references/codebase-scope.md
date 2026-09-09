@@ -13,6 +13,17 @@ Do not recursively scan arbitrary parent directories, drives, or unrelated repos
 
 ## Inspect each confirmed repository independently
 
+## Select repositories before scanning
+
+When two or more candidate repositories are available and the request has not already named the exact source set, show the user the candidate list and ask which repositories to include. Accept `all`, numbered entries, or explicit paths. Do not start a multi-repository code scan or create a Standard/Deep instance until the selection is resolved. An explicit request to scan all configured repositories selects all of them.
+
+The root selected to host the output instance is an output-location decision, not implicit approval to scan only that repository. Keep the selected source set fixed for the run; newly discovered repositories are candidates to present to the user, never silent additions.
+
+Record every discovered candidate, the user's include/exclude selection and reason, source root, ref/freshness when known, and what was or was not inspected in `00-control.md` and the working evidence.
+
+If a selected root cannot be found or accessed, report it as **Unknown / not inspected** and explain the impact on the conclusion. Cross-workspace discovery remains read-only and does not authorize edits, branch switching, installation, deployment, or other mutation in an additional repository.
+
+
 Code indexes and graphs are normally repository-scoped. Query or index each confirmed source root separately, with its own working directory/project argument when the tool supports it. Do not infer that a graph search in the backend also searched the FE workspace, or that a missing graph result proves absence from another repository.
 
 Use the graph/index for structural code discovery in that repository and use targeted text or file inspection for configuration, generated artifacts, package metadata, workspace manifests, and string contracts. Preserve the root and ref for each claim; do not combine evidence from differently checked-out branches without saying so.
