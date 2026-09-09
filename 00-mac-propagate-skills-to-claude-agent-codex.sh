@@ -4,7 +4,8 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 visual_language_skills=(kit lit pix dac dac-help cop wiz fix val act umm mem map tut dora)
 documentation_standard_skills=(kit lit cop wiz fix val map tut dora)
-skills=(nix kit lit pix dac dac-help cop wiz fix val act umm mem map tut gap)
+codebase_scope_skills=(nix kit cop wiz fix val map dac gap pro dora)
+skills=(nix kit lit pix dac dac-help cop wiz fix val act umm mem map tut gap pro dora)
 agent_roots=("$HOME/.claude" "$HOME/.codex" "$HOME/.agents")
 
 pause() {
@@ -28,6 +29,10 @@ copy_reference visual-language.md "${visual_language_skills[@]}"
 
 printf '%s\n' '*** Copying nix master documentation-standard.md to all applicable skills ***'
 copy_reference documentation-standard.md "${documentation_standard_skills[@]}"
+
+printf '%s\n' '*** Copying nix master codebase-scope.md to code-investigating skills ***'
+pause
+copy_reference codebase-scope.md "${codebase_scope_skills[@]}"
 
 printf '%s\n' '*** Copying jira-fields.local.yaml to agent roots ***'
 if [[ -f "$repo_root/jira-fields.local.yaml" ]]; then

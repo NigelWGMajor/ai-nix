@@ -27,6 +27,8 @@ For a Standard or Deep review, ask immediately before creating output: `Optional
 ## Establish the branch hierarchy
 
 Read the current COP contract and every file in `../cop/references/` before making COP-derived findings. Also read repository-local instructions and, for DAC mode, the selected workspace's `00-control.md`, portions, solo envelopes, results, and integration plan.
+For branch code review, read [references/codebase-scope.md](references/codebase-scope.md) before treating a branch checkout as the complete implementation boundary.
+
 
 Build the tree only from observed evidence:
 

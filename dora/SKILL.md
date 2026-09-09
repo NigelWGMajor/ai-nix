@@ -59,6 +59,8 @@ Ask a question about the codebase. DORA will explore code, capture discoveries, 
 4. Creates links showing relationships (Browse, CodePath, DataPath, EffectPath, Flow)
 5. Returns answer with observation references
 6. Graph grows incrementally - subsequent queries build on prior discoveries
+For a code question that may cross a client, service, or prototype boundary, read [references/codebase-scope.md](references/codebase-scope.md) and keep observations from each repository distinct.
+
 
 **Output:**
 - Answer to question (2-5 sentences)

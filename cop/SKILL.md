@@ -37,6 +37,8 @@ At the start of every review:
 7. Also read repository-local instructions such as `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, ownership rules, and more specific guidance in the affected directories.
 
 If guidance conflicts, follow the user's current instructions first, then applicable repository or organizational requirements, then this skill's bundled guidance. Call out a material conflict instead of silently choosing.
+For code review, read [references/codebase-scope.md](references/codebase-scope.md) before treating the reviewed checkout as the complete implementation boundary.
+
 
 ## Core review philosophy
 

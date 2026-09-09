@@ -21,6 +21,8 @@ Generate two artifacts that map the current branch's work:
 2. **map.upstream.md** — Concise navigation file following the Upstream document format (see References)
 
 The output must be **100% navigable**: every code component, file change, ticket, and branch mentioned should be a clickable link (file:line, Jira URL, git reference).
+For code mapping, read [references/codebase-scope.md](references/codebase-scope.md) before treating the active branch's repository as the complete implementation boundary.
+
 
 ## Entry Point Detection
 

@@ -57,6 +57,8 @@ For a broad workspace request:
 - Include source, documentation, configuration, tests, build/deploy definitions, data contracts, and history only in proportion to the question.
 
 If multiple roots or subjects are equally plausible and choosing one would materially change the answer, ask one concise question. Otherwise use the active directory or most explicit subject and state the assumption.
+When code or repository investigation is in scope, read [references/codebase-scope.md](references/codebase-scope.md) before treating the primary checkout as the complete source boundary.
+
 
 Do not silently add unrelated internet research. Use external sources when the request asks for them, the subject inherently requires current external facts, or local evidence explicitly depends on them. State the local and external evidence boundaries.
 

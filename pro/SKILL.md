@@ -49,6 +49,8 @@ When invoked on a branch:
 3. Compare the source branch to the resolved target. Inventory commits, changed files, tests, generated artifacts, migrations, configuration, public contracts, deployment concerns, and current behavior.
 4. Use repository instructions, tests, and the Codebase Knowledge Graph to identify existing extension points and consumers. Treat graph evidence as applying only to a verified matching checkout.
 5. Record unavailable or conflicting local/remote evidence as Unknown. Local ancestry proves containment only; it never proves a remote PR exists, its base, or that it merged.
+When the reconstruction may involve a client, service, or prototype boundary, read [references/codebase-scope.md](references/codebase-scope.md) before partitioning the change.
+
 
 The source PR description and linked ticket express intent, but are not proof that the implemented diff meets them. Resolve material contradictions before proposing a split.
 

@@ -6,19 +6,30 @@ Provides workspace root and git repository information to Claude Code skills, in
 
 - **`get_workspace_root`**: Returns the VSCode workspace root, git repository root, and fallback path
 - **`check_git_repository`**: Checks if a path is inside a git repository
+- **`get_workspace_context`**: Returns all active VS Code workspace folders and a bounded list of Git repositories inside them. It reads the active `.code-workspace` path from `code --status`, then uses workspace environment variables, before falling back to the terminal directory.
+- **`workspaceFile` input**: Lets callers supply a `.code-workspace` file explicitly when the active VS Code window is unavailable.
+
+Use `get_workspace_context` before code discovery that could cross repository boundaries. Index or query each returned repository independently; a graph miss in one repository is not evidence about another.
 
 ## Installation
 
 ### 1. Install dependencies
 
+Copy the mcp-servers folder local (e.g. to c:\ai-nix\)
+
+
 ```bash
-cd B:\ai\ai-nix\mcp-servers\vscode-workspace
+cd c:\ai-nix\mcp-servers\vscode-workspace
 npm install
 ```
+`@modelcontextprotocol/sdk` is required for this server to start. If Node reports that this package is missing, run `npm install` in this directory, then restart the MCP host or VS Code session so it loads the dependency.
+
+`npm install` may create or update `package-lock.json`.
+
 
 ### 2. Configure in Claude Code
 
-Add to `~/.claude/config.json`:
+Add to `~/.claude/config.json` or `.mcp.json`:
 
 ```json
 {
@@ -26,7 +37,7 @@ Add to `~/.claude/config.json`:
     "vscode-workspace": {
       "command": "node",
       "args": [
-        "B:\\ai\\ai-nix\\mcp-servers\\vscode-workspace\\index.js"
+        "c:\\ai-nix\\mcp-servers\\vscode-workspace\\index.js"
       ]
     }
   }
@@ -105,6 +116,19 @@ Skills can use the MCP tool via Claude Code's tool interface:
 # Claude Code will translate this to an MCP call
 workspace_info=$(claude-mcp-tool vscode-workspace get_workspace_root)
 workspace_root=$(echo "$workspace_info" | jq -r '.workspaceRoot')
+For cross-repository code investigation, call `get_workspace_context` instead:
+
+```text
+workspace_info=$(claude-mcp-tool vscode-workspace get_workspace_context)
+```
+
+If the active VS Code window is inaccessible, pass its multi-root workspace file:
+
+```text
+workspace_info=$(claude-mcp-tool vscode-workspace get_workspace_context --workspaceFile "C:\\source\\product.code-workspace")
+```
+
+The result has `workspaceFolders`, `repositories`, and `warnings`. Use every relevant repository as a separate graph/index target.
 
 python <skill>/scripts/init_instance.py --workspace "$workspace_root" ...
 ```

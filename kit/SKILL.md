@@ -53,6 +53,8 @@ Before trusting any prior context, re-resolve:
 Do not assume `main`, infer a feature directory from a loose name similarity, or reuse a target from an earlier conversation after the branch or HEAD changes. An exact branch-leaf-to-feature-directory match is acceptable evidence; otherwise present candidates and ask if the choice materially affects the audit.
 
 Stop and explain the mismatch when a prior KIT instance names a different repository, feature, or branch and no explicit relationship makes the transition safe.
+When reconstructing implementation status, read [references/codebase-scope.md](references/codebase-scope.md) before treating the target repository as the complete feature surface.
+
 
 ## Capture external references
 

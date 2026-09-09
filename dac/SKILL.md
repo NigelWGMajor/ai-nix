@@ -92,6 +92,7 @@ Major phases:
 3. Discover available Jira, repository, GitHub, Spec Kit, and skill capabilities.
 For Jira access, use the available Atlassian plugin or MCP capability. Verify it with a lightweight read before relying on Jira evidence.
 For repository code discovery, prefer the available Codebase Knowledge Graph MCP; fall back to text search only when graph results are insufficient.
+For work that may cross a client, service, or prototype boundary, read [references/codebase-scope.md](references/codebase-scope.md) and investigate each confirmed repository independently.
 
    > Could you try restarting the MCP server? You can either:
    > 1. Run `! /mcp` in this prompt to check MCP server status

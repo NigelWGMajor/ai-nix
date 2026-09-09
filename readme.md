@@ -165,5 +165,6 @@ The canonical shared references originate in `nix/references/`:
 
 - `visual-language.md`
 - `documentation-standard.md`
+- `codebase-scope.md` — VS Code workspace-first, bounded discovery across primary, front-end, and prototype repositories
 
 `jira-fields.local.yaml` defines local Jira-field IDs for this work environment and is copied to each agent root when present.

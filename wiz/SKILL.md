@@ -66,6 +66,8 @@ Use this precedence:
 Prefer an explicit user target over inferred context. When both a ticket and PR are available, use the ticket as intent evidence and the PR/diff as implementation evidence.
 
 If no unique target or comparison base can be established, stop and ask for the Jira key, PR, or intended base branch. State what was checked. Do not manufacture a scope from nearby repository activity.
+For implementation review, read [references/codebase-scope.md](references/codebase-scope.md) before treating the reviewed repository as the complete change surface.
+
 
 ## Capture external references
 

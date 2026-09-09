@@ -59,6 +59,8 @@ Apply this precedence:
 4. With no clear symptom, ask one concise question. Do not guess at what is broken.
 
 Record the resolved symptom and its provenance in `00-control.md`.
+For code investigation, read [references/codebase-scope.md](references/codebase-scope.md) before assuming the active checkout contains the complete diagnostic surface.
+
 
 ## Capture external references
 

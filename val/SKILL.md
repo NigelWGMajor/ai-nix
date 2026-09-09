@@ -64,6 +64,8 @@ Apply this precedence:
 5. With no clear target, ask one concise question. Do not guess at what needs validation.
 
 Record the resolved target and its provenance in `00-control.md`.
+For implementation validation, read [references/codebase-scope.md](references/codebase-scope.md) before treating the active checkout as the complete validation surface.
+
 
 ## Capture external references
 
