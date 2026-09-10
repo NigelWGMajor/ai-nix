@@ -38,6 +38,13 @@ Determine whether the request identifies an existing NIX instance. If an `<outpu
 2. Ask the user whether to **resume** the prior analysis or **start a new instance**.
 3. If resuming, verify that referenced sources still exist, continue from the recorded next safe action, and do not repeat completed stages.
 4. If more than one instance is plausible, list them and ask which to use.
+## Pro reconstruction context
+
+Before ordinary broad-workspace analysis, resolve `TOOLING_OUTPUT_PATH`: use an absolute value directly, resolve `./` or `.\` from the repository root, reject other relative forms, and otherwise use `<repository-root>/.data`. Look for a Pro instance only when the user names one or the current branch exactly matches its recorded source, feature-master, or child branch. Do not infer Pro membership from a branch name.
+
+When exactly one Pro instance matches, make the default no-parameter subject the reconstruction as a whole. Read its `00-control.md`, `01-source-evidence.md`, `02-repartition-plan.md`, `03-pr-payloads.md`, and `04-convergence.md`, then examine the recorded target, feature-master, and every child branch under R0. Report a compact all-parts status: branch existence and dirtiness, recorded base and dependency order, local diff/containment where useful, recorded validation, and independently observed remote PR state. Preserve the distinction that local ancestry does not prove a remote PR or merge.
+
+Use an aggregate overview when the records are internally consistent. When scope is materially uncertain (several matching Pro instances, a missing branch/base, a changed plan, or a request that could mean one child instead of the stack), state the uncertainty and propose the smallest useful next choice: inspect the current node, add the incomplete/blocked nodes, or inspect every recorded node. Do not create a new Pro plan, change branches, or alter Pro records. The source broad branch remains read-only evidence rather than a work item.
 
 ## Resolve the subject
 
@@ -292,7 +299,7 @@ For Standard and Deep output, preserve the shared output spine while keeping all
 
 Lead with the answer and orientation, then make the six-stage reasoning trace easy to scan. Write Standard and Deep output to `Findings.md` in the initialized instance and return only the concise handoff described by the shared standard. Use professional Markdown, consistent headings, restrained symbols, and precise links. Keep raw discovery details out of the main narrative unless they change the conclusion.
 
-If the user supplies an explicit output path, honor it and record that path in `00-control.md`. Never overwrite an existing directory, never modify `.gitignore`, and disclose the reader-facing output path.
+When `TOOLING_OUTPUT_PATH` is set, it takes priority over an explicitly requested output path: keep generated artifacts below that base and ask the user to reconcile any requested path outside it. When unset, honor an explicit output path and record it in `00-control.md`. Never overwrite an existing directory, never modify `.gitignore`, and disclose the reader-facing output path.
 
 ## Complete the analysis
 

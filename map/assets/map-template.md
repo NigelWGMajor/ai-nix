@@ -9,9 +9,10 @@
 - **Ticket**: [PD-12345](https://degreedjira.atlassian.net/browse/PD-12345) — [title] `[status]`
   - Parent: [Epic link] (if exists)
   - Related: [sibling links] (if exists)
-- **Project Type**: [DAC / Speckit / Ticket-driven / Utility]
+- **Project Type**: [DAC / Pro / Speckit / Ticket-driven / Utility]
 - **Speckit Status**: [spec ✅ | plan ✅ | tasks 🔶 | implementation ⬜] (if Speckit)
 - **DAC Status**: [1 of 5 branches, 3 complete, 1 in progress, 1 not started] (if DAC)
+- **Pro Status**: [feature-master and child status, dependency order, and evidence limits] (if Pro)
 
 ## Intent
 [Derived from ticket description, commit messages, and code changes — 2-3 sentences summarizing the goal]

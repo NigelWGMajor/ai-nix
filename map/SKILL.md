@@ -35,6 +35,7 @@ When invoked, immediately detect the context type:
 ### Context Types
 - **Ticket-driven** — Branch name contains `PD-nnnnnn` or 6-digit number → extract ticket
 - **DAC project** — Detect DAC artifacts, sibling branches, hierarchical structure
+- **Pro reconstruction** — Detect one matching `<output-base>/pro-*/00-control.md` for the repository and current source, feature-master, or child branch; use the recorded target, feature-master, children, bases, dependencies, and statuses rather than branch-name inference
 - **Speckit project** — Detect `spec.md`, `plan.md`, `tasks.md` → assess process completeness
 - **Utility/maintenance** — No ticket context (user's own utilities, skills, etc.)
 - **Main branch history** — User wants recent history overview
@@ -84,7 +85,16 @@ This skill runs **inline and interactive** — time varies with complexity. Paus
    - `.dac/<workstream>/portions/` (identifies portions and their branches)
    - Sibling branches matching the workstream pattern (use `git branch --list`)
    
-   **C. Check for Speckit project:**
+   **C. Check for Pro reconstruction:**
+   ```bash
+   # Resolve TOOLING_OUTPUT_PATH first. Search only Pro instances whose
+   # 00-control.md records this repository root and current branch.
+   # Read 02-repartition-plan.md, 03-pr-payloads.md, and 04-convergence.md
+   # only for the selected instance.
+   ```
+   If exactly one Pro instance matches, this is a Pro reconstruction. Report its source, recorded target, feature-master, child count, dependency order, and known status. If none match, continue. If several match, ask the user to select one; never aggregate by a branch-name pattern.
+
+   **D. Check for Speckit project:**
    ```bash
    # Look for specs/ directory OR .speckit/ directory
    REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -100,13 +110,13 @@ This skill runs **inline and interactive** — time varies with complexity. Paus
    - `specs/<feature>/tasks.md` → task breakdown complete
    - `.speckit/` → configuration directory
    
-   **D. Extract ticket:**
+   **E. Extract ticket:**
    ```bash
    # Regex: (PD-\d{6}|\b\d{6}\b) from branch name
    git rev-parse --abbrev-ref HEAD | grep -oE '(PD-[0-9]{6}|[0-9]{6})'
    ```
    
-   **E. Check for other skill artifacts:**
+   **F. Check for other skill artifacts:**
    ```bash
    # Inspect <output-base>/fix-*, <output-base>/nix-*, and <output-base>/wiz-* after resolving TOOLING_OUTPUT_PATH.
    ```
@@ -122,10 +132,10 @@ This skill runs **inline and interactive** — time varies with complexity. Paus
    ```
    
 4. **Interactive prompts** (only if needed)
-   - Multiple related branches detected:
-     > "This branch is 1 of 5 in a DAC set (3 complete, 2 in progress). Analyze:
-     > 1) Only this branch [default]
-     > 2) This + incomplete branches
+   - Multiple related branches detected in DAC or Pro context:
+     > "This branch is 1 of 5 recorded related branches (3 complete, 2 in progress). Analyze:
+     > 1) Current branch plus hierarchy status [default]
+     > 2) Current branch + incomplete branches
      > 3) All branches
      > 4) Custom selection"
    
@@ -278,7 +288,7 @@ Classify each contribution as:
 #### Evidence Sources (context-dependent)
 - **Jira**: Match acceptance criteria to implementation
 - **Speckit**: Compare `tasks.md` to actual commits
-- **DAC**: Check sub-branch completion status
+- **DAC or Pro**: Check recorded child-branch completion, dependencies, explicit bases, and validation/remote evidence; label absent evidence Unknown rather than treating local ancestry as integration
 - **Code**: Look for TODOs, FIXMEs, incomplete implementations, missing tests
 - **Tests**: Check for corresponding test coverage
 
@@ -314,26 +324,7 @@ Apply this to:
 
 #### Output Location
 
-Determine output location based on project type:
-
-1. **DAC project**: Place map output in the DAC workspace
-   ```bash
-   # If .dac/<workstream>/ exists, create map there
-   mkdir -p .dac/<workstream>/map/
-   # Output: .dac/<workstream>/map/map.md and map.upstream.md
-   ```
-
-2. **Speckit project**: Place map output alongside the feature spec
-   ```bash
-   # If specs/<feature>/ exists, create map there
-   mkdir -p specs/<feature>/map/
-   # Output: specs/<feature>/map/map.md and map.upstream.md
-   ```
-
-3. **Default (ticket-driven, utility, main-history)**: Use the standard output base
-   ```bash
-   # Output: <output-base>/map-YY-MM-DD-a/map.md and map.upstream.md
-   ```
+Resolve `TOOLING_OUTPUT_PATH` before creating output: when set, it is the priority output boundary; use an absolute value directly, resolve `./` or `.\` from the repository root, and reject other relative forms. No inferred or explicitly requested output location may escape that base; ask the user to reconcile any conflict. When unset, use `<repository-root>/.data`. For every context type, including DAC, Pro, and Speckit, write the new map only to a collision-safe `<output-base>/map-YY-MM-DD-<suffix>[-<context>]/`. Link to source artifacts; do not create output folders inside `.dac`, a Pro instance, `specs`, or a source branch.
 
 #### File 1: map.md (Rich Context)
 
@@ -345,7 +336,8 @@ Determine output location based on project type:
 - **Ticket**: [PD-12345](https://degreedjira.atlassian.net/browse/PD-12345) — [title] `[status]`
   - Parent: [Epic link] (if exists)
   - Related: [sibling links] (if exists)
-- **Project Type**: [DAC / Speckit / Ticket-driven / Utility]
+- **Project Type**: [DAC / Pro / Speckit / Ticket-driven / Utility]
+- **Pro Context** (if Pro): source, target, feature-master, current node, dependency order, and aggregate child status from the selected Pro instance
 - **DAC Context** (if DAC):
   - Workstream: [workstream-id] (from `.dac/<workstream>/00-control.md`)
   - Portion: [P-001] — [portion title] (from `.dac/<workstream>/portions/P-001.md`)
@@ -587,15 +579,15 @@ This file follows the **Upstream Navigation Map Format** (see `references/UPSTRE
 
 Before creating the map folder and generating the files, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
-1. Write to `<output-base>/map-YYYY-MM-DD-a/map.md`
-2. Write to `<output-base>/map-YYYY-MM-DD-a/map.upstream.md`
+1. Write to `<output-base>/map-YY-MM-DD-a/map.md`
+2. Write to `<output-base>/map-YY-MM-DD-a/map.upstream.md`
 3. Report to user:
 
 ```
 Work map generated for branch `[name]`.
 
-📄 Rich context: <output-base>/map-YYYY-MM-DD-a/map.md
-🔗 Quick nav: <output-base>/map-YYYY-MM-DD-a/map.upstream.md
+📄 Rich context: <output-base>/map-YY-MM-DD-a/map.md
+🔗 Quick nav: <output-base>/map-YY-MM-DD-a/map.upstream.md
 
 **Summary**: [one-line summary of status — e.g., "3 components complete, 2 partial, 1 needed"]
 **Next step**: [most immediate action item]
@@ -658,7 +650,7 @@ fi
 
 ### Consistent with /umm Suite
 - Use same visual conventions (✅ 🔶 ⬜ status indicators)
-- Follow same output directory structure (`.data/[skill]-YYYY-MM-DD-a/`)
+- Follow the `TOOLING_OUTPUT_PATH/[skill]-YY-MM-DD-a/` output contract (or its documented fallback)
 - Use same reference format (if shared references exist)
 - Maintain same tone (professional, evidence-based, actionable)
 
@@ -677,7 +669,7 @@ If code-indexing MCP fails:
 - Still produce output with available evidence
 
 ### No Clear Context
-If branch is ambiguous (no ticket, no DAC, no Speckit, no commits):
+If branch is ambiguous (no ticket, no DAC, no Pro, no Speckit, no commits):
 - Ask user: "No clear context detected. What are you working on?"
 - Adjust analysis based on user response
 
@@ -697,6 +689,7 @@ If branch has no commits beyond parent:
 - **kit** — Reconstruct Speckit project status (Speckit-specific recovery)
 - **fix** — Diagnose bugs through hypothesis triage (problem-focused)
 - **dac** — Coordinate Jira-backed feature delivery (orchestration)
+- **pro** — Reconstruct a broad PR into a recorded feature-master and child stack
 
 **map** complements these by providing **navigable task resumption** — "Here's where we are, here's what's done, here's what's next, here are the links to get there."
 

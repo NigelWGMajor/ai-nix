@@ -5,7 +5,7 @@ description: Reconstruct an oversized pull request into small, dependency-ordere
 
 # Pull Requests Open
 
-Quick help: if invoked with ? as the only parameter, explain the source-PR, feature-master, and child-PR workflow. Do not inspect a branch or create output.
+Quick help: if invoked with ? as the only parameter, explain the source-PR, feature-master, and child-PR workflow. Do not inspect a branch or create output. With no parameters, first detect whether the current branch belongs to one recorded Pro reconstruction; when it does, show its branch switch list instead of treating the current branch as a new source PR.
 
 /pro reduces review cognitive load after integration has made a branch too broad. It treats the current branch and its PR as read-only evidence, proposes a reviewable reconstruction, then - only after explicit approval - creates child branches and PRs that merge into a newly created feature-master integration branch.
 
@@ -39,6 +39,27 @@ Start with read-only inspection.
 | R4 | Push branches; create, edit, close, or merge PRs; mutate Jira or other remote systems | separate explicit approval |
 
 Content approval does not authorize C3, V2, or R4. Preserve unrelated worktree changes. Never force-push, rebase, close, or modify the source branch or its PR unless the user separately asks and grants R4 approval.
+## Output location and Pro environment
+
+Resolve `TOOLING_OUTPUT_PATH` before locating or creating durable Pro state. When set, it is the priority output boundary: an absolute value is the output base; a value beginning `./` or `.\` is relative to the resolved repository root; reject other relative forms. No inferred or explicitly requested output location may escape that base; ask the user to reconcile any conflict. When unset, use `<repository-root>/.data`. The output base already names the output directory: never append another `.data` segment, and never write Pro artifacts beside source code, a PR checkout, or a child branch.
+
+A W1-approved Pro instance is the evidence source for a Pro environment. Store it as a collision-safe `<output-base>/pro-YY-MM-DD-<suffix>[-<context>]/` directory and retain these files:
+
+- `00-control.md` — repository root, source branch and PR, recorded target branch, feature-master branch, current phase, branch switch table, and links to the other records;
+- `01-source-evidence.md` — read-only source PR and diff evidence;
+- `02-repartition-plan.md` — approved portions, dependencies, ownership, and merge order;
+- `03-pr-payloads.md` — each child ID, branch, explicit base, approved PR payload, and observed remote status; and
+- `04-convergence.md` — equivalence register, validation evidence, and final-parent gate.
+
+Use explicit labels such as `Pro reconstruction`, `feature_master_branch`, `source_branch`, `target_branch`, `P-001`, `branch`, `base`, and `status`. Other skills may use only this recorded evidence to recognize the hierarchy; a similarly named branch is not Pro evidence.
+
+## Resume and fast branch switching
+
+With no parameters, resolve the repository root and output base, then look for Pro instances whose recorded repository root matches and whose source, feature-master, or child branch matches the current branch. If exactly one instance matches, show a compact keyboard-selectable list: `A` for the recorded target, `B` for feature-master, then `C...` for child branches in dependency order. Mark the current branch and any recorded remote or validation status. A user may reply with the displayed letter or an exact listed branch name.
+
+Listing is R0. Switching requires one C3 approval for the selected target. Refuse to switch a dirty worktree without an explicitly approved preservation action; never discard work, force a checkout, or infer a stash policy. When the feature-master or a child is newly created, record it in the same Pro instance before returning, so subsequent no-parameter runs can resume and switch quickly.
+
+If no instance matches, proceed with ordinary source-PR inspection. If several instances match, show their paths, feature-master branches, and recorded phases and ask the user to choose one; do not scan or merge them.
 
 ## Inspect the source
 
@@ -84,10 +105,10 @@ Do not create Jira issues by default. If requested, preview each Story descripti
 
 ## Materialize only after approval
 
-After plan approval, ask for exact authority before acting: C3 for local reconstruction, V2 for validation, and R4 for every remote push and PR payload.
+After plan approval, request authority in consolidated classes rather than serial confirmations. One W1 request covers creating and maintaining the named Pro instance and all five planning records. One C3 request covers the approved local reconstruction as a unit: create feature-master and child branches, apply the bounded changes, record resulting local branch/commit evidence, and switch to feature-master. One V2 request covers the named validation and equivalence checks. Keep each remote payload under separately scoped R4 approval. Ask another question only for a material decision or new authority outside the approved scope.
 
-1. Create feature-master directly from the recorded original target, using an explicit name such as `pro/<source>-feature-master`. When the original target is `main`, this is the new branched-from-`main` feature/integration parent.
-2. Create every portion branch from feature-master - never from a sibling or the source branch.
+1. Create feature-master directly from the recorded original target, using an explicit name such as `pro/<source>-feature-master`. When the original target is `main`, this is the new branched-from-`main` feature/integration parent. Record the branch, then switch the active checkout to it before creating children.
+2. Create every portion branch from feature-master - never from a sibling or the source branch. Record every branch and its explicit feature-master base in `00-control.md` and `03-pr-payloads.md`.
 3. Reapply only the portion's bounded change from the source. Use source commits as evidence, not indivisible transfer units: selective cherry-picks, patch extraction, or clean reimplementation are acceptable when a commit mixes concerns.
 4. When a child needs an already merged dependency, merge the updated feature-master into the active child branch. Do not rebase a published child branch.
 5. Verify each child diff against feature-master: it must not contain sibling-owned work. Run approved validation, record deviations, then create the child PR with feature-master as its explicit base. Never target the original target, including `main`, directly.
@@ -110,7 +131,7 @@ Only after this gate and separate R4 approval, create one final PR from feature-
 
 ## Output and quality gate
 
-Keep the plan in conversation unless W1 is granted. Resolve TOOLING_OUTPUT_PATH first: an absolute value is the output base, ./ or .\\ is relative to the repository root, and when unset use the repository's .data folder. With W1 approval, create a collision-safe pro-YY-MM-DD-letter-context folder under that output base containing 00-control.md, 01-source-evidence.md, 02-repartition-plan.md, 03-pr-payloads.md, and 04-convergence.md.
+Keep the plan in conversation unless W1 is granted. Use the Output location and Pro environment contract above. Derive an optional context suffix from an unambiguous user-supplied title; otherwise omit it. Do not ask a separate suffix question before the consolidated W1 request.
 
 Before returning a proposal or completion report, confirm:
 
@@ -119,4 +140,6 @@ Before returning a proposal or completion report, confirm:
 - [ ] Dependencies are directional and acyclic; no child is based on a sibling.
 - [ ] Feature-master, every child PR base, and final PR target are explicit.
 - [ ] Source intent is traced to portions and final equivalence is defined.
+- [ ] The W1 Pro instance is under `TOOLING_OUTPUT_PATH` (or its documented fallback), and its switch table records every created branch and base.
+- [ ] After feature-master creation, the active checkout is feature-master unless a dirty-worktree safeguard prevented the switch and that limitation is recorded.
 - [ ] No local or remote mutation exceeded granted authority.

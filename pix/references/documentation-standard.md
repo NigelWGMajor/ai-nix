@@ -8,7 +8,7 @@ Use this baseline for slideshow output produced by PIX. Adapts the shared LIT/KI
 - Use a chat-only response only when the user explicitly requests it or the skill classifies the work as Short and the user permits chat-only output.
 - Resolve the workspace root in this order: an explicit user-supplied workspace root, the configured workspace root that contains the source, the repository root, then the current working directory.
 - Resolve one **output base** before locating or creating a run:
-  1. If `TOOLING_OUTPUT_PATH` is set, use its absolute value directly. A value beginning `./` or `.\` is relative to the resolved workspace root (or current folder when no repository is available).
+  1. If `TOOLING_OUTPUT_PATH` is set, it is the priority output boundary: use its absolute value directly, or resolve `./` or `.\` from the resolved workspace root (or current folder when no repository is available). All generated artifacts must remain below that base.
   2. Otherwise use `<workspace-root>/.data`.
 - The output base already names the output directory. Never append another `.data` segment to it.
 - Immediately before creating a dated run directory (including by running an initializer that creates it), ask: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` If the user has already supplied a clear title, offer it as the default. Normalize a nonblank answer to a lowercase, hyphen-separated filesystem-safe slug and append it after the collision suffix: `pix-YY-MM-DD-<a>-<context-slug>`. A blank answer retains `pix-YY-MM-DD-<a>`. Allocate the first unused alphabetic collision suffix for the complete candidate path; the optional context suffix never replaces collision safety.
@@ -16,7 +16,7 @@ Use this baseline for slideshow output produced by PIX. Adapts the shared LIT/KI
 - Allocate the first unused suffix. Never overwrite, merge into, or silently reuse an existing instance.
 - Create the output base when needed. Never modify `.gitignore` automatically and never stage, commit, or publish generated artifacts.
 - Keep working notes and control artifacts in the instance, but always name the reader-facing deliverable `Findings.md`.
-- When the user supplies an explicit output path, honor it. Retain an instance in the workspace when the skill requires resumability, and record the relationship between the instance and the requested deliverable.
+- When `TOOLING_OUTPUT_PATH` is set, it takes priority over an inferred or explicitly requested output location. If the requested location is outside that base, do not write there; ask the user to reconcile the path or change the environment. Retain an instance in the output base when the skill requires resumability, and record the relationship to any requested deliverable.
 
 ## Slideshow structure
 

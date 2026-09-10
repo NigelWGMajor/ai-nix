@@ -1,11 +1,11 @@
 ---
 name: gap
-description: Apply COP-style skeptical review to one branch or an evidence-backed DAC branch hierarchy, then produce per-branch verdicts and a cross-branch integration roll-up. Use when reviewing a branch in isolation or when related branches, portions, or parent integration need a combined review.
+description: Apply COP-style skeptical review to one branch or an evidence-backed DAC or Pro branch hierarchy, then produce per-branch verdicts and a cross-branch integration roll-up. Use when reviewing a branch in isolation or when related branches, portions, or parent integration need a combined review.
 ---
 
 # GAP Hierarchical Review
 
-> **Quick help:** If invoked with `?` as the only parameter, explain the supported single-branch and DAC-hierarchy inputs. Do not begin a review.
+> **Quick help:** If invoked with `?` as the only parameter, explain the supported single-branch, DAC-hierarchy, and Pro-hierarchy inputs. Do not begin a review.
 
 GAP is an independent, read-only reviewer for branch relationships. It uses COP as its per-branch review engine, but adds an evidence-backed hierarchy and an integration-level verdict. It does not replace DAC coordination, create a Jira plan, switch branches, make commits, or create nested COP instances.
 
@@ -14,29 +14,31 @@ GAP is an independent, read-only reviewer for branch relationships. It uses COP 
 - `/gap` reviews the current branch as one node.
 - `/gap <exact-branch>` reviews that exact local branch as one node.
 - `/gap <path-to-.dac-workspace>` reviews the recorded DAC hierarchy rooted at that workspace.
-- When the user supplies a DAC workstream plus a request for hierarchy, first resolve its exact `.dac/<workspace-label>/00-control.md`; ask one question if more than one matching workspace is plausible.
+- `/gap <path-to-pro-instance>` reviews the recorded Pro hierarchy rooted at its `00-control.md`.
+- When the user supplies a DAC workstream or Pro branch plus a request for hierarchy, first resolve its exact recorded workspace or Pro instance; ask one question if more than one matching record is plausible.
 
-Do not scan sibling branches or `.dac` workspaces merely because their names look related. A supplied suffixed workspace label is an exact selector. A branch without evidenced relation remains a separate single-branch review.
+Do not scan sibling branches, `.dac` workspaces, or Pro instances merely because their names look related. A supplied suffixed workspace label or Pro instance is an exact selector. A branch without recorded evidence remains a separate single-branch review.
 
 ## Authority and output
 
-Read Git metadata, recorded DAC artifacts, local branch refs, code, tests, and available read-only integrations under R0. Do not switch branches or run tests merely to inspect them. Request the same explicit approval that COP requires before a build, test, generator, source edit, Git mutation, Jira action, or remote action.
+Read Git metadata, recorded DAC or Pro artifacts, local branch refs, code, tests, and available read-only integrations under R0. Do not switch branches or run tests merely to inspect them. Request the same explicit approval that COP requires before a build, test, generator, source edit, Git mutation, Jira action, or remote action.
 
-For a Standard or Deep review, ask immediately before creating output: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` With W1 approval, write a collision-safe `<output-base>/gap-YY-MM-DD-<letter>-<context>/` instance containing `00-control.md`, `01-hierarchy.md`, `02-branch-reviews.md`, and `Findings.md`. A Quick review stays in chat unless the user asks to save it.
+Resolve `TOOLING_OUTPUT_PATH` before creating output: when set, it is the priority output boundary; use an absolute value directly, resolve `./` or `.\` from the repository root, and reject other relative forms. No inferred or explicitly requested output location may escape that base; ask the user to reconcile any conflict. When unset, use `<repository-root>/.data`. With W1 approval, write a collision-safe `<output-base>/gap-YY-MM-DD-<letter>-<context>/` instance containing `00-control.md`, `01-hierarchy.md`, `02-branch-reviews.md`, and `Findings.md`. A Quick review stays in chat unless the user asks to save it.
 
 ## Establish the branch hierarchy
 
-Read the current COP contract and every file in `../cop/references/` before making COP-derived findings. Also read repository-local instructions and, for DAC mode, the selected workspace's `00-control.md`, portions, solo envelopes, results, and integration plan.
+Read the current COP contract and every file in `../cop/references/` before making COP-derived findings. Also read repository-local instructions and, for DAC mode, the selected workspace's `00-control.md`, portions, solo envelopes, results, and integration plan; for Pro mode, read `00-control.md`, `01-source-evidence.md`, `02-repartition-plan.md`, `03-pr-payloads.md`, and `04-convergence.md`.
 For branch code review, read [references/codebase-scope.md](references/codebase-scope.md) before treating a branch checkout as the complete implementation boundary.
 
 
-Build the tree only from observed evidence:
+Build the tree only from observed evidence. In DAC mode:
 
 1. Record the selected workspace label and its parent Jira workstream separately.
 2. Read `target_branch` and `master_branch` from `00-control.md`.
 3. Add portion branches only from recorded envelope or result metadata. Their expected base is the recorded master branch.
 4. Add solo branches only from their recorded `branch` and `base_branch` metadata.
 5. Recurse into another DAC workspace only when the current artifacts explicitly link to that exact workspace or the user names it.
+In Pro mode, read `target_branch`, `feature_master_branch`, and child IDs, branches, bases, dependencies, and statuses from the selected Pro records. The original broad source branch is read-only evidence, not a child node. Build `target -> feature-master -> children`; each child's expected base is feature-master. Recurse nowhere unless the Pro records explicitly name another hierarchy.
 
 Use local Git refs to verify that a named branch exists and to obtain its merge base or diff. Local ancestry can establish containment only; it does not prove a pull request, a remote base, or merge status. Never fall back silently to `main`. Mark a missing base, missing branch, cycle, duplicate node, inaccessible workspace, or undocumented relationship as **Unknown** and keep it visible in the output.
 
@@ -60,7 +62,7 @@ Record one compact node review containing:
 
 | Field | Required content |
 | --- | --- |
-| Node | DAC local ID or exact branch name |
+| Node | DAC/Pro local ID or exact branch name |
 | Base and evidence | Recorded base, local ref status, and comparison boundary |
 | COP verdict | Yes, Yes with changes, No, or Unable to verify |
 | Findings | Severity, confidence, and evidence links for material concerns and strengths |
