@@ -167,6 +167,7 @@ Each portion must have:
 - stable inputs, outputs, and compatibility obligations
 - explicit dependencies and downstream consumers
 - a bounded change surface and test obligation
+- a Fibonacci-point estimate and sizing rationale
 - a proposed executor route
 - an escalation boundary
 
@@ -174,7 +175,15 @@ Each portion must have:
 
 Prefer vertical slices within a domain. Create a foundation portion only for a genuinely shared contract, additive schema, compatibility adapter, migration, or reusable capability. Reject cycles, hidden blockers, unsafe parallel file overlap, and partitions that merely mirror architecture layers.
 
-### 2a. Mandatory per-portion necessity, reuse, and security review
+### 2a. Fibonacci sizing and split review
+
+Estimate every proposed portion from the observed outcome, dependencies, change surface, validation obligation, and uncertainty. Use only Fibonacci points: `1`, `2`, `3`, `5`, `8`, `13`, and subsequent Fibonacci values. Points express relative delivery size, not elapsed time or a commitment.
+
+Record the point value and a concise rationale in `04-portion-plan.md`, then carry it into the portion envelope. Use `unestimated` only when evidence is genuinely insufficient; record why and resolve it to a numeric Fibonacci value before creating a Jira ticket.
+
+An estimate of `8` or above is a split signal. Revisit the outcome, contract, or independently testable boundary and propose smaller portions where possible. If it remains one portion, record why further partitioning would add risk or destroy a coherent outcome. The same review applies when a proposed grouped Jira ticket reaches `8` or above.
+
+### 2b. Mandatory per-portion necessity, reuse, and security review
 
 Before requesting approval for `04-portion-plan.md` or moving to Jira allocation, read [references/portion-sanity-review.md](references/portion-sanity-review.md) and complete its review for **every active proposed portion**.
 
@@ -195,15 +204,16 @@ Use repository instructions, code, tests, and the Codebase Knowledge Graph to es
 
 Summarize enough information for the user to make an informed decision:
 
-| Portion | Outcome | Complexity | Dependencies | Change surface |
-|---------|---------|------------|--------------|----------------|
-| P-001   | ...     | ...        | ...          | ...            |
+| Portion | Outcome | Points | Complexity | Dependencies | Change surface |
+|---------|---------|--------|------------|--------------|----------------|
+| P-001   | ...     | 3      | ...        | ...          | ...            |
 
 Include:
 - Total number of portions and their dependency structure
 - Whether portions touch overlapping or disjoint files/systems
 - Estimated scope of each portion (small fix vs. substantial feature)
 - Any existing Jira children or related tickets already in the hierarchy
+- Fibonacci estimate and sizing rationale for each portion, highlighting every `8+` split signal
 
 #### Propose ticket allocation
 
@@ -211,13 +221,13 @@ Start from one proposed Story per portion. SQL, FE, and BE portions must always 
 
 Present and persist this exact table in `05-jira-plan.md`:
 
-| Portion | Proposed Jira Issue | Type | Master | Dependencies | Status | Description | Suggested Grouping |
-|---------|---------------------|------|--------|--------------|--------|-------------|--------------------|
-| P-001 | New Story | Story | PD-123456 | - | proposed | Add SQL migration | A — combine with P-002 (same SQL review pipeline) |
-| P-002 | New Story | Story | PD-123456 | P-001 | proposed | Add SQL data backfill | A — combine with P-001 (same SQL review pipeline) |
-| P-003 | New Story | Story | PD-123456 | P-001 | proposed | Add backend API | — |
+| Portion | Proposed Jira Issue | Portion Points | Ticket Points | Type | Master | Dependencies | Status | Description | Suggested Grouping |
+|---------|---------------------|----------------|---------------|------|--------|--------------|--------|-------------|--------------------|
+| P-001 | New Story | 3 | 3 | Story | PD-123456 | - | proposed | Add SQL migration | A — combine with P-002 (same SQL review pipeline) |
+| P-002 | New Story | 5 | 5 | Story | PD-123456 | P-001 | proposed | Add SQL data backfill | A — combine with P-001 (same SQL review pipeline) |
+| P-003 | New Story | 3 | 3 | Story | PD-123456 | P-001 | proposed | Add backend API | — |
 
-Each letter is a candidate grouping: portions bearing the same letter would share one Jira Story if selected. A dash means no grouping is suggested. The `Description` must be brief but sufficient for an asynchronous reviewer to understand the proposed ticket boundary.
+Each letter is a candidate grouping: portions bearing the same letter would share one Jira Story if selected. A dash means no grouping is suggested. For one portion per Story, carry the portion estimate to `Ticket Points` unchanged. For a grouping, total the constituent portion points and round up to the next Fibonacci value; retain the component breakdown in the rationale. The `Description` must be brief but sufficient for an asynchronous reviewer to understand the proposed ticket boundary.
 
 The user may then:
 
@@ -234,9 +244,9 @@ Wait for the user to decide before proceeding.
 - **If Parent-only:** Record the decision in `05-jira-plan.md` with strategy `none`. Skip Jira child creation, but complete and obtain content approval for a **trivial** `06-integration-plan.md` before materializing portion envelopes. The trivial plan records the direct branch/PR path, validation, rollout/rollback, and parent-ticket traceability; it must not be omitted.
 - **If Use portions or Accept suggested groupings:** update the saved table to the chosen mapping, then present the proposed Jira organization for approval. For each proposed ticket, include the acceptance criteria as a markdown checklist exactly as they will appear in the Jira ticket:
 
-| Portion | Proposed Jira | Type | Parent | Rationale |
-|---------|--------------|------|--------|-----------|
-| P-001   | ...          | ...  | ...    | ...       |
+| Portion | Proposed Jira | Ticket Points | Type | Parent | Rationale |
+|---------|--------------|---------------|------|--------|-----------|
+| P-001   | ...          | 3             | ...  | ...    | ...       |
 
 **P-001 — Acceptance Criteria:**
 - [ ] First criterion derived from parent success criteria
@@ -290,6 +300,7 @@ Content approval does not authorize Jira or GitHub writes. Require R4 approval, 
 - Copy the split-from issue's native **Parent**, **labels**, and **team** fields to every Story.
 - Link each Story to the split-from issue with the **Created By** relationship. Do not use an `is part of` link and do not make the split-from issue the Story's native parent.
 - Include acceptance criteria in the dedicated custom field (NOT in description)
+- Discover the writable Jira Story Points field (or local equivalent) and set it to the approved `Ticket Points` value; never assume a field ID.
 - See [references/jira-integration.md](references/jira-integration.md) for field discovery, ADF format, and common mistakes
 
 ### 4. Materialize portion envelopes
@@ -302,6 +313,7 @@ python <skill-dir>/scripts/dac.py portion create \
   --id P-001 \
   --title "Add compatibility contract" \
   --executor speckit \
+  --points 3 \
   --jira ABC-124
 ```
 

@@ -118,6 +118,12 @@ The acceptance criteria field uses ADF (Atlassian Document Format) with task lis
 - `state` is "TODO" for unchecked, "DONE" for checked
 - Jira UI renders this as interactive checkboxes
 
+### Story-point estimate field
+
+Before creating a DAC Story, discover the writable field labelled `Story Points` (or the instance's equivalent) using the same local-override/read-first approach as the acceptance-criteria field. Record its ID or name in `05-jira-plan.md`; never assume a `customfield_*` ID.
+
+Each ticket must use an approved Fibonacci estimate. For one portion per Story, copy that portion's points unchanged. For a same-discipline grouping, total the constituent portion points, round up to the next Fibonacci value, and retain the component breakdown in the plan. A ticket at `8` points or above must retain the documented sizing review before its Jira write.
+
 **Example API call:**
 ```json
 {
@@ -307,6 +313,7 @@ Before marking Jira integration complete:
 
 - [ ] Allocation strategy recorded in `05-jira-plan.md` (none / per-partition / custom)
 - [ ] If creating tickets: all planned portion Jira issues created
+- [ ] If creating tickets: Story Points field was discovered, written with the approved Fibonacci value, and read back
 - [ ] If creating tickets: description field contains deliverables, key behavior, dependencies, and `.dac/` reference
 - [ ] If creating tickets: acceptance criteria in dedicated field (NOT in description)
 - [ ] If creating tickets: acceptance criteria use proper ADF task list format

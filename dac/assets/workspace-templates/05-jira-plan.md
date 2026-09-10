@@ -49,13 +49,21 @@ No nested master Story discovered yet.
 
 <!-- In preview, persist the proposed table and reuse it on resumption. Regenerate only after a
      user-requested repartition/grouping change or material evidence drift. SQL, FE, and BE must
-     remain separate; lettered Suggested Grouping values may join only same-discipline portions. -->
+     remain separate; lettered Suggested Grouping values may join only same-discipline portions.
+     Use Fibonacci points. Carry a single portion's points to its ticket; for a grouping, total
+     constituent portions and round up to the next Fibonacci value. Explain every 8+ split signal. -->
 
 ## 🔗 Hierarchy
 
-| Portion | Proposed Jira Issue | Type | Master | Dependencies | Status | Description | Suggested Grouping |
-|---|---|---|---|---|---|---|---|
-| P-001 | New Story | Story | {{WORKSTREAM_ID}} | - | proposed | To determine | — |
+| Portion | Proposed Jira Issue | Portion Points | Ticket Points | Type | Master | Dependencies | Status | Description | Suggested Grouping |
+|---|---|---|---|---|---|---|---|---|---|
+| P-001 | New Story | unestimated | unestimated | Story | {{WORKSTREAM_ID}} | - | proposed | To determine | — |
+
+## Story-point field
+
+- Field ID or name: To determine through Jira field discovery
+- Ticket-point source: Portion estimate / grouped-total rounded up to Fibonacci
+- 8+ sizing review: To determine
 
 ## 🎬 Proposed remote actions
 

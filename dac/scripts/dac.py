@@ -84,6 +84,7 @@ EXECUTOR_PATTERN = re.compile(
 PD_WORKSTREAM_PATTERN = re.compile(r"PD-\d{6}", re.IGNORECASE)
 CONTEXT_SUFFIX_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
+UNESTIMATED_POINTS = "unestimated"
 
 def now_iso() -> str:
     return datetime.now().astimezone().isoformat(timespec="seconds")
@@ -133,6 +134,28 @@ def validate_executor(value: str) -> str:
             "Executor must be speckit, direct, discovery, human, or skill:<name>."
         )
     return normalized
+
+
+def validate_estimate_points(value: str) -> str:
+    normalized = value.strip().lower()
+    if normalized == UNESTIMATED_POINTS:
+        return normalized
+    try:
+        points = int(normalized)
+    except ValueError as exc:
+        raise ValueError(
+            "Estimate points must be 'unestimated' or a positive Fibonacci value "
+            "such as 1, 2, 3, 5, or 8."
+        ) from exc
+    previous, current = 1, 2
+    while current < points:
+        previous, current = current, previous + current
+    if points not in (1, current):
+        raise ValueError(
+            "Estimate points must be 'unestimated' or a Fibonacci value "
+            "such as 1, 2, 3, 5, or 8."
+        )
+    return str(points)
 
 
 def resolve_output_base(repo_root: Path) -> Path:
@@ -528,6 +551,10 @@ def command_validate(args: argparse.Namespace) -> int:
             errors.append(f"Portion filename {path.name} does not match ID {portion_id}")
         if not EXECUTOR_PATTERN.fullmatch(data.get("executor", "")):
             errors.append(f"Invalid executor in portions/{path.name}: {data.get('executor')!r}")
+        try:
+            validate_estimate_points(data.get("estimate_points", ""))
+        except ValueError as exc:
+            errors.append(f"Invalid estimate points in portions/{path.name}: {exc}")
         graph[portion_id] = dependency_ids(data.get("depends_on", ""))
         for dependency in graph[portion_id]:
             if dependency == portion_id:
@@ -637,6 +664,7 @@ def command_decision(args: argparse.Namespace) -> int:
 
 def command_portion_create(args: argparse.Namespace) -> int:
     workspace = ensure_workspace(Path(args.workspace))
+    estimate_points = validate_estimate_points(args.points)
     portion_id = validate_identifier(args.id, "Portion ID")
     executor = validate_executor(args.executor)
     dependencies = [validate_identifier(item, "Dependency ID") for item in dependency_ids(args.depends_on)]
@@ -654,6 +682,7 @@ def command_portion_create(args: argparse.Namespace) -> int:
         "PORTION_ID": portion_id,
         "PORTION_TITLE": args.title.strip() or portion_id,
         "DEPENDS_ON": ",".join(dependencies) if dependencies else "-",
+        "ESTIMATE_POINTS": estimate_points,
         "EXECUTOR": executor,
         "PORTION_JIRA": args.jira.strip() or "-",
         "SPEC_DIRECTORY": args.spec_dir.strip() or "-",
@@ -1425,6 +1454,7 @@ def build_parser() -> argparse.ArgumentParser:
     portion_create.add_argument("--title", required=True)
     portion_create.add_argument("--executor", required=True)
     portion_create.add_argument("--depends-on", default="")
+    portion_create.add_argument("--points", required=True, help="Fibonacci estimate or 'unestimated'")
     portion_create.add_argument("--jira", default="")
     portion_create.add_argument("--spec-dir", default="")
     portion_create.set_defaults(func=command_portion_create)

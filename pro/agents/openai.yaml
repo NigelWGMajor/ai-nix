@@ -1,4 +1,4 @@
 interface:
   display_name: "Pull Requests Open"
   short_description: "Rebuild a broad PR as focused child PRs"
-  default_prompt: "Use $pro to split this branch's oversized PR into small, dependency-ordered child PRs that reconstruct a clean parent."
+  default_prompt: "Use $pro to split this branch's oversized PR into small, dependency-ordered child PRs that merge into a clean feature-master."

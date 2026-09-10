@@ -11,6 +11,7 @@ depends_on: {{DEPENDS_ON}}
 executor: {{EXECUTOR}}
 jira: {{PORTION_JIRA}}
 branch: -
+estimate_points: {{ESTIMATE_POINTS}}
 spec_directory: {{SPEC_DIRECTORY}}
 ---
 
@@ -26,6 +27,7 @@ spec_directory: {{SPEC_DIRECTORY}}
 - Excluded:
 - Parent criteria:
 - Jira: {{PORTION_JIRA}}
+- Estimate points: {{ESTIMATE_POINTS}}
 
 ## 🔗 Dependency contract
 
