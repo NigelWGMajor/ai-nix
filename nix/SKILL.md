@@ -170,10 +170,10 @@ For Standard or Deep work, initialize a durable analysis instance before substan
 Immediately before creating its folder, ask the user: `Optional folder context suffix (for example, a short title)? Leave blank to omit it.` Use the response under the shared output-location naming rule.
 
 ```text
-python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --subject "<subject>" --question "<question>" --audience "<audience>" --depth <standard|deep>
+python <skill-directory>/scripts/init_instance.py --workspace <workspace-root> --subject "<subject>" --question "<question>" --audience "<audience>" --depth <standard|deep> [--context-suffix "<context-suffix>"]
 ```
 
-The initializer creates the next collision-safe `<output-base>/nix-YY-MM-DD-<suffix>` directory. It creates the output base when needed, never overwrites an existing instance, and copies the reader-facing template to `Findings.md`. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker.
+The initializer creates the next collision-safe `<output-base>/nix-YY-MM-DD-<suffix>-<context-suffix>` directory when a context suffix is supplied; otherwise it uses `<output-base>/nix-YY-MM-DD-<suffix>`. It normalizes the context suffix to a lowercase filesystem-safe slug, allocates collision suffixes against the complete candidate path, creates the output base when needed, never overwrites an existing instance, and copies the reader-facing template to `Findings.md`. Pass the resolved workspace root explicitly; never use an existing ancestor `.data` directory as a workspace marker.
 
 Maintain:
 

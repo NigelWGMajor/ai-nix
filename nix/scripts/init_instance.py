@@ -76,6 +76,14 @@ def single_line(value: str) -> str:
     return " ".join(value.splitlines()).strip()
 
 
+def slugify(value: str) -> str:
+    """Return a filesystem-safe context suffix, or an empty string when omitted."""
+    normalized = value.lower().strip()
+    normalized = re.sub(r"[^a-z0-9\s-]", "", normalized)
+    normalized = re.sub(r"[\s-]+", "-", normalized).strip("-")
+    return normalized
+
+
 def write_text(path: Path, content: str) -> None:
     path.write_text(content.strip() + "\n", encoding="utf-8")
 
@@ -168,10 +176,13 @@ ANALYSIS = """
 """
 
 
-def allocate_instance(data_dir: Path, date_value: str) -> Path:
+def allocate_instance(data_dir: Path, date_value: str, context_suffix: str = "") -> Path:
     data_dir.mkdir(parents=True, exist_ok=True)
     for index in range(26 * 27):
-        candidate = data_dir / f"nix-{date_value}-{alphabetic_suffix(index)}"
+        name = f"nix-{date_value}-{alphabetic_suffix(index)}"
+        if context_suffix:
+            name = f"{name}-{context_suffix}"
+        candidate = data_dir / name
         try:
             candidate.mkdir()
             return candidate
@@ -187,12 +198,15 @@ def create_instance(
     question: str,
     audience: str,
     depth: str,
+    context_suffix: str = "",
 ) -> Path:
     template = Path(__file__).resolve().parents[1] / "assets" / "findings-template.md"
     if not template.is_file():
         raise FileNotFoundError(f"findings template not found: {template}")
 
-    instance = allocate_instance(resolve_output_base(workspace), date_value)
+    instance = allocate_instance(
+        resolve_output_base(workspace), date_value, context_suffix=context_suffix
+    )
     created = dt.datetime.now(tz=dt.timezone.utc).isoformat()
     try:
         write_text(
@@ -210,7 +224,7 @@ def create_instance(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create the next <output-base>/nix-YY-MM-DD-<suffix> analysis instance."
+        description="Create the next <output-base>/nix-YY-MM-DD-<suffix>[-<context-suffix>] analysis instance."
     )
     parser.add_argument(
         "--workspace",
@@ -226,6 +240,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--question", default="Build a usable mental model of the subject.")
     parser.add_argument("--audience", default="Technically informed readers.")
     parser.add_argument("--depth", choices=("compact", "standard", "deep"), default="standard")
+    parser.add_argument(
+        "--context-suffix",
+        default="",
+        help="Optional folder context suffix; normalized to a lowercase filesystem-safe slug.",
+    )
     return parser.parse_args()
 
 
@@ -249,6 +268,7 @@ def main() -> int:
             question=single_line(args.question),
             audience=single_line(args.audience),
             depth=args.depth,
+            context_suffix=slugify(args.context_suffix),
         )
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
