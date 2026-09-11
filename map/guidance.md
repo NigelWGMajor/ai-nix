@@ -13,8 +13,7 @@
 
 | Compatible skills |               |
 | ----------------- | ------------- |
-| Preprocessors     | dac,          |
-| Preprocessors     | dac, speckit  |
+| Preprocessors     | dac, pro, kit |
 | Postprocessors    | wiz, cop, act |
 
 Output to /map-yy-mm-dd-a/:

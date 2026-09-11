@@ -71,6 +71,38 @@ Record one compact node review containing:
 
 Do not inflate duplicated inherited concerns. State the first affected node, then reference it from descendants unless the descendant introduces a distinct failure mode.
 
+## Evidence gathering discipline
+### Complete file reading
+Before making any finding about a file:
+- Read the **entire file**, not just the first 50-100 lines
+- For stored procedures and large files, use multiple Read calls with offset if needed
+- Never claim something is "missing" from a file without reading to the end
+- Example: Don't claim "missing commit transaction" without reading the full SP body and cleanup section
+### Schema and dependency verification
+When a branch references database objects, API contracts, types, or other dependencies not present in its diff:
+**Before claiming they are missing:**
+1. **Check the recorded baseline branch** (do not assume `main`, and do not check out another branch during a read-only review):
+   ```bash
+   git ls-tree -r --name-only <base-branch> | rg "<ObjectName>\\.sql$"
+   git grep -n "class <TypeName>" <base-branch> --
+   ```
+2. **Check sibling portions** in the same hierarchy (P-001 may define tables used by P-002)
+3. **Check parent directories** (root vs. trunk working directory confusion)
+4. **Verify import paths** are correct for the project structure
+**Never claim** 🔴 **Missing** or 🔴 **Critical** without explicit verification attempt.
+**When verification is impossible** (no baseline access, build-time dependency):
+- Mark as ❓ **Not verified** or ⏳ **Blocked pending <prerequisite>**
+- State the limitation explicitly: "Cannot verify table existence — requires checkout of main branch"
+- Include this in evidence gaps, not as a critical finding
+### Example verification pattern
+```markdown
+**Finding**: P-002 references `Bulk_SkillLevelDetailsStaging_Preprocess_Json` type from P-001
+**Verification steps**:
+1. Check the recorded remote state for P-001; if it cannot be read, record it as Unknown.
+2. If P-001 is not merged, inspect its recorded branch without switching: `git ls-tree -r --name-only pro/<branch>-sql -- TolerableSql/`
+3. If still unclear: ⏳ **Build dependency** — P-002 requires P-001 deployed for code generation
+**Verdict**: ⏳ **Blocked** (documented constraint) NOT 🔴 **Missing** (critical defect)
+```
 ## Synthesize the hierarchy
 
 Keep branch-local and hierarchy-level conclusions separate.
@@ -97,9 +129,23 @@ Use the COP visual-language palette. Cite repository evidence as `path:line` and
 
 Before returning:
 
+**Evidence integrity:**
 - [ ] Every included node has an explicit evidence source and comparison basis, or is marked Unknown.
+- [ ] All files with findings were read **completely** (not just first N lines).
+- [ ] Schema/dependency "missing" claims were verified against baseline branch or marked ❓ **Not verified**.
+- [ ] Build-time dependencies are marked ⏳ **Blocked** not 🔴 **Missing** when they require prior deployment.
+**Review completeness:**
 - [ ] All eight COP passes are represented for every reviewed node.
 - [ ] The output separates branch-local findings from shared-contract and integration findings.
 - [ ] No branch relationship, PR state, remote base, or merge outcome was inferred from naming or local ancestry alone.
 - [ ] Cycles, duplicates, missing refs, and inaccessible workspaces are visible rather than silently omitted.
+**Verification discipline:**
+- [ ] For every 🔴 **Critical** or 🔴 **High** finding, evidence shows what verification was attempted.
+- [ ] Database object references checked against the recorded baseline without switching branches: `git ls-tree -r --name-only <base-branch> | rg "<Table>\\.sql$"`.
+- [ ] Type/class references checked against: (1) baseline, (2) sibling branches, (3) recorded as build dependency.
+- [ ] "Missing" findings include the file path searched and search result, not just absence claim.
+**Authority:**
 - [ ] No review action exceeded the user's granted authority.
+**Self-correction:**
+- [ ] If a finding seems obvious but verification was skipped, that finding is downgraded or marked ❓ **Unverified**.
+- [ ] Limitations are visible in evidence gaps, not hidden by confident-sounding incorrect findings.

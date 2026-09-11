@@ -36,7 +36,7 @@ Start with read-only inspection.
 | W1 | Write a named local /pro plan | explicit scoped approval |
 | V2 | Run builds, tests, generators, or equivalence checks | explicit approval |
 | C3 | Create branches, worktrees, commits, or source changes | explicit approval |
-| R4 | Push branches; create, edit, close, or merge PRs; mutate Jira or other remote systems | separate explicit approval |
+| R4 | Push branches; create, edit, comment on, close, or merge PRs; mutate Jira or other remote systems | separate explicit approval |
 
 Content approval does not authorize C3, V2, or R4. Preserve unrelated worktree changes. Never force-push, rebase, close, or modify the source branch or its PR unless the user separately asks and grants R4 approval.
 ## Output location and Pro environment
@@ -55,9 +55,30 @@ Use explicit labels such as `Pro reconstruction`, `feature_master_branch`, `sour
 
 ## Resume and fast branch switching
 
-With no parameters, resolve the repository root and output base, then look for Pro instances whose recorded repository root matches and whose source, feature-master, or child branch matches the current branch. If exactly one instance matches, show a compact keyboard-selectable list: `A` for the recorded target, `B` for feature-master, then `C...` for child branches in dependency order. Mark the current branch and any recorded remote or validation status. A user may reply with the displayed letter or an exact listed branch name.
+With no parameters, resolve the repository root and output base, then look for Pro instances whose recorded repository root matches and whose source, feature-master, or child branch matches the current branch. If exactly one instance matches:
 
-Listing is R0. Switching requires one C3 approval for the selected target. Refuse to switch a dirty worktree without an explicitly approved preservation action; never discard work, force a checkout, or infer a stash policy. When the feature-master or a child is newly created, record it in the same Pro instance before returning, so subsequent no-parameter runs can resume and switch quickly.
+1. **Fetch current PR status** for all recorded child PRs and the parent PR (if created). Use `gh pr view` or an equivalent read-only integration; if it is unavailable, mark the remote state Unknown.
+2. **Show status report** with clickable links:
+```markdown
+**Pro Reconstruction Status**: <instance-name>
+**Child PRs** (targeting `<feature-master>`):
+- [#XXXXX](url) P-001 <title> — ✅ MERGED
+- [#XXXXX](url) P-002 <title> — ⬜ OPEN
+- [#XXXXX](url) P-003 <title> — 🔶 APPROVED (not merged)
+...
+**Parent PR** (targeting `<original-target>`):
+- ⬜ Not created yet
+  OR
+- [#XXXXX](url) <title> — ⬜ OPEN
+**Progress**: 2 of 6 child PRs merged
+```
+3. **Offer parent PR creation** if any child PR has merged AND parent PR doesn't exist:
+   > "Some child PRs have merged. Create parent PR from feature-master → <target>? (requires R4 approval)"
+   If approved, create the parent PR with:
+   - Approved parent PR description from `03-pr-payloads.md`
+   - Add cross-reference comment listing all child PRs (same format as child PR comments)
+4. Show the compact keyboard-selectable branch list: `A` for the recorded target, `B` for feature-master, then `C...` for child branches in dependency order. Mark the current branch.
+Listing and status report are R0. Switching requires one C3 approval for the selected target. Creating parent PR requires separate R4 approval. Refuse to switch a dirty worktree without an explicitly approved preservation action; never discard work, force a checkout, or infer a stash policy. When the feature-master or a child is newly created, record it in the same Pro instance before returning, so subsequent no-parameter runs can resume and switch quickly.
 
 If no instance matches, proceed with ordinary source-PR inspection. If several instances match, show their paths, feature-master branches, and recorded phases and ask the user to choose one; do not scan or merge them.
 
@@ -105,7 +126,7 @@ Do not create Jira issues by default. If requested, preview each Story descripti
 
 ## Materialize only after approval
 
-After plan approval, request authority in consolidated classes rather than serial confirmations. One W1 request covers creating and maintaining the named Pro instance and all five planning records. One C3 request covers the approved local reconstruction as a unit: create feature-master and child branches, apply the bounded changes, record resulting local branch/commit evidence, and switch to feature-master. One V2 request covers the named validation and equivalence checks. Keep each remote payload under separately scoped R4 approval. Ask another question only for a material decision or new authority outside the approved scope.
+After plan approval, request authority in consolidated classes rather than serial confirmations. One W1 request covers creating and maintaining the named Pro instance and all five planning records. One C3 request covers the approved local reconstruction as a unit: create feature-master and child branches, apply the bounded changes, record resulting local branch/commit evidence, and switch to feature-master. One V2 request covers the named validation and equivalence checks. R4 approval for child PR creation should include cross-linking: creating all child PRs and adding cross-reference comments to each. Keep each remote payload under separately scoped R4 approval. Ask another question only for a material decision or new authority outside the approved scope.
 
 1. Create feature-master directly from the recorded original target, using an explicit name such as `pro/<source>-feature-master`. When the original target is `main`, this is the new branched-from-`main` feature/integration parent. Record the branch, then switch the active checkout to it before creating children.
 2. Create every portion branch from feature-master - never from a sibling or the source branch. Record every branch and its explicit feature-master base in `00-control.md` and `03-pr-payloads.md`.
@@ -113,21 +134,43 @@ After plan approval, request authority in consolidated classes rather than seria
 4. When a child needs an already merged dependency, merge the updated feature-master into the active child branch. Do not rebase a published child branch.
 5. Verify each child diff against feature-master: it must not contain sibling-owned work. Run approved validation, record deviations, then create the child PR with feature-master as its explicit base. Never target the original target, including `main`, directly.
 6. Give each PR its approved description, acceptance criteria, dependency note, test evidence, and named reviewer discipline.
+7. After all child PRs are created, add a cross-reference comment to each PR listing all sibling PRs with clickable links. Do not include status: it will become stale over the PR's lifetime.
+Use this format:
+```markdown
+This PR is part of a set of related PRs which share a common feature-master branch.
+**Child PRs** (all targeting `<feature-master-branch>`):
+- [#XXXXX](url) P-001 <title>
+- [#XXXXX](url) P-002 <title>
+- [#XXXXX](url) P-003 <title>
+...
+**Parent PR**: Offer creation after at least one child PR merges to feature-master.
+```
+This cross-linking requires one R4 approval covering all comment posts.
 
 Do not call a child integrated merely because local feature-master contains its commit. Independently verify the remote PR head, base, lifecycle, and merge state.
 
 ## Convergence gate
 
-Before proposing the final parent PR:
+Before creating the parent PR, at least one required child PR must be remotely verified merged into feature-master. If any readiness condition below is unmet, the parent PR may be created only in draft form:
 
-- all required child PRs are remotely verified merged into feature-master;
+- every required child PR is remotely verified merged into feature-master before the parent PR is proposed as ready for review;
 - every source acceptance criterion has coverage and evidence;
 - the feature-master tree matches the source branch, or every difference appears in the approved divergence register;
 - migration, contract, rollout, rollback, authorization, and cleanup order remain safe;
 - validation passed, or every unrun or failed check is plainly reported; and
 - the source PR has not drifted materially since inspection. Reinspect and replan if it has.
 
-Only after this gate and separate R4 approval, create one final PR from feature-master to the recorded original target. Closing, superseding, or annotating the source PR is a separate remote action requiring explicit approval.
+Only after R4 approval, create the parent PR from feature-master to the recorded original target, and add a cross-reference comment listing each child PR's observed final status:
+```markdown
+This PR integrates all child PRs from the Pro reconstruction.
+**Child PRs** (targeting `<feature-master-branch>`):
+- [#XXXXX](url) P-001 <title> — ✅ MERGED
+- [#XXXXX](url) P-002 <title> — ⬜ OPEN
+- [#XXXXX](url) P-003 <title> — ❓ UNKNOWN
+...
+**Source PR**: [#XXXXX](url) (read-only source; any supersession action needs separate approval)
+```
+Closing, superseding, or annotating the source PR is a separate remote action requiring explicit approval.
 
 ## Output and quality gate
 

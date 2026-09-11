@@ -51,13 +51,17 @@ Set `TOOLING_OUTPUT_PATH` to choose the shared output base. When it is unset, th
   - Coordinate complex Jira-backed delivery through dependency-aware portions
   - Use `/dac` to partition a feature into coordinated, independently executable portions.
 
+### 🪜 PRO Pull-request reconstruction
+  - Split an oversized existing PR into dependency-ordered, discipline-specific child PRs
+  - Use `/pro` to preserve the source branch as evidence, coordinate child PRs through a feature-master, and converge a parent PR against the actual original target.
+
 ### 👮 COP Sanity review
   - Independent engineering reviewer targeting AI-specific vulnerabilities
   - Use `/cop` to challenge assumptions, detect hallucinations, and prevent overengineering.
 
 ### 🔗 GAP Hierarchical review
-  - Apply COP-style skeptical review across an evidence-backed DAC branch hierarchy
-  - Use `/gap` for per-branch verdicts and a cross-branch integration-risk roll-up.
+  - Apply COP-style skeptical review to a single branch or an evidence-backed DAC or Pro hierarchy
+  - Use `/gap` for per-branch verdicts, verified dependency findings, and a cross-branch integration-risk roll-up.
 
 ### 🛠️ FIX Triage and diagnosis
   - Multi-path hypothesis triage for bugs, errors, and unexpected behavior
@@ -98,6 +102,7 @@ Set `TOOLING_OUTPUT_PATH` to choose the shared output base. When it is unset, th
 | Epics          | 🦄 nix -> 🪄 wiz -> 🧩 dac                |
 | Stories        | 🦄 nix -> 🪄 wiz -> 🧩 dac                |
 | DAC branches   | 🧩 dac -> 🔗 gap                           |
+| Broad PR split | 🪜 pro -> 🔗 gap or 🧩 dac                 |
 | WIP            | 🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val      |
 | Speckit        | 📃 kit                                    |
 | PRs            | 🗺️ map -> 🪄 wiz -> 👮 cop                |

@@ -29,7 +29,9 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
    - `kit/guidance.md`
    - `pix/guidance.md`
    - `dac/guidance.md`
+   - `dac-help/guidance.md`
    - `pro/guidance.md`
+   - `gap/guidance.md`
    - `cop/guidance.md`
    - `fix/guidance.md`
    - `val/guidance.md`
@@ -49,9 +51,10 @@ Available skills:
 📃 /kit =  — Speckit analysis: review speckit-based project status
 🖼️ /pix *  — Slideshows: turn a document into a paged visual presentation
 🧩 /dac *  — Divide & conquer: coordinate portioned Jira-backed delivery !!
-🪜 /pro *  — Pull requests open: rebuild a broad PR with multiple focused child PRs !!
+🧩❓ /dac-help =  — DAC guidance: resolve allocation, routing, and execution uncertainty
+🪜 /pro *  — PR reconstruction: split a broad PR, track child PRs, and converge a parent PR !!
 👮 /cop *  — Sanity review: challenge AI-generated code
-🔗 /gap *  — Hierarchical review: apply COP across multiple related branches !!
+🔗 /gap *  — Hierarchical review: verify one branch or a recorded DAC/Pro hierarchy !!
 🛠️ /fix *  — Triage: diagnose bugs through multi-path hypotheses
 🌡️ /val *  — Validation: design tests, generate test data, coverage
 🎬 /act +  — Action extract: distill analysis into actionable info
@@ -77,7 +80,9 @@ Issue triage    🦄 nix -> 🪄 wiz -> 📚 lit -> 🖼️ pix
 Epics           🦄 nix -> 🪄 wiz -> 🧩 dac
 Stories         🦄 nix -> 🪄 wiz -> 🧩 dac
 DAC branches    🧩 dac -> 🔗 gap
+DAC guidance    🧩❓ dac-help -> 🧩 dac
 Broad PR split  🪜 pro -> 🔗 gap or 🧩 dac
+Pro resume      🗺️ map -> 🪜 pro -> 🔗 gap
 WIP             🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val
 Speckit         📃 kit
 PRs             🗺️ map -> 🪄 wiz -> 👮 cop

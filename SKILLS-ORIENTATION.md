@@ -6,11 +6,11 @@ Choose by the outcome you need, not by the skill name. Start with **UMM** when t
 
 - `UMM → NIX → ACT`: route an unclear request, understand it, then produce a useful brief, ticket, or handoff.
 - `FIX → ACT`: diagnose an unexplained symptom before deciding what to change.
-- `WIZ → COP`: assess a concrete PR, branch, or ticket, then apply an independent check. Add **GAP** for related branches.
+- `WIZ → COP`: assess a concrete PR, branch, or ticket, then apply an independent check. Add **GAP** for a recorded DAC or Pro hierarchy.
 - `DAC → WIZ/GAP → ACT`: coordinate large Jira-backed delivery; use **DAC Help** when allocation is unclear.
 - `LIT → PIX` explains and presents source material; choose **TUT** for a hands-on walkthrough. `KIT → MAP` recovers and resumes interrupted work.
 
-Use `VAL` for test strategy, `PRO` to split an oversized PR, and `MEM` to find notes. **DORA** is separate: use it for persistent codebase discovery and tracing, not as a delivery pipeline.
+Use `VAL` for test strategy, `PRO` to split and track an oversized PR through a feature-master, and `MEM` to find notes. Use `MAP → PRO` to resume a recorded reconstruction, then `GAP` for an independent hierarchy review. **DORA** is separate: use it for persistent codebase discovery and tracing, not as a delivery pipeline.
 
 <div style="break-before: page; page-break-before: always;"></div>
 

@@ -87,12 +87,29 @@ This skill runs **inline and interactive** — time varies with complexity. Paus
    
    **C. Check for Pro reconstruction:**
    ```bash
-   # Resolve TOOLING_OUTPUT_PATH first. Search only Pro instances whose
-   # 00-control.md records this repository root and current branch.
-   # Read 02-repartition-plan.md, 03-pr-payloads.md, and 04-convergence.md
-   # only for the selected instance.
+   # Resolve TOOLING_OUTPUT_PATH first, then search for pro-* folders
+   TOOLING_OUTPUT=$(git rev-parse --show-toplevel)/.data
+   if [ -n "$TOOLING_OUTPUT_PATH" ]; then
+     TOOLING_OUTPUT="$TOOLING_OUTPUT_PATH"
+   fi
+   # Find all pro-* folders
+   find "$TOOLING_OUTPUT" -maxdepth 1 -type d -name "pro-*" 2>/dev/null | while read pro_dir; do
+     if [ -f "$pro_dir/00-control.md" ]; then
+       # Check if this pro instance matches current branch (feature-master or child)
+       CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+       # Look for branch mentions in control file
+       grep -q "$CURRENT_BRANCH" "$pro_dir/00-control.md" && echo "$pro_dir"
+     fi
+   done
+   # For the matched instance, read:
+   # - 00-control.md: feature-master branch, child branches
+   # - 02-repartition-plan.md: portions and dependencies
+   # - 03-pr-payloads.md: PR descriptions and relationships
+   # For the one selected instance only, obtain read-only remote status for the
+   # recorded feature-master and child branches. If the integration is
+   # unavailable, record each remote state as Unknown rather than inferring it.
    ```
-   If exactly one Pro instance matches, this is a Pro reconstruction. Report its source, recorded target, feature-master, child count, dependency order, and known status. If none match, continue. If several match, ask the user to select one; never aggregate by a branch-name pattern.
+   If exactly one Pro instance matches, this is a Pro reconstruction. Report its source, recorded target, feature-master, child count, dependency order, and observed child-branch PR status. Report a potentially superseded PR only when the selected Pro records or read-only remote evidence explicitly link it; otherwise its status is Unknown. If none match, continue. If several match, ask the user to select one; never aggregate by a branch-name pattern.
 
    **D. Check for Speckit project:**
    ```bash
@@ -215,6 +232,28 @@ git diff --name-only <parent-branch>...<portion-branch>
 git show <portion-branch>:<file-path> | grep -n "class\|public.*async\|interface"
 ```
 Build full `file:///` links for every code component — these paths are valid once the portion merges. Do NOT leave sibling-branch code as unlinked plain text.
+**Pro Reconstruction:**
+```bash
+# Find the matching pro-* folder (already detected in Phase 1)
+PRO_DIR="<resolved-pro-instance-path>"
+# Read control and structure files
+cat "$PRO_DIR/00-control.md"        # Feature-master, source, target
+cat "$PRO_DIR/02-repartition-plan.md"  # Portions, dependencies, order
+cat "$PRO_DIR/03-pr-payloads.md"    # PR descriptions, relationships
+# Get observed remote PR status for the recorded Pro branches only. If the
+# remote integration is unavailable, retain status as Unknown.
+FEATURE_MASTER=$(grep "feature-master:" "$PRO_DIR/00-control.md" | cut -d: -f2 | tr -d ' ')
+gh pr list --head "$FEATURE_MASTER" --json number,title,url,state,baseRefName
+# Get child branch PRs (all targeting feature-master)
+gh pr list --base "$FEATURE_MASTER" --json number,title,headRefName,url,state,isDraft
+```
+Gather:
+- Feature-master branch and target from `00-control.md`
+- Child branches (P-001, P-002, etc.) and their PR numbers/status
+- Portion descriptions, dependencies, and order from `02-repartition-plan.md`
+- PR relationships (parent/child structure) from `03-pr-payloads.md`
+- **Potentially superseded PRs**: report only PRs explicitly linked as superseded in the selected Pro records or verified through read-only remote evidence; otherwise state that supersession is Unknown
+- Sibling branch code resolution (same as DAC — use `git show <branch>:<path>`)
 **Speckit Project:**
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -337,7 +376,19 @@ Resolve `TOOLING_OUTPUT_PATH` before creating output: when set, it is the priori
   - Parent: [Epic link] (if exists)
   - Related: [sibling links] (if exists)
 - **Project Type**: [DAC / Pro / Speckit / Ticket-driven / Utility]
-- **Pro Context** (if Pro): source, target, feature-master, current node, dependency order, and aggregate child status from the selected Pro instance
+- **Pro Context** (if Pro):
+  - Instance: [link to pro-YYYY-MM-DD-a/00-control.md]
+  - Feature-master: `[branch-name]` (targets `[base-branch]`)
+  - Current node: [P-001 / feature-master / child-branch-name]
+  - Child PRs: [6 total: 6 OPEN, 0 merged; observed remotely]
+    - [#56535](url) P-001 SQL ⬜ OPEN
+    - [#56536](url) P-002 Data ⬜ OPEN
+    - [#56537](url) P-003 CSV ⬜ OPEN
+    - [#56538](url) P-004 Orchestration ⬜ OPEN
+    - [#56539](url) P-005 Consumer ⬜ OPEN
+    - [#56540](url) P-006 API ⬜ OPEN
+  - Parent PR: ⬜ Not created (will be created after child merges)
+  - Potentially superseded PRs: [only evidence-backed entries, or Unknown]
 - **DAC Context** (if DAC):
   - Workstream: [workstream-id] (from `.dac/<workstream>/00-control.md`)
   - Portion: [P-001] — [portion title] (from `.dac/<workstream>/portions/P-001.md`)
