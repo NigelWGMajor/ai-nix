@@ -158,6 +158,17 @@ Run these `.cmd` files from the repository root (or double-click them in Explore
 
 The macOS equivalents require Bash, `rsync`, and the VS Code `code` shell command. Run them from Terminal with `bash`:
 
+> 💥 This was a repored error:
+  `The VS Code 'code' shell command is required. Install it, then retry.`
+
+  🩹 The soluton:
+
+  - Open VS Code
+  - Press `Cmd+Shift+P` to open the Command Palette
+  - Type and select "Shell Command: `Install 'code' command in PATH`"
+  - Restart your terminal
+  - Verify with: `code --version`
+
 ```bash
 bash ./00-mac-open-in-code.sh
 bash ./00-mac-edit-common-visual-language.sh
