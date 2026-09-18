@@ -1,0 +1,4 @@
+interface:
+  display_name: "VET Branch Readiness Review"
+  short_description: "Evidence-backed branch, PR-comment, and ticket readiness review"
+  default_prompt: "Use $vet on the current Git branch. Reconcile the branch, pull request comments, and related Jira tickets into a resumable corrective-action plan."

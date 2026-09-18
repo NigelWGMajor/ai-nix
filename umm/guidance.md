@@ -36,3 +36,5 @@ UMM is the entry point for the skill suite. It shows the skill catalog, suggests
 UMM never modifies files, creates instances, or starts analysis. It navigates and surfaces status — nothing more.
 
 For an oversized PR, UMM routes to `/pro`; use `/map` first when you need a workspace map or the status of a recorded Pro reconstruction, then `/gap` for an independent cross-branch review.
+
+For a branch that needs requirement and active-comment accountability, UMM routes to 🩺 `/vet`; use `/map` first when the branch or workspace needs orientation.

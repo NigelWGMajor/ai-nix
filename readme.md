@@ -43,6 +43,10 @@ Set `TOOLING_OUTPUT_PATH` to choose the shared output base. When it is unset, th
   - Review Jira ticket, PR, or branch work with traceable finding chains (F-01 -> I-01 -> A-01)
   - Use `/wiz` for deeply analyzed, calibrated findings.
 
+### 🩺 VET Branch readiness review
+  - Vet the current Git branch against requirements, active PR comments, and related-ticket discussion.
+  - Use `/vet` for a resumable readiness review with recommended changes and evidence-based response drafts.
+
 ### 📃 KIT Speckit Analysis
   - Review and reconstruct SpecKit project status with evidence-backed traceability
   - Use `/kit` to reorient and sanity-check a speckit-based branch.
@@ -104,6 +108,7 @@ Set `TOOLING_OUTPUT_PATH` to choose the shared output base. When it is unset, th
 | DAC branches   | 🧩 dac -> 🔗 gap                           |
 | Broad PR split | 🪜 pro -> 🔗 gap or 🧩 dac                 |
 | WIP            | 🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val      |
+| Branch vetting | 🗺️ map -> 🩺 vet -> 🎬 act                 |
 | Speckit        | 📃 kit                                    |
 | PRs            | 🗺️ map -> 🪄 wiz -> 👮 cop                |
 | Branch resume  | 🗺️ map                                    |

@@ -39,6 +39,7 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
    - `mem/guidance.md`
    - `map/guidance.md`
    - `tut/guidance.md`
+   - `vet/guidance.md`
 
 2. Display this compact catalog:
 
@@ -47,6 +48,7 @@ Available skills:
 
 🦄 /nix *  — Quick discovery: explore a workspace, branch, or topic
 🪄 /wiz *  — Deep review: analyze a ticket, PR, or branch in depth
+🩺 /vet *  — Branch vetting: reconcile requirements, active comments, and corrective actions
 📚 /lit *  — Document synthesis: turn dense sources into layered guides
 📃 /kit =  — Speckit analysis: review speckit-based project status
 🖼️ /pix *  — Slideshows: turn a document into a paged visual presentation
@@ -84,6 +86,7 @@ DAC guidance    🧩❓ dac-help -> 🧩 dac
 Broad PR split  🪜 pro -> 🔗 gap or 🧩 dac
 Pro resume      🗺️ map -> 🪜 pro -> 🔗 gap
 WIP             🗺️ map -> 🪄 wiz -> 👮 cop -> 🌡️ val
+Branch vetting 🗺️ map -> 🩺 vet -> 🎬 act
 Speckit         📃 kit
 PRs             🗺️ map -> 🪄 wiz -> 👮 cop
 Branch resume   🗺️ map
@@ -111,6 +114,7 @@ Recent work (today):
     /pix    — turn the findings into a presentation
 ```
 
+   - Map `vet-*` instances to 🩺..
    Derive the skill icon from the instance prefix. Read the instance's `00-control.md` to get the subject and status. Show only the natural next skills for each instance based on the applicability flows. Keep it to 3-4 suggestions maximum.
 
 6. **Deep scan for needs-attention items.** When completed instances exist in `.data/` (any date, not just today), read the most recent `Findings.md` (and `Actions.md` if present) for the workspace and surface a "Needs attention" section. Scan for:
