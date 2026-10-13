@@ -1,0 +1,4 @@
+interface:
+  display_name: "Datadog"
+  short_description: "Use Datadog to review logs"
+  default_prompt: "Use $dog to examine DataDog logs"
