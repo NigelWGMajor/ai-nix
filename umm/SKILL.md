@@ -40,6 +40,8 @@ When invoked, read every `guidance.md` file from sibling skill directories and d
    - `map/guidance.md`
    - `tut/guidance.md`
    - `vet/guidance.md`
+   - `dog/guidance.md`
+   - `now/guidance.md`
 
 2. Display this compact catalog:
 
@@ -63,6 +65,8 @@ Available skills:
 🎗️ /mem =  — Memo recall: search markdown notes for relevant information
 🗺️ /map *  — Navigator: map wip on a branch or workspace
 🎓 /tut *  — Tutorial: generate step-by-step how-to guides with diagrams
+🐕 /dog =  — Datadog: query staging/beta/prod logs and metrics, verify a deploy
+⏱️ /now *  — Triage: prioritize recent Jira + GitHub team activity, compare with prior run
 🔮 /umm =  — This navigator
 
 =  read-only   +  adds to existing files   *  creates working files (.data/) !! multi-branch
@@ -95,6 +99,9 @@ Test planning   🌡️ val
 Tutorials       🦄 nix -> 🎓 tut -> 🖼️ pix
 Communication   (any) -> 🎬 act
 Note search     🎗️ mem
+Runtime issues  🐕 dog -> 🛠️ fix -> 🎬 act
+Deploy check    🐕 dog
+Team triage     ⏱️ now -> 🎬 act
 ```
 
 4. With `new`, do not scan `.data/`, `.dac/`, or `./md`, and do not read a control, Findings, or Actions file. Show the catalog and any intent-based routing only; state that prior workspace state was intentionally skipped, then stop before steps 5 and 6.
@@ -114,7 +121,7 @@ Recent work (today):
     /pix    — turn the findings into a presentation
 ```
 
-   - Map `vet-*` instances to 🩺..
+   - Map `vet-*` instances to 🩺 and `now-*` instances to ⏱️. `dog` creates no instances.
    Derive the skill icon from the instance prefix. Read the instance's `00-control.md` to get the subject and status. Show only the natural next skills for each instance based on the applicability flows. Keep it to 3-4 suggestions maximum.
 
 6. **Deep scan for needs-attention items.** When completed instances exist in `.data/` (any date, not just today), read the most recent `Findings.md` (and `Actions.md` if present) for the workspace and surface a "Needs attention" section. Scan for:
@@ -197,6 +204,12 @@ Needs attention:
 
 **User:** `/umm what needs my attention?`
 → Show the catalog, then run the deep scan and show needs-attention items prominently. If no instances exist, say so.
+
+**User:** `/umm did my change take effect in staging?`
+→ Show the catalog, then: `Suggestion: /dog — query Datadog logs and metrics for the deployed behavior`
+
+**User:** `/umm what happened on the team in the last two weeks?`
+→ Show the catalog, then: `Suggestion: /now -> /act — triage recent Jira and GitHub activity, then extract a summary or task list`
 
 ## Constraints
 
