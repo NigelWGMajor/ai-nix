@@ -38,12 +38,21 @@ Provide contextual guidance for users working with the DAC (Divide-and-Conquer) 
 2. **Otherwise, check for an active DAC workspace** in current directory (`.dac/<workstream>/`)
 3. If found, **read `00-control.md`** to understand current phase and state
 4. If a `references/visual-language.md` exists in the DAC skill directory, read it and use its symbol palette when formatting help output. Do not hardcode symbols.
-5. **Provide contextual help** based on:
+5. **Introduction:** if no active workspace is found and the user asked no specific question, or the user asks what DAC is or says `intro`, follow **What Is DAC? (introduction)** below before anything else. With an active workspace, give contextual help first and offer the introduction as a link.
+6. **Provide contextual help** based on:
    - Current phase (Align, Partition, Jira, Execute, Integrate)
    - User's specific question
    - Common patterns and anti-patterns
 
 ## Help Topics
+
+### What Is DAC? (introduction)
+
+The plain-language overview lives in the DAC skill's `introduction.md`, the sibling `../dac/introduction.md`. Read it from there; do not copy its text into this skill. If the file is not installed, say so and continue with the other help topics.
+
+- **No active workspace, or the user asks what DAC is:** display the introduction in chat in full, but replace its mermaid block with a one-line note that the flow diagram is in the HTML version. Then offer the HTML version.
+- **Active workspace:** do not display the introduction. After the contextual help, mention it and give its file path, and offer the HTML version.
+- **HTML version:** after the user approves a local write to the output base, run `python <dac-skill-dir>/scripts/render_intro.py`, which writes `<output-base>/dac-introduction.html` from the current Markdown on every run. Show the printed `file:///` link and plain path so the user can open it. The diagram loads from a CDN; offline, it appears as readable source. The script writes nothing else and touches no workspace.
 
 ### When Should I Use DAC?
 

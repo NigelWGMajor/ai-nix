@@ -11,6 +11,8 @@
 | Safe output folder   | ✔️      |             |
 | Needs write approval | ✔️      |             |
 
+New to DAC? Run `/dac-help` for a plain-language introduction (`dac/introduction.md`), also available as HTML with the flow diagram.
+
 | Compatible skills |            |
 | ----------------- | ---------- |
 | Preprocessors     | nix, wiz   |
