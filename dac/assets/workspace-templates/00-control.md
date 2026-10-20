@@ -53,8 +53,8 @@ inputs: Jira {{WORKSTREAM_ID}}, repository {{REPO_ROOT}}
 
 | Gate | Content or action | Class | Exact scope | Status | Owner |
 |---|---|---|---|---|---|
-| GATE-001 | Parent mission | content | `01-mission.md` | open | decision maker |
-| GATE-002 | Portion necessity, reuse, and security review | content | `04-portion-plan.md` review; one row per active proposed portion | open | coordinator |
+| GATE-001 | Parent mission and intent/strategy brief | content | `01-mission.md`; brief confirmed before `04-portion-plan.md` is drafted | open | decision maker |
+| GATE-002 | Portion necessity, reuse, security, and traceability review | content | `04-portion-plan.md` reviews; one row per active proposed portion, no open traceability flag | open | coordinator |
 
 ## ⚖️ Open decisions
 

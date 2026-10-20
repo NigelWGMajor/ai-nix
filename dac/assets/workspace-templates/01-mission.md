@@ -45,6 +45,18 @@ inputs: 00-control.md, Jira {{WORKSTREAM_ID}}
 |---|---|---|---|
 | To determine | unknown | low | required |
 
+## 🧭 Intent and strategy brief
+
+Present and confirm before drafting `04-portion-plan.md`. Read the DAC skill's `references/intent-and-traceability-review.md`. Keep to roughly 10-15 lines.
+
+- Status: draft <!-- draft | confirmed | superseded -->
+- Outcome, restated:
+- Non-goals:
+- Patterns and extension points to follow (with evidence):
+- Strategy shape (reuse/extend/new, no portion boundaries yet):
+- Assumptions and overreach risks:
+- Open questions:
+
 ## 📋 Approval record
 
 | Timestamp | Approver | Scope | Notes |

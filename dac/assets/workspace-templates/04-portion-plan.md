@@ -46,6 +46,17 @@ P-001
 |---|---|---|
 | M-001 | P-001 | none/to determine |
 
+## 🧭 Traceability and overreach check
+
+Run automatically with the necessity review. Read the DAC skill's `references/intent-and-traceability-review.md`. Record only what was checked and any flag; approve this plan only when no flag is open.
+
+| Check | Subject | Result | Flag (`gap`/`overreach`/`deviation`/none) | Resolution |
+|---|---|---|---|---|
+| Forward | M-001 maps to a portion or integration check | To determine | to determine | - |
+| Reverse | P-001 traces to a criterion and the confirmed brief | To determine | to determine | - |
+| Non-goals | No portion touches a stated non-goal | To determine | to determine | - |
+| Pattern fit | P-001 follows the brief's patterns or states why not | To determine | to determine | - |
+
 ## Parallelization and conflict analysis
 
 | Lane | Portions | Why safe | Shared files or state | Coordination point |

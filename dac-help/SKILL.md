@@ -178,7 +178,7 @@ python <skill-dir>/scripts/dac.py switch --workspace .dac/PD-123456 <recorded-ta
 Run `/dac preview ABC-123` to plan without side effects. Preview mode:
 
 - Runs Align and Partition phases fully (mission, evidence, decisions, portion plan, Jira proposal with acceptance criteria checklists)
-- **Requests W1 approval once** at the start, then writes all `.dac/` artifacts without further permission prompts
+- **Requests W1 approval once** at the start, then writes all `.dac/` artifacts without further permission prompts (it still pauses once to confirm the intent and strategy brief)
 - **Stops before Jira ticket creation** — no code (C3), Jira/remote (R4), or build/test (V2) actions are taken
 - Produces a complete, reviewable plan in `.dac/<workstream>/`
 
@@ -225,9 +225,9 @@ Preview is useful for:
 
 **Align Phase:**
 - Focus: Shared understanding before committing to approach
-- Key artifacts: Mission, Evidence, Decisions
-- Common mistake: Rushing through evidence gathering
-- Tip: Spend extra time on Evidence - it pays off later
+- Key artifacts: Mission, Evidence, Decisions, confirmed intent and strategy brief
+- Common mistake: Rushing through evidence gathering, or partitioning before the intent brief is confirmed
+- Tip: Spend extra time on Evidence - it pays off later. Correct the intent brief early; it is far cheaper than repartitioning
 
 **Partition Phase:**
 - Focus: Define clean boundaries with testable outcomes
@@ -244,6 +244,7 @@ Preview is useful for:
 **Execute Phase:**
 - Focus: Route portions to appropriate executors
 - Key artifacts: Portion envelopes, executor results
+- Parts: when a portion starts, DAC shows a part plan (`P-003-a`, `P-003-b`, ...), split by workload and run in sequence, usually one commit each. The table in the portion envelope doubles as the progress view
 - Common mistake: Not checking portion readiness (dependencies complete?)
 - Tip: Only route portions when dependencies are `integrated` or `complete`
 

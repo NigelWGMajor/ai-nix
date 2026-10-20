@@ -75,7 +75,7 @@ Status indicators:
 - `[ ]` Future phase
 
 Major phases:
-1. **Align** - Mission, Evidence, Decisions approved
+1. **Align** - Mission, Evidence, Decisions approved; intent and strategy brief confirmed
 2. **Partition** - Portion plan approved
 3. **Jira** - Jira allocation strategy decided and approved by user
 4. **Execute** - Portions routed and executing
@@ -122,7 +122,7 @@ Read [references/visual-language.md](references/visual-language.md). This file i
 
 When the user invokes DAC with `preview` on the prompt line (e.g. `/dac preview PD-123456`), the entire run is confined to `.dac/` workspace writes (W1 only). No code changes (C3), no Jira or remote writes (R4), no builds or tests (V2). Because of this safety boundary:
 
-**Request blanket W1 approval once at the start** and then proceed through Align and Partition without pausing for per-artifact write permission. The user should only need to confirm once ("approve W1 for `.dac/<workstream>/`") and then see results, not a series of permission prompts.
+**Request blanket W1 approval once at the start** and then proceed through Align and Partition without pausing for per-artifact write permission. The user should only need to confirm once ("approve W1 for `.dac/<workstream>/`") and then see results, not a series of permission prompts. The one deliberate exception is the intent and strategy brief (1a): W1 approval does not confirm intent, so pause once for it.
 
 **Preview MUST write workspace artifacts.** Always initialize the `.dac/<workstream>/` workspace and write the full set of artifacts (00-control through 06-integration-plan). Never substitute inline display for file creation — the artifacts are the deliverable of a preview, not a summary in chat. If the workspace was previously cleaned up or does not exist, initialize it fresh.
 Run the full Align and Partition phases, then write a non-binding, asynchronous allocation review to `05-jira-plan.md` and display the same table. The review must separate SQL, frontend (FE), and backend (BE) work; split large portions further at natural outcome or contract boundaries; and show optional same-discipline groupings.
@@ -156,6 +156,15 @@ Produce and approve, in order:
 
 Resolve decisions that could alter portion boundaries or shared contracts before partitioning. Preserve later discoveries as new or superseding decisions; never rewrite history silently.
 
+### 1a. Intent and strategy brief (gate before partitioning)
+
+Before drafting `04-portion-plan.md`, read [references/intent-and-traceability-review.md](references/intent-and-traceability-review.md) and present a short intent and strategy brief (roughly 10-15 lines): the outcome restated in your own words, non-goals, the existing patterns and extension points you expect to follow (with evidence), the strategy shape, assumptions and overreach risks, and at most one or two open questions. Record it in `01-mission.md` and wait for the user to confirm or correct it. Do not propose portions until it is confirmed.
+
+- This catches a misconstrued mission before it is partitioned; the per-portion review in 2b cannot, because it takes the mission as given.
+- Apply the COP passes for requirement alignment and scope control, assumption audit, and pattern fit while drafting. Do not invoke `/vet`; it is branch-anchored.
+- Do not re-ask on resume. Reopen the brief only through the drift rules below, recording the change as a superseding decision.
+- In preview mode, the blanket W1 approval does not cover this step: pause once for brief confirmation, then continue without further pauses.
+
 ### 2. Partition by outcomes
 
 Produce `04-portion-plan.md`. Prefer portions that are independently understandable, testable, reviewable, and suitable for one PR each.
@@ -185,7 +194,7 @@ An estimate of `8` or above is a split signal. Revisit the outcome, contract, or
 
 ### 2b. Mandatory per-portion necessity, reuse, and security review
 
-Before requesting approval for `04-portion-plan.md` or moving to Jira allocation, read [references/portion-sanity-review.md](references/portion-sanity-review.md) and complete its review for **every active proposed portion**.
+Before requesting approval for `04-portion-plan.md` or moving to Jira allocation, and together with the 2c traceability check, read [references/portion-sanity-review.md](references/portion-sanity-review.md) and complete its review for **every active proposed portion**.
 
 Use repository instructions, code, tests, and the Codebase Knowledge Graph to establish the existing capability, extension point, established methodology, and authorization/security path relevant to each portion. Record the result in the **Portion necessity, reuse, and security review** section of `04-portion-plan.md`, including the requirement covered, evidence links, intended action (`reuse`, `extend`, `new`, `discovery`, or `remove/defer`), security approach, and gate status.
 
@@ -195,6 +204,14 @@ Use repository instructions, code, tests, and the Codebase Knowledge Graph to es
 - A portion may proceed to content approval only when its review status is `ready`, or it has been explicitly removed or deferred. Resolve `revise`, `discovery`, and `decision` outcomes through evidence or a parent decision before allocating Jira work or creating an implementation envelope.
 - With W1 authority, automatically correct a flagrant planning defect only when direct evidence establishes the correction and it preserves the approved mission: revise a `new` action to `reuse` or `extend`, remove a redundant portion, or name the established authorization/security path. Record the evidence and correction in the portion plan and control change log.
 - When reasonable alternatives remain, such as competing extension points, unclear ownership, compatibility consequences, or ambiguous authorization behavior, do not choose silently. Record the alternatives and ask the user one consequential question before proceeding.
+
+### 2c. Traceability check
+
+After drafting `04-portion-plan.md` and alongside the 2b review, run the automatic, lightweight traceability check defined in [references/intent-and-traceability-review.md](references/intent-and-traceability-review.md). Check forward (every mission criterion maps to a portion or integration check) and reverse (every active portion traces to a criterion and to the confirmed brief), that no portion touches a stated non-goal, and that each follows the patterns named in the brief or states why it deviates. Record the result in the **Traceability and overreach check** section of `04-portion-plan.md` and surface only the flags.
+
+- With W1 authority, correct a flag directly when evidence establishes the correction and the confirmed brief is unchanged; record it in the portion plan and control change log.
+- A flag that would change the confirmed brief is drift: route it to the decision register and the user instead of editing the brief silently.
+- Approve `04-portion-plan.md` only when no `gap`, `overreach`, or `deviation` flag is open.
 
 ### 3. Jira allocation decision (MANDATORY)
 
@@ -343,12 +360,26 @@ For Spec Kit, allocate a unique feature directory centrally and use the envelope
 
 For another skill, treat the envelope as the prompt contract. Let the target skill govern its specialist workflow, but do not let it broaden authority or edit parent coordination state.
 
+### 5a. Part planning session (when a portion starts)
+
+After routing and before any C3 work, divide the portion into **parts** (`P-003-a`, `P-003-b`, ...). Portions are split by dependency and deployment sequencing; parts are split by workload and responsibility, usually one commit each. Read the part plan check in [references/intent-and-traceability-review.md](references/intent-and-traceability-review.md).
+
+- Record the **Part plan** table in the portion envelope: purpose, how it traces to the portion strategy, change surface, status, commit, and resume and review guidance. Link to the relevant DAC files, spec directory, or commit where the user may need more context.
+- **Always show the part plan to the user when the portion starts.** One content approval covers the whole plan; C3 approval for the portion covers its parts, so do not prompt per part.
+- Parts run strictly in sequence. Do not propose parallel parts.
+- A trivial portion has a single part; keep it to one row.
+- Run the lightweight check automatically and surface only flags. A flag that contradicts the portion plan escalates to the portion level; do not edit the portion silently.
+- Parts are local: they are never Jira tickets and carry no points. Never recycle a part ID; a split part gets a new letter.
+- For a `speckit` route, keep the parts and use their resume and review guidance to show which stage or task group each corresponds to.
+- During execution, update the table as the progress view: set each part to `executing` or `done`, and record its commit.
+- Give an executor a **part packet**, not the whole portion: the envelope header (outcome, authority, escalation rules), the portion strategy excerpt, the parent decisions that pertain to that part, and that part's row. Leave out sibling parts and parent history.
+
 ### 6. Ingest a normalized result
 
 Every executor must return the same minimum result:
 
 - outcome: completed, blocked, or superseded. Record a failed execution attempt as `blocked`, with its cause, retry condition, and required escalation.
-- artifact, branch, commit, and PR references when applicable
+- artifact, branch, commit, and PR references when applicable, including the commit or commits for each part
 - files or systems changed
 - acceptance criteria and test evidence
 - deviations, assumptions, discoveries, and contract effects
@@ -374,7 +405,7 @@ Pause the affected portion when:
 - implementation requires sibling-owned files or broader authority
 - a new dependency, migration, security, or rollout concern appears
 
-Classify the discovery as local, parent-level, contract-changing, or new scope. Handle local discoveries inside the child. Route all others to the parent decision register, mark affected portions stale or blocked, and reapprove their envelopes before continuing.
+Classify the discovery as part-local, portion-level, parent-level, contract-changing, or new scope. Handle part-local discoveries inside the part; a portion-level discovery re-plans the parts and is shown to the user. Handle other local discoveries inside the child. Route all others to the parent decision register, mark affected portions stale or blocked, and reapprove their envelopes before continuing.
 
 ## Branch sync
 Use the `sync` subcommand to check whether child portion branches are up to date with the parent integration branch. This is useful after merging child PRs into the parent, after updating the parent from its recorded target branch, or when resuming work after time away.

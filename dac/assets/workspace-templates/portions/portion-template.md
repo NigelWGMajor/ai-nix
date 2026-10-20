@@ -60,6 +60,19 @@ spec_directory: {{SPEC_DIRECTORY}}
 - V2 validation scope:
 - R4 actions reserved for coordinator:
 
+## 🧩 Part plan
+
+Drafted when the portion starts, after the executor is routed. Show it to the user before any C3 work. Read the DAC skill's `references/intent-and-traceability-review.md` (part plan check). Parts run strictly in sequence, `a` before `b`. A trivial portion has one part. Parts are local to this envelope: no Jira ticket, no points.
+
+- Part plan status: <!-- draft | approved | superseded -->
+- Portion strategy followed (patterns and extension points, with evidence):
+
+| Part | Purpose | Traces to (portion strategy, criterion) | Change surface | Status | Commit | Resume and review guidance |
+|---|---|---|---|---|---|---|
+| {{PORTION_ID}}-a | To determine | To determine | To determine | not_started | - | Where to resume, what to review, and links to files, spec directory, or commit |
+
+Status values: `not_started`, `executing`, `done`, `blocked`, `superseded`. Update the row as work proceeds so this table is the progress view.
+
 ## 📋 Acceptance and validation
 
 | Criterion | Parent source | Proof required | Status |

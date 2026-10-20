@@ -29,6 +29,12 @@ executor: {{EXECUTOR}}
 - Specification or skill artifacts:
 - PR or deliverable:
 
+## 🧩 Parts delivered
+
+| Part | Outcome | Commit(s) | Notes |
+|---|---|---|---|
+| {{PORTION_ID}}-a | done/blocked/superseded | - | - |
+
 ## 🔎 Changes
 
 | File, component, or system | Change | Envelope fit |
@@ -45,7 +51,7 @@ executor: {{EXECUTOR}}
 
 | Class | Item | Parent or downstream effect | Required action |
 |---|---|---|---|
-| local/parent/contract/new-scope/authority | None recorded | - | - |
+| part-local/portion/parent/contract/new-scope/authority | None recorded | - | - |
 
 ## 🎬 Residual work and downstream guidance
 

@@ -143,7 +143,10 @@ When the files are written, **commit**:
 now_run.py commit [--roll-day <mon..sun>]
 ```
 On a refresh it keeps the file being replaced as `previous-run` and swaps `.next` in as `current`. On a new week it records the finished week in `history.csv`, moves `current` to `last-week` and `last-week` to `prior-week` (by week id; a skipped week leaves a gap and anything older than two weeks is dropped), and makes `.next` the new `current`. Commit only after every file above is written and Jira and GitHub were read successfully; if a run stops earlier, do not commit.
-Return to the user only a short handoff: the answer, the mode (`refresh` or `new-week`), the path to `current\index.html`, which baselines were used or missing, and the open assumptions that need their correction.
+
+Return to the user only a short handoff, with every ticket or PR it mentions as a link (see Links): the answer, the mode (`refresh` or `new-week`), the path to `current\index.html`, which baselines were used or missing, and the open assumptions that need their correction.
+## Links
+Always link every Jira ticket and PR; never leave a bare key such as `PD-130896` or `be#56540`. This applies to `Findings.md`, `00-control.md`, the handoff reply and any other prose, including the "Next step". Use Markdown links: `[PD-130896](https://degreedjira.atlassian.net/browse/PD-130896)`, `[be#56540](https://github.com/degreed/Degreed/pull/56540)`, `[fe#4127](https://github.com/degreed/fe-workspace/pull/4127)`. Other Jira projects (EM-, FEEDBACK-, JEDI-) use the same `/browse/` form. In `triage.csv`, `url` must be filled for every row; `linked_items` and `related_prs` hold keys only (the dashboard links them). Before committing, scan `Findings.md` for keys not wrapped in a link and fix them.
 
 ## Guardrails
 

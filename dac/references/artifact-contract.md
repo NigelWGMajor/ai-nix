@@ -53,7 +53,7 @@ Allowed statuses are `not_started`, `drafting`, `proposed`, `approved`, `executi
 
 ## Stable identity
 
-Never recycle a portion or decision ID. Use `P-001`, `P-002`, and `DEC-001`. If scope changes materially, supersede the old item and create a new one. Allocate Jira keys, Spec Kit directories, branch names, and PR identifiers centrally before concurrent execution.
+Never recycle a portion or decision ID. Use `P-001`, `P-002`, and `DEC-001`. Parts within a portion use the portion ID plus a letter (`P-001-a`, `P-001-b`) and live in the portion envelope's **Part plan** table, not in separate files; a split part takes a new letter. If scope changes materially, supersede the old item and create a new one. Allocate Jira keys, Spec Kit directories, branch names, and PR identifiers centrally before concurrent execution.
 
 ## Title-line identity
 
@@ -89,6 +89,10 @@ Prefer concise relative Markdown links for evidence:
 Use symbols only from `visual-language.md`, at most one leading symbol per heading, and never as the sole carrier of meaning. The visual-language reference is authoritative; its current symbol assignments override any symbols in templates.
 
 A handoff records the parent decision IDs, upstream contracts, Jira verification time, base branch, and base commit it relied upon. Recheck volatile facts before execution and integration.
+
+## Intent brief and traceability check
+
+Before drafting `04-portion-plan.md`, record a confirmed **Intent and strategy brief** in `01-mission.md`. After drafting it, record the **Traceability and overreach check** in `04-portion-plan.md`. Both are defined in [intent-and-traceability-review.md](intent-and-traceability-review.md). A changed brief is a superseding decision, not a silent edit.
 
 ## Portion necessity, reuse, and security review
 

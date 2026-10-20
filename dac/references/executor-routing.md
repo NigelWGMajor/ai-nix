@@ -31,6 +31,10 @@ Pass:
 
 Exclude unrelated sibling detail and parent history. Link to evidence instead of copying it.
 
+### Part packet
+
+When the portion has a part plan, pass the executor one part at a time. The packet is the portion envelope header (outcome, authority, escalation rules), the portion strategy excerpt, only the parent decisions and contracts that pertain to that part, and that part's row from the **Part plan** table. Leave out sibling parts. Parts run in sequence, so the next packet is issued after the previous part's commit is recorded.
+
 ## Spec Kit adapter
 
 Use the envelope as the bounded input to the child feature specification. Allocate its directory before dispatch and link the directory to the portion in both directions.
@@ -41,6 +45,8 @@ Run the child cycle independently:
 specify -> clarify -> plan -> checklist -> tasks -> analyze
         -> implementation approval -> implement -> converge -> PR
 ```
+
+Keep the portion's part plan. Record in each part's resume and review guidance which Spec Kit stage or task group it corresponds to, so the user can see what to resume or review. Spec Kit's task breakdown must stay within the parts' purposes.
 
 Let Spec Kit decide portion-local technical detail within delegated freedom. A contradiction with the envelope is a parent escalation, not a local clarification.
 
@@ -66,6 +72,8 @@ Name the owner, deliverable, due or review condition, dependency effect, evidenc
 
 ## Escalation classes
 
+- **Part-local:** stays within one part; resolve it there and note it in the part's row or the result.
+- **Portion-level:** affects other parts or the part plan; re-plan the parts and show the revised plan to the user.
 - **Local:** stays within envelope; record in child artifacts.
 - **Parent:** changes intent, acceptance, priority, or shared design; pause and decide centrally.
 - **Contract:** changes an upstream or downstream interface; block affected portions and revise the graph.
