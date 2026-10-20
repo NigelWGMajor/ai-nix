@@ -10,6 +10,8 @@ This is a concise operator note. Deploy the entire `dac` folder so `SKILL.md`, `
 - Codebase Knowledge Graph MCP for code discovery and impact tracing; use it before text search when available.
 - Atlassian plugin/connector for Jira reads and approved Jira updates; Jira access is optional until a Jira-backed action is required.
 
+Deploy `dac-help` alongside `dac`, in the same skills folder. `dac-help` reads `../dac/introduction.md` and runs `dac/scripts/render_intro.py` to produce the optional HTML introduction (standard library only; its diagram loads from a CDN and falls back to source when offline). If `dac` is not installed next to it, `dac-help` skips the introduction.
+
 The helper writes markdown only within a selected `.dac/<workstream>/` Markdown workspace. It does not call Jira, GitHub, Spec Kit, tests, builds, or network services. Git is invoked only for branch discovery, branch switching and stash management, not for commits or pushes.
 
 ## Install for Codex
@@ -57,23 +59,23 @@ For Claude Code, use `/dac` instead of `$dac`.
 DAC will first gather evidence and propose the mission. After explicit W1 approval, initialize its editable workspace:
 
 ```bash
-python <dac-skill-dir>/scripts/dac.py init --workstream PD-123456 --repo-root . --title "Outcome"
+python <dac-skill-dir>/scripts/dac.py init --workstream PD-123456 --repo-root . --context-suffix "short-title" --title "Outcome"
 ```
 
-Runtime state belongs under the target repository, not inside the installed skill:
+Omit `--context-suffix` for an unsuffixed workspace. Runtime state belongs under the output base, not inside the installed skill. The output base is `TOOLING_OUTPUT_PATH` when set, otherwise `<repository>/.data`:
 
 ```text
-.dac/PD-123456/
+<output-base>/.dac/PD-123456[-short-title]/
 ```
 
-Resume later by asking the client to use DAC for `PD-123456`; it should read `.dac/PD-123456/00-control.md` first.
+Resume later by asking the client to use DAC for `PD-123456`; it should read that workspace's `00-control.md` first.
 
 ## Common helper commands
 
 ```bash
-python <dac-skill-dir>/scripts/dac.py status --workspace .dac/PD-123456
-python <dac-skill-dir>/scripts/dac.py validate --workspace .dac/PD-123456
-python <dac-skill-dir>/scripts/dac.py ready --workspace .dac/PD-123456 --all
+python <dac-skill-dir>/scripts/dac.py status --workspace <output-base>/.dac/PD-123456
+python <dac-skill-dir>/scripts/dac.py validate --workspace <output-base>/.dac/PD-123456
+python <dac-skill-dir>/scripts/dac.py ready --workspace <output-base>/.dac/PD-123456 --all
 ```
 
 Use the assistant-led workflow for approvals, decisions, portion creation, execution routing, Jira writes, and PR integration. Do not treat a helper state change as authorization to modify code or remote systems.

@@ -93,22 +93,29 @@ Partitioning is about splitting *work* into clean, testable, independently revie
 
 DAC always pauses after partitioning to let the user decide how (or whether) to allocate Jira tickets. The coordinator presents context and options — it never creates tickets without explicit permission.
 
-**No new tickets (strategy: none):**
+DAC offers four choices, each recorded in `05-jira-plan.md`. SQL, frontend, and backend portions are never grouped together, because they use different review pipelines.
+
+**Parent-only, no new tickets (strategy: `none`):**
 - Work fits in 1-2 PRs under the parent ticket
 - Same implementer throughout
 - Portions are tightly coupled or small
 - Natural sequence doesn't need separate tracking
+- A trivial `06-integration-plan.md` is still required
 
-**One ticket per partition (strategy: per-partition):**
+**Use portions, one Story per portion (strategy: `per-portion`):**
 - Multiple independent work items needing separate tracking
 - Different implementers or reviewers per portion
 - Each portion is substantial enough to warrant its own Story
 - Team needs individual status visibility in Jira
 
-**Custom mapping (strategy: custom):**
+**Accept suggested groupings (strategy: `suggested-grouping`):**
+- Several small portions in the same discipline can share one Story
+- Ticket points are the grouped total, rounded up to the next Fibonacci value; a group of 8 or more is a split signal
+
+**Custom mapping (strategy: `custom`), or Split more first:**
 - Some portions share a ticket, others get their own
 - Some portions map to existing tickets already in the hierarchy
-- Mixed ownership where only some parts need separate tracking
+- To split a large portion further, name it; DAC revises the portion plan and regenerates the allocation table
 
 ### Executor Choice
 
@@ -143,15 +150,16 @@ python <skill-dir>/scripts/dac.py solo adopt \
   --workspace .dac/ABC-123 \
   --ticket-id ABC-456 \
   --title "Fix auth bug" \
-  --outcome "Users can log in reliably"
+  --outcome "Users can log in reliably" \
+  --base-branch <approved-base-branch>
 
 # Check solo ticket status
 python <skill-dir>/scripts/dac.py solo status --workspace .dac/ABC-123
 
-# Transition solo ticket state
+# Transition solo ticket state (--solo takes the local S-### ID or the Jira key)
 python <skill-dir>/scripts/dac.py solo transition \
   --workspace .dac/ABC-123 \
-  --ticket-id ABC-456 \
+  --solo S-001 \
   --to executing
 ```
 
@@ -241,12 +249,13 @@ Preview is useful for:
 **Partition Phase:**
 - Focus: Define clean boundaries with testable outcomes
 - Key artifact: Portion plan
+- Automatic checks: DAC reviews every portion for reuse of existing capability and the established security path, then checks that every mission criterion is covered and no portion goes beyond the confirmed intent brief. Only flags are surfaced
 - Common mistake: Portions that can't be independently verified
 - Tip: Each portion should have its own PR and test evidence
 
 **Jira Phase:**
 - Focus: User decides Jira allocation strategy — no tickets created without explicit permission
-- Key artifacts: Jira plan with chosen strategy (none / per-partition / custom)
+- Key artifacts: Jira plan with chosen strategy (none / per-portion / suggested-grouping / custom)
 - Common mistake: Assuming tickets should be created; creating tickets without asking
 - Tip: Present partition context (scope, dependencies, complexity) so the user can make an informed choice. "No new tickets" is a valid and common outcome
 

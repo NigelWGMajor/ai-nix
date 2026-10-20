@@ -17,7 +17,7 @@ Large pieces of work go wrong in familiar ways:
 DAC keeps the shared picture in one place and hands out small, well-defined pieces of work. It does this in a fixed order, and it stops to ask you at the points that matter.
 
 1. **Align.** It reads the Jira ticket (typically an epic or large story) and looks at the existing system, then tells you in a few lines what it thinks the goal is, what is *out* of scope, and which existing approaches it expects to reuse. You confirm or correct this *before* anything is split up. Catching a misunderstanding here is far cheaper than catching it later.
-2. **Partition.** It divides the work into **portions**, each of which can be built, tested and released on its own, and each of which will become one pull request. It checks that nothing is being built that already exists, that nothing goes beyond what you asked for, and that every part of the goal is covered. You approve the partioning into portions.
+2. **Partition.** It divides the work into **portions**, each of which can be built, tested and released on its own, and each of which will become one pull request. It checks that nothing is being built that already exists, that nothing goes beyond what you asked for, and that every part of the goal is covered. You approve the partitioning into portions.
 3. **Jira.** It shows you options for how the portions should appear as Jira tickets: one each, grouped, split further, or none at all. You choose. Nothing is created in Jira until you approve the exact tickets. Tickets reference the dac structure and contain acceptance criteria: additional attributes are inherited from the parent ticket and all are cross-referenced.
 4. **Execute.** When a portion is ready, it is divided again into short, ordered **parts**, usually one saved change each. You see the part plan first for approval. Each part is handed to whoever or whatever does the work (a person, an AI assistant or a specialist tool), with only the information that part needs, which limits cognitive load for both humans and agents.
 5. **Integrate.** DAC checks that each finished portion was really merged where it was meant to be, then checks that the whole goal has been met.
@@ -132,7 +132,7 @@ Starting:
 
 Resuming:
 - open the git branch that holds your project
-- Run `/dac` to reviews tatus and next steps
+- Run `/dac` to review status and next steps
 
 Information:
 - Type `/dac ?` for quick help, or `/dac-help` for guidance on whichever step you are on.

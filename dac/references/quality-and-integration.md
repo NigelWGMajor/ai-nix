@@ -4,7 +4,9 @@
 
 Approve a partition only when:
 
-- every parent success criterion is covered
+- the intent and strategy brief is confirmed, and the portion plan stays within it
+- every parent success criterion is covered, and every active portion traces to a criterion and the brief (no open `gap`, `overreach`, or `deviation` flag in the traceability check)
+- every active portion has a `ready` necessity, reuse, and security review
 - each portion has one coherent outcome and testable boundary
 - dependencies are directional, necessary, and acyclic
 - shared contracts are assigned to a clear owner

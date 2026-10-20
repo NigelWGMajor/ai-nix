@@ -8,3 +8,7 @@ jira-fields.local.yaml
 
 # Captured external references
 md/
+
+# Python bytecode
+__pycache__/
+*.pyc

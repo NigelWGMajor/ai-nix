@@ -504,7 +504,8 @@ python <skill-dir>/scripts/dac.py solo adopt \
   --ac "- [ ] Login succeeds for valid credentials\n- [ ] Error message for invalid credentials" \
   --executor direct \
   --jira-url "https://jira.example.com/browse/PD-123457" \
-  --branch "feature/PD-123457-auth-fix"
+  --branch "feature/PD-123457-auth-fix" \
+  --base-branch <approved-base-branch>
 ```
 
 This creates a solo envelope such as `.dac/PD-123456/solo/S-001.md` with:

@@ -311,7 +311,7 @@ Add explicit Jira content section to portion template:
 
 Before marking Jira integration complete:
 
-- [ ] Allocation strategy recorded in `05-jira-plan.md` (none / per-partition / custom)
+- [ ] Allocation strategy recorded in `05-jira-plan.md` (none / per-portion / suggested-grouping / custom)
 - [ ] If creating tickets: all planned portion Jira issues created
 - [ ] If creating tickets: Story Points field was discovered, written with the approved Fibonacci value, and read back
 - [ ] If creating tickets: description field contains deliverables, key behavior, dependencies, and `.dac/` reference

@@ -22,7 +22,8 @@ python scripts/dac.py solo adopt \
   --outcome "Users can log in reliably" \
   --ac "- [ ] Login succeeds for valid credentials
 - [ ] Error message shown for invalid credentials" \
-  --jira-url "https://jira.example.com/browse/ABC-456"
+  --jira-url "https://jira.example.com/browse/ABC-456" \
+  --base-branch <approved-base-branch>
 ```
 
 ### Create envelope for new ticket
@@ -33,7 +34,8 @@ python scripts/dac.py solo create \
   --ticket-id ABC-789 \
   --title "Add request logging" \
   --outcome "All API requests are logged" \
-  --executor direct
+  --executor direct \
+  --base-branch <approved-base-branch>
 ```
 
 ### Check solo ticket status
@@ -213,7 +215,8 @@ python scripts/dac.py solo adopt \
   --outcome "Payment processing handles null customer gracefully" \
   --ac "- [ ] Null customer returns proper error
 - [ ] Error logged with context
-- [ ] Existing tests still pass"
+- [ ] Existing tests still pass" \
+  --base-branch <approved-base-branch>
 
 # Transition to executing
 python scripts/dac.py solo transition \
@@ -234,7 +237,8 @@ python scripts/dac.py solo create \
   --ticket-id PROJ-789 \
   --title "Add rate limiting middleware" \
   --outcome "API protected from excessive requests" \
-  --executor direct
+  --executor direct \
+  --base-branch <approved-base-branch>
 
 # Edit envelope to add details
 # ... implement ...
